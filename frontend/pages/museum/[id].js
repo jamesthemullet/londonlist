@@ -1,8 +1,8 @@
-import { gql, useQuery } from "@apollo/client";
-import { useRouter } from "next/router";
+import { gql, useQuery } from '@apollo/client';
+import { useRouter } from 'next/router';
 
-import Image from "next/image";
-import Loader from "../../components/Loader";
+// import Image from 'next/image';
+import Loader from '../../components/Loader';
 
 const GET_MUSEUM_EXHIBITIONS = gql`
   query ($id: ID!) {
@@ -45,7 +45,7 @@ function ExhibitionCard({ data }) {
           alt=''
         /> */}
         <div>
-          <div href='#'>
+          <div href="#">
             <h3>{data.attributes.name}</h3>
           </div>
           <p>{data.attributes.description}</p>
@@ -63,10 +63,10 @@ function ExhibitionCard({ data }) {
 export default function Museum() {
   const router = useRouter();
   const { loading, error, data } = useQuery(GET_MUSEUM_EXHIBITIONS, {
-    variables: { id: router.query.id },
+    variables: { id: router.query.id }
   });
 
-  if (error) return "Error Loading Exhibitions";
+  if (error) return 'Error Loading Exhibitions';
   if (loading) return <Loader />;
   if (data.museum.data.attributes.exhibitions.data.length) {
     const { museum } = data;

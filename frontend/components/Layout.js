@@ -1,8 +1,8 @@
-import Head from "next/head";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useAppContext } from "../context/AppContext";
-import Cookie from "js-cookie";
+import Head from 'next/head';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useAppContext } from '../context/AppContext';
+import Cookie from 'js-cookie';
 
 function Navigation() {
   const { user, setUser } = useAppContext();
@@ -10,19 +10,19 @@ function Navigation() {
 
   function handleLogout() {
     setUser(null);
-    Cookie.remove("token");
-    router.push("/");
+    Cookie.remove('token');
+    router.push('/');
   }
   return (
     <nav>
       <div>
         <div>
-          <Link href='/'>My App</Link>
+          <Link href="/">My App</Link>
         </div>
 
         <div>
           <div>
-            <Link href='/'>Home</Link>
+            <Link href="/">Home</Link>
             <div>
               {user ? (
                 <div>
@@ -31,8 +31,8 @@ function Navigation() {
                 </div>
               ) : (
                 <div>
-                  <Link href='/login'>Log In</Link>
-                  <Link href='/register'>Sign Up</Link>
+                  <Link href="/login">Log In</Link>
+                  <Link href="/register">Sign Up</Link>
                 </div>
               )}
             </div>
@@ -44,14 +44,14 @@ function Navigation() {
 }
 
 export default function Layout(props) {
-  const title = "Welcome to Nextjs";
+  const title = 'Welcome to Nextjs';
 
   return (
     <div>
       <Head>
         <title>{title}</title>
-        <meta charSet='utf-8' />
-        <meta name='viewport' content='initial-scale=1.0, width=device-width' />
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <Navigation />
       <div>{props.children}</div>
