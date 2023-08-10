@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { useAppContext } from "../context/AppContext";
-import { gql, useMutation } from "@apollo/client";
-import Cookie from "js-cookie";
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useAppContext } from '../context/AppContext';
+import { gql, useMutation } from '@apollo/client';
+import Cookie from 'js-cookie';
 
-import Form from "../components/Form";
-import Loader from "../components/Loader";
+import Form from '../components/Form';
+import Loader from '../components/Loader';
 
 const LOGIN_MUTATION = gql`
   mutation Login($identifier: String!, $password: String!) {
@@ -23,7 +23,7 @@ export default function LoginRoute() {
   const { setUser } = useAppContext();
   const router = useRouter();
 
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [loginMutation, { loading, error }] = useMutation(LOGIN_MUTATION);
 
   const handleLogin = async () => {
@@ -33,8 +33,8 @@ export default function LoginRoute() {
     });
     if (data?.login.user) {
       setUser(data.login.user);
-      Cookie.set("token", data.login.jwt);
-      router.push("/");
+      Cookie.set('token', data.login.jwt);
+      router.push('/');
     }
   };
 
@@ -42,8 +42,8 @@ export default function LoginRoute() {
 
   return (
     <Form
-      title='Login'
-      buttonText='Login'
+      title="Login"
+      buttonText="Login"
       formData={formData}
       setFormData={setFormData}
       callback={handleLogin}

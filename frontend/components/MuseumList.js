@@ -1,7 +1,7 @@
-import { gql, useQuery } from "@apollo/client";
-import Link from "next/link";
-import Image from "next/image";
-import Loader from "./Loader";
+import { gql, useQuery } from '@apollo/client';
+import Link from 'next/link';
+import Image from 'next/image';
+import Loader from './Loader';
 
 const QUERY = gql`
   {
@@ -31,10 +31,10 @@ function MuseumCard({ data }) {
         <Image
           height={300}
           width={300}
-          src={`${process.env.STRAPI_URL || "http://localhost:1337"}${
+          src={`${process.env.STRAPI_URL || 'http://localhost:1337'}${
             data.attributes.image.data[0].attributes.url
           }`}
-          alt=''
+          alt=""
         />
         <div>
           <h3>{data.attributes.name}</h3>
@@ -53,12 +53,12 @@ function MuseumCard({ data }) {
 function MuseumList(props) {
   const { loading, error, data } = useQuery(QUERY);
 
-  if (error) return "Error loading museums";
+  if (error) return 'Error loading museums';
   if (loading) return <Loader />;
 
   if (data.museums.data && data.museums.data.length) {
     const searchQuery = data.museums.data.filter((query) =>
-      query.attributes.name.toLowerCase().includes(props.query.toLowerCase())
+      query.attributes.name.toLowerCase().includes(props.query.toLowerCase()),
     );
 
     if (searchQuery.length != 0) {
