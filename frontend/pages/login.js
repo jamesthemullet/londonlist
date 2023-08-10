@@ -29,7 +29,7 @@ export default function LoginRoute() {
   const handleLogin = async () => {
     const { email, password } = formData;
     const { data } = await loginMutation({
-      variables: { identifier: email, password }
+      variables: { identifier: email, password },
     });
     if (data?.login.user) {
       setUser(data.login.user);

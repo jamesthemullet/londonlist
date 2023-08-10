@@ -63,7 +63,7 @@ function ExhibitionCard({ data }) {
 export default function Museum() {
   const router = useRouter();
   const { loading, error, data } = useQuery(GET_MUSEUM_EXHIBITIONS, {
-    variables: { id: router.query.id }
+    variables: { id: router.query.id },
   });
 
   if (error) return 'Error Loading Exhibitions';

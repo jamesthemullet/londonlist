@@ -10,12 +10,12 @@ export const client = new ApolloClient({
   cache: new InMemoryCache(),
   defaultOptions: {
     mutate: {
-      errorPolicy: 'all'
+      errorPolicy: 'all',
     },
     query: {
-      errorPolicy: 'all'
-    }
-  }
+      errorPolicy: 'all',
+    },
+  },
 });
 
 export default function App({ Component, pageProps }) {

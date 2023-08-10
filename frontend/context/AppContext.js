@@ -20,7 +20,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider
       value={{
         user,
-        setUser
+        setUser,
       }}>
       {children}
     </AppContext.Provider>
@@ -42,9 +42,9 @@ const getUser = async () => {
     `,
     context: {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
+        Authorization: `Bearer ${token}`,
+      },
+    },
   });
   return data.me;
 };

@@ -29,7 +29,7 @@ export default function RegisterRoute() {
   const handleRegister = async () => {
     const { email, password } = formData;
     const { data } = await registerMutation({
-      variables: { username: email, email: email, password }
+      variables: { username: email, email: email, password },
     });
     if (data?.register.user) {
       setUser(data.register.user);

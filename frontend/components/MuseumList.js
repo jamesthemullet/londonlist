@@ -58,7 +58,7 @@ function MuseumList(props) {
 
   if (data.museums.data && data.museums.data.length) {
     const searchQuery = data.museums.data.filter((query) =>
-      query.attributes.name.toLowerCase().includes(props.query.toLowerCase())
+      query.attributes.name.toLowerCase().includes(props.query.toLowerCase()),
     );
 
     if (searchQuery.length != 0) {
