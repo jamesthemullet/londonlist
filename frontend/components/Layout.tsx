@@ -17,7 +17,7 @@ function Navigation() {
     <nav>
       <div>
         <div>
-          <Link href="/">My App</Link>
+          <Link href="/">My Apppppp</Link>
         </div>
 
         <div>
