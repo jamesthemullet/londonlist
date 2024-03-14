@@ -60,6 +60,9 @@ jobs:
             ${{ steps.format_lighthouse_score.outputs.comment }}
   axe:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     env:
       POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
       GITHUB_API_SECRET: ${{ secrets.PIPELINE_GITHUB_API_SECRET }}
@@ -95,6 +98,9 @@ jobs:
           npx axe --chromedriver-path $(yarn bin)/chromedriver http://localhost:3000/ --load-delay=1500 --exit
   unit_tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
