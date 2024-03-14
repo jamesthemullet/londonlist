@@ -4,8 +4,16 @@ import { useRouter } from 'next/router';
 import { useAppContext } from '../context/AppContext';
 import Cookie from 'js-cookie';
 
+type AppContextType = {
+  // update later
+  user: any;
+  setUser: any;
+};
+
 function Navigation() {
-  const { user, setUser } = useAppContext();
+
+  const { user, setUser } = useAppContext() as AppContextType;
+
   const router = useRouter();
 
   function handleLogout() {
