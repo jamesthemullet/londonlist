@@ -22,32 +22,32 @@ function Navigation() {
   }
   return (
     <>
-    <nav>
-      <div>
-        <div>
-          <Link href="/">My Apppppp</Link>
-        </div>
-
+      <nav>
         <div>
           <div>
-            <Link href="/">Home</Link>
+            <Link href="/">My Apppppp</Link>
+          </div>
+
+          <div>
             <div>
-              {user ? (
-                <div>
-                  <span>{user.username}</span>
-                  <button onClick={handleLogout}>Log Out</button>
-                </div>
-              ) : (
-                <div>
-                  <Link href="/login">Log In</Link>
-                  <Link href="/register">Sign Up</Link>
-                </div>
-              )}
+              <Link href="/">Home</Link>
+              <div>
+                {user ? (
+                  <div>
+                    <span>{user.username}</span>
+                    <button onClick={handleLogout}>Log Out</button>
+                  </div>
+                ) : (
+                  <div>
+                    <Link href="/login">Log In</Link>
+                    <Link href="/register">Sign Up</Link>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
     <h1>London List</h1>
     </>
   );
