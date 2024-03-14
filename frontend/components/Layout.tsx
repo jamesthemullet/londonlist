@@ -21,7 +21,7 @@ function Navigation() {
     router.push('/');
   }
   return (
-    <>
+    <header>
       <nav>
         <div>
           <div>
@@ -48,10 +48,8 @@ function Navigation() {
           </div>
         </div>
       </nav>
-      <main>
-        <h1>London List</h1>
-      </main>
-    </>
+      <h1>London List</h1>
+    </header>
   );
 }
 

@@ -1,4 +1,4 @@
-name: CI Tests For London Listt
+name: CI Tests For London List
 on:
   pull_request:
     branches: [main]
@@ -9,7 +9,7 @@ jobs:
       run:
         working-directory: ./frontend
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Vercel Action
         id: vercel_action
         uses: amondnet/vercel-action@v20
