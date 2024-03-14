@@ -45,9 +45,9 @@ function ExhibitionCard({ data }) {
           alt=''
         /> */}
         <div>
-          <div href="#">
+          <a href="#">
             <h3>{data.attributes.name}</h3>
-          </div>
+          </a>
           <p>{data.attributes.description}</p>
           <div>
             <div>
