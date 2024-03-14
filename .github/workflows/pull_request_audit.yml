@@ -5,6 +5,9 @@ on:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v2
       - name: Vercel Action
@@ -95,6 +98,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
-        run: cd londonlist/frontend | yarn install
+        run: yarn install
       - name: Run unit tests
         run: yarn test
