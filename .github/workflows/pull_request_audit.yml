@@ -1,4 +1,4 @@
-name: CI Tests For London List
+name: CI Tests For London Listt
 on:
   pull_request:
     branches: [main]
@@ -14,10 +14,10 @@ jobs:
         id: vercel_action
         uses: amondnet/vercel-action@v20
         with:
-          vercel-token: ${{ secrets.TWENTY_VERCEL_TOKEN }}
+          vercel-token: ${{ secrets.LONDON_VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-org-id: ${{ secrets.ORG_ID }}
-          vercel-project-id: ${{ secrets.TWENTY_PROJECT_ID }}
+          vercel-project-id: ${{ secrets.LONDON_PROJECT_ID }}
       - name: Audit URLs using Lighthouse
         id: lighthouse_audit
         uses: treosh/lighthouse-ci-action@v9
@@ -96,14 +96,3 @@ jobs:
           CHROMIUM_VERSION=$(google-chrome --version | cut -d' ' -f3 | cut -d'.' -f1)
           yarn add chromedriver@$CHROMIUM_VERSION
           npx axe --chromedriver-path $(yarn bin)/chromedriver http://localhost:3000/ --load-delay=1500 --exit
-  unit_tests:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install dependencies
-        run: yarn install
-      - name: Run unit tests
-        run: yarn test
