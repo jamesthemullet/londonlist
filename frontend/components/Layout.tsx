@@ -4,8 +4,15 @@ import { useRouter } from 'next/router';
 import { useAppContext } from '../context/AppContext';
 import Cookie from 'js-cookie';
 
+type AppContextType = {
+  // update later
+  user: any;
+  setUser: any;
+};
+
 function Navigation() {
-  const { user, setUser } = useAppContext();
+  const { user, setUser } = useAppContext() as AppContextType;
+
   const router = useRouter();
 
   function handleLogout() {
@@ -14,32 +21,35 @@ function Navigation() {
     router.push('/');
   }
   return (
-    <nav>
-      <div>
-        <div>
-          <Link href="/">My Apppppp</Link>
-        </div>
-
+    <header>
+      <nav>
         <div>
           <div>
-            <Link href="/">Home</Link>
+            <Link href="/">My Apppppp</Link>
+          </div>
+
+          <div>
             <div>
-              {user ? (
-                <div>
-                  <span>{user.username}</span>
-                  <button onClick={handleLogout}>Log Out</button>
-                </div>
-              ) : (
-                <div>
-                  <Link href="/login">Log In</Link>
-                  <Link href="/register">Sign Up</Link>
-                </div>
-              )}
+              <Link href="/">Home</Link>
+              <div>
+                {user ? (
+                  <div>
+                    <span>{user.username}</span>
+                    <button onClick={handleLogout}>Log Out</button>
+                  </div>
+                ) : (
+                  <div>
+                    <Link href="/login">Log In</Link>
+                    <Link href="/register">Sign Up</Link>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+      <h1>London List</h1>
+    </header>
   );
 }
 

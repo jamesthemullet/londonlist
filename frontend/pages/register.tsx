@@ -48,6 +48,7 @@ export default function RegisterRoute() {
       setFormData={setFormData}
       callback={handleRegister}
       error={error}
+      isLogin={true}
     />
   );
 }
