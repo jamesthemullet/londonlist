@@ -48,7 +48,9 @@ function Navigation() {
           </div>
         </div>
       </nav>
-      <h1>London List</h1>
+      <main>
+        <h1>London List</h1>
+      </main>
     </>
   );
 }
