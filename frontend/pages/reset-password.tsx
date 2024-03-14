@@ -12,9 +12,10 @@ const REQUEST_RESET_MUTATION = gql`
 `;
 
 export default function ForgotPassword() {
-  const router = useRouter();
+  // const router = useRouter();
   const [formData, setFormData] = useState({ email: '' });
   const [resetPassword, { loading, error }] = useMutation(REQUEST_RESET_MUTATION);
+  console.log(1, loading);
 
   const handleRequestReset = async () => {
     try {
