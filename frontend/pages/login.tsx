@@ -6,6 +6,7 @@ import Cookie from 'js-cookie';
 
 import Form from '../components/Form';
 import Loader from '../components/Loader';
+import Link from 'next/link';
 
 const LOGIN_MUTATION = gql`
   mutation Login($identifier: String!, $password: String!) {
@@ -41,13 +42,17 @@ export default function LoginRoute() {
   if (loading) return <Loader />;
 
   return (
-    <Form
-      title="Login"
-      buttonText="Login"
-      formData={formData}
-      setFormData={setFormData}
-      callback={handleLogin}
-      error={error}
-    />
+    <>
+      <Form
+        title="Login"
+        buttonText="Login"
+        formData={formData}
+        setFormData={setFormData}
+        callback={handleLogin}
+        error={error}
+        isLogin={true}
+      />
+      <Link href="/reset-password">Forgot Password?</Link>
+    </>
   );
 }
