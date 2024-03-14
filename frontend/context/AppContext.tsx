@@ -3,7 +3,7 @@ import Cookie from 'js-cookie';
 import { gql } from '@apollo/client';
 import { client } from '../pages/_app';
 
-const AppContext = createContext();
+const AppContext = createContext(null);
 
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);

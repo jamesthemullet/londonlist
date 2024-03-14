@@ -11,7 +11,6 @@ type AppContextType = {
 };
 
 function Navigation() {
-
   const { user, setUser } = useAppContext() as AppContextType;
 
   const router = useRouter();
