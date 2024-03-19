@@ -11,6 +11,9 @@ const nextConfig = {
       },
     ],
   },
+  env: {
+    STRAPI_URL: process.env.STRAPI_URL,
+  },
 };
 
 module.exports = nextConfig;
