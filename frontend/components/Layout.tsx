@@ -4,6 +4,9 @@ import { useRouter } from 'next/router';
 import { useAppContext } from '../context/AppContext';
 import Cookie from 'js-cookie';
 
+import { Crimson_Text } from 'next/font/google';
+const crimsonText = Crimson_Text({ weight: '400', subsets: ['latin'] });
+
 type AppContextType = {
   // update later
   user: any;
@@ -21,7 +24,7 @@ function Navigation() {
     router.push('/');
   }
   return (
-    <header>
+    <header className={crimsonText.className}>
       <nav>
         <div>
           <div>
