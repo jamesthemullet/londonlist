@@ -96,3 +96,13 @@ jobs:
           CHROMIUM_VERSION=$(google-chrome --version | cut -d' ' -f3 | cut -d'.' -f1)
           yarn add chromedriver@$CHROMIUM_VERSION
           npx axe --chromedriver-path $(yarn bin)/chromedriver http://localhost:3000/ --load-delay=1500 --exit
+  unit_tests:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: yarn install
+      - name: Run unit tests
+        run: yarn test
