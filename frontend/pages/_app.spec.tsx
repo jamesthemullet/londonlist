@@ -15,7 +15,7 @@ const useRouterMock = useRouter as jest.MockedFunction<typeof useRouter>;
 
 jest.mock('next/router', () => ({
   ...jest.requireActual('next/router'),
-  useRouter: jest.fn()
+  useRouter: jest.fn(),
 }));
 
 const pageContent = 'test content';
@@ -35,17 +35,17 @@ describe('App tests', () => {
       events: {
         on: () => null,
         off: () => null,
-        emit: () => null
+        emit: () => null,
       },
       isReady: true,
-      isPreview: false
+      isPreview: false,
     } as unknown as NextRouter);
   });
   it('should create an app', async () => {
     const props: AppProps = {
       Component: () => <div>{pageContent}</div>,
       pageProps: { session: {} },
-      router: {}
+      router: {},
     };
 
     await act(async () => {
