@@ -1,11 +1,11 @@
-import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../context/AppContext';
 import Cookie from 'js-cookie';
 
 import { Crimson_Text } from 'next/font/google';
-import Footer from './Footer/footer';
+import Footer from './footer/footer';
+import Meta from './meta/meta';
 const crimsonText = Crimson_Text({ weight: '400', subsets: ['latin'] });
 
 type AppContextType = {
@@ -29,7 +29,7 @@ function Navigation() {
       <nav>
         <div>
           <div>
-            <Link href="/">My Apppppp</Link>
+            <Link href="/">London List</Link>
           </div>
 
           <div>
@@ -58,15 +58,12 @@ function Navigation() {
 }
 
 export default function Layout(props) {
-  const title = 'Welcome to Nextjs';
+  const router = useRouter();
+  const currentUrl = router.asPath ?? '';
 
   return (
     <>
-      <Head>
-        <title>{title}</title>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-      </Head>
+      <Meta currentUrl={currentUrl} />
       <Navigation />
       <div>{props.children}</div>
       <Footer />
