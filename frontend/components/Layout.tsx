@@ -5,6 +5,7 @@ import { useAppContext } from '../context/AppContext';
 import Cookie from 'js-cookie';
 
 import { Crimson_Text } from 'next/font/google';
+import Footer from './Footer/footer';
 const crimsonText = Crimson_Text({ weight: '400', subsets: ['latin'] });
 
 type AppContextType = {
@@ -60,7 +61,7 @@ export default function Layout(props) {
   const title = 'Welcome to Nextjs';
 
   return (
-    <div>
+    <>
       <Head>
         <title>{title}</title>
         <meta charSet="utf-8" />
@@ -68,6 +69,7 @@ export default function Layout(props) {
       </Head>
       <Navigation />
       <div>{props.children}</div>
-    </div>
+      <Footer />
+    </>
   );
 }
