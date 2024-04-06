@@ -9,12 +9,12 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix",
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
-    "test": "jest"
+    "test": "jest",
+    "prepare": "husky install"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint && yarn test"
-    }
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx,css,md,json}": "eslint .",
+    "**/*.{ts,tsx}": "tsc-files --noEmit"
   },
   "dependencies": {
     "@apollo/client": "^3.7.17",
