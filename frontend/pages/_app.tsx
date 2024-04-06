@@ -3,6 +3,7 @@ import { AppProvider } from '../context/AppContext';
 import fetch from 'cross-fetch';
 
 import Layout from './../components/Layout';
+import '../styles/globals.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
