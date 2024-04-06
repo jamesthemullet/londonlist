@@ -1,3 +1,7 @@
 {
-  "devDependencies": {}
+  "devDependencies": {},
+  "dependencies": {},
+  "scripts": {
+    "prepare": "husky"
+  }
 }
