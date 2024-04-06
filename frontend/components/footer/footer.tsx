@@ -8,7 +8,7 @@ export default function Footer() {
         bottom: '0',
         width: '100%',
       }}>
-      <p>This is footer</p>
+      <p>This is foooter</p>
       {/* <div>
         Icons made by{' '}
         <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">
