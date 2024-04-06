@@ -13,7 +13,7 @@
     "prepare": "cd .. && husky init project-folder/.husky"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,css,md}": "eslint .",
+    "**/*.{js,jsx,ts,tsx}": "eslint .",
     "**/*.{ts,tsx}": "tsc-files --noEmit"
   },
   "dependencies": {
