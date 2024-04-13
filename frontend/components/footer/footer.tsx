@@ -1,13 +1,8 @@
+import styles from './footer.module.css';
+
 export default function Footer() {
   return (
-    <footer
-      style={{
-        backgroundColor: 'black',
-        color: 'white',
-        position: 'absolute',
-        bottom: '0',
-        width: '100%',
-      }}>
+    <footer className={styles.footer}>
       <p>This is footer</p>
       {/* <div>
         Icons made by{' '}
