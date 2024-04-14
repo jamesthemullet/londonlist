@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "attractions",
+  "info": {
+    "singularName": "attraction",
+    "pluralName": "attractions",
+    "displayName": "Attraction"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "Museum",
+        "Landmark",
+        "Park",
+        "Entertainment",
+        "Cultural"
+      ]
+    },
+    "description": {
+      "type": "text"
+    },
+    "address": {
+      "type": "text"
+    },
+    "neareststation": {
+      "type": "string"
+    },
+    "images": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    }
+  }
+}
