@@ -1,0 +1,32 @@
+.container {
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: 800px;
+  margin-bottom: 2rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.input {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  width: 100%;
+  font-size: 1rem;
+  border: 1px solid #c724b1;
+  border-radius: 5px;
+}
+
+.error {
+  color: red;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}

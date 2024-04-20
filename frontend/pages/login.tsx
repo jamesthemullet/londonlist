@@ -4,9 +4,9 @@ import { useAppContext } from '../context/AppContext';
 import { gql, useMutation } from '@apollo/client';
 import Cookie from 'js-cookie';
 
-import Form from '../components/Form';
 import Loader from '../components/Loader';
 import Link from 'next/link';
+import Form from '../components/core/form/form';
 
 const LOGIN_MUTATION = gql`
   mutation Login($identifier: String!, $password: String!) {
