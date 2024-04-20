@@ -1,7 +1,7 @@
 import { useState } from 'react';
 // import { useRouter } from 'next/router';
 import { gql, useMutation } from '@apollo/client';
-import Form from '../components/Form';
+import Form from '../components/core/form/form';
 
 const REQUEST_RESET_MUTATION = gql`
   mutation forgotPassword($email: String!) {
@@ -15,13 +15,13 @@ export default function ForgotPassword() {
   // const router = useRouter();
   const [formData, setFormData] = useState({ email: '' });
   const [resetPassword, { loading, error }] = useMutation(REQUEST_RESET_MUTATION);
-  console.log(1, loading);
 
   const handleRequestReset = async () => {
     try {
       const { data } = await resetPassword({
-        variables: { email: formData.email }, // Use formData.email here
+        variables: { email: formData.email },
       });
+      console.log(99, loading);
       // Handle success, e.g., show a confirmation message to the user.
       console.log(100, data);
     } catch (error) {

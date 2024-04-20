@@ -1,4 +1,6 @@
 import React from 'react';
+import styles from './form.module.css';
+import { Button } from '../button/button';
 
 const isValidEmail = (email) => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,7 +18,7 @@ export default function Form({
 }) {
   const isEmailInvalid = !formData.email || !isValidEmail(formData.email);
   return (
-    <section>
+    <section className={styles.container}>
       <div>
         <div>
           <div>
@@ -32,6 +34,7 @@ export default function Form({
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className={styles.input}
               />
             </div>
             {isLogin && (
@@ -44,13 +47,14 @@ export default function Form({
                   placeholder="************"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className={styles.input}
                 />
               </div>
             )}
-            {error && <div>Error: {error.message}</div>}
-            <button type="submit" disabled={isEmailInvalid}>
+            {error && <p className={styles.error}>Error: {error.message}</p>}
+            <Button type="submit" disabled={isEmailInvalid}>
               {buttonText}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

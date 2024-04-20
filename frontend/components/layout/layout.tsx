@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../../context/AppContext';
 import Cookie from 'js-cookie';
 
 import { Crimson_Text } from 'next/font/google';
-import Footer from './footer/footer';
-import Meta from './meta/meta';
+import Footer from '../footer/footer';
+import Meta from '../meta/meta';
+import { Button } from '../core/button/button';
 const crimsonText = Crimson_Text({ weight: '400', subsets: ['latin'] });
+import styles from './layout.module.css';
 
 type AppContextType = {
   // update later
@@ -26,30 +28,27 @@ function Navigation() {
   }
   return (
     <header className={crimsonText.className}>
-      <nav>
+      <nav className={styles.nav}>
         <div>
-          <div>
-            <Link href="/">London List</Link>
-          </div>
+          <Link href="/">London List</Link>
+        </div>
 
-          <div>
+        <div>
+          {user ? (
             <div>
-              <Link href="/">Home</Link>
-              <div>
-                {user ? (
-                  <div>
-                    <span>{user.username}</span>
-                    <button onClick={handleLogout}>Log Out</button>
-                  </div>
-                ) : (
-                  <div>
-                    <Link href="/login">Log In</Link>
-                    <Link href="/register">Sign Up</Link>
-                  </div>
-                )}
-              </div>
+              <span>{user.username}</span>
+              <Button onClick={handleLogout}>Log Out</Button>
             </div>
-          </div>
+          ) : (
+            <div>
+              <Link href="/login">
+                <Button>Log In</Button>
+              </Link>
+              <Link href="/register">
+                <Button>Sign Up</Button>
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
       <h1>London List</h1>
@@ -65,7 +64,7 @@ export default function Layout(props) {
     <>
       <Meta currentUrl={currentUrl} />
       <Navigation />
-      <div>{props.children}</div>
+      <div className={styles.pageContainer}>{props.children}</div>
       <Footer />
     </>
   );

@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import { gql, useMutation } from '@apollo/client';
 import Cookie from 'js-cookie';
 
-import Form from '../components/Form';
+import Form from '../components/core/form/form';
 import Loader from '../components/Loader';
 
 const REGISTER_MUTATION = gql`
