@@ -65,16 +65,31 @@ function CreateAttractionForm() {
   return (
     <form onSubmit={handleSubmit}>
       <div>
-        <label>Name</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+        <label htmlFor="name">Name</label>
+        <input
+          id="name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
       </div>
       <div>
-        <label>Description</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} required />
+        <label htmlFor="description">Description</label>
+        <textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+        />
       </div>
       <div>
-        <label>Category</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value)} required>
+        <label htmlFor="category">Category</label>
+        <select
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          required>
           {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
