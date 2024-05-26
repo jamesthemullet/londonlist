@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import AttractionsList from '../components/attractions/attractions-list';
+import CreateAttractionForm from '../components/attractions/attractions-add';
 
 export default function Home() {
   const [query, setQuery] = useState('');
@@ -22,6 +23,7 @@ export default function Home() {
         </div>
         {/* <MuseumList query={query} /> */}
         <AttractionsList query={query} />
+        <CreateAttractionForm />
       </main>
     </>
   );
