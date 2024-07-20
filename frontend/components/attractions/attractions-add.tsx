@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation } from '@apollo/client';
+import useDebounce from '../../hooks/use-debounce';
 
 const categories = [
   'Museum',
@@ -48,6 +49,10 @@ function CreateAttractionForm() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState(categories[0]);
+  const [address, setAddress] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+
+  const debouncedAddress = useDebounce(address, 300);
 
   const [createAttraction, { loading, error }] = useMutation(CREATE_ATTRACTION_MUTATION, {
     onCompleted: (data) => {
@@ -55,6 +60,36 @@ function CreateAttractionForm() {
       // Optionally, redirect or update the UI after successful creation
     },
   });
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (debouncedAddress.length > 2) {
+        // Trigger suggestions only after 3 characters
+        try {
+          const response = await fetch(
+            `https://us1.locationiq.com/v1/autocomplete.php?key=${process.env.NEXT_PUBLIC_LOCATIONIQ_API_KEY}&q=${debouncedAddress}&format=json`,
+          );
+          const data = await response.json();
+          setSuggestions(data);
+        } catch (error) {
+          console.error('Error fetching address suggestions:', error);
+        }
+      } else {
+        setSuggestions([]);
+      }
+    };
+
+    fetchSuggestions();
+  }, [debouncedAddress]);
+
+  const handleAddressChange = (e) => {
+    setAddress(e.target.value);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setAddress(suggestion.display_name);
+    setSuggestions([]);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -64,6 +99,19 @@ function CreateAttractionForm() {
 
   return (
     <form onSubmit={handleSubmit}>
+      <div>
+        <label htmlFor="address">Address</label>
+        <input id="address" type="text" value={address} onChange={handleAddressChange} required />
+        {suggestions.length > 0 && (
+          <ul>
+            {suggestions.map((suggestion, index) => (
+              <li key={index} onClick={() => handleSuggestionClick(suggestion)}>
+                {suggestion.display_name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <div>
         <label htmlFor="name">Name</label>
         <input
