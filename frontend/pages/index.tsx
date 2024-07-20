@@ -22,8 +22,8 @@ export default function Home() {
           />
         </div>
         {/* <MuseumList query={query} /> */}
-        <AttractionsList query={query} />
         <CreateAttractionForm />
+        <AttractionsList query={query} />
       </main>
     </>
   );
