@@ -9,12 +9,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix",
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
-    "test": "jest",
-    "prepare": "cd .. && husky init project-folder/.husky"
-  },
-  "lint-staged": {
-    "**/*.{js,jsx,ts,tsx}": "eslint .",
-    "**/*.{ts,tsx}": "tsc-files --noEmit"
+    "test": "jest"
   },
   "dependencies": {
     "@apollo/client": "^3.7.17",
@@ -27,7 +22,7 @@
     "jest-fetch-mock": "^3.0.3",
     "js-cookie": "^3.0.5",
     "lint-staged": "^15.2.2",
-    "next": "13.4.12",
+    "next": "13.5.9",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "ts-node": "^10.9.2",
