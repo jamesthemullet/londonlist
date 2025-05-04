@@ -1,0 +1,7 @@
+{
+  "extends": ["config:recommended"],
+  "prConcurrentLimit": 2,
+  "prHourlyLimit": 10,
+  "timezone": "Europe/London",
+  "schedule": ["every weekday"]
+}
