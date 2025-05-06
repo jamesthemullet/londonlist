@@ -17,7 +17,7 @@
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.20",
     "@types/testing-library__jest-dom": "^6.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
     "graphql": "^16.7.1",
     "jest-fetch-mock": "^3.0.3",
     "js-cookie": "^3.0.5",
