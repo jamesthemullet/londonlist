@@ -21,7 +21,7 @@
     "graphql": "^16.7.1",
     "jest-fetch-mock": "^3.0.3",
     "js-cookie": "^3.0.5",
-    "lint-staged": "^15.2.2",
+    "lint-staged": "^16.0.0",
     "next": "15.3.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
