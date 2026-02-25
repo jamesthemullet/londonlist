@@ -5,13 +5,10 @@
     "plugin:react/recommended",
     "plugin:prettier/recommended"
   ],
-  "plugins": ["react", "@typescript-eslint", "jest"],
+  "plugins": ["react", "@typescript-eslint"],
   "rules": {
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     "no-console": 1
-  },
-  "env": {
-    "jest": true
-}
+  }
 }
