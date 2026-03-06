@@ -5,6 +5,34 @@ import { useRouter } from 'next/router';
 // import Image from 'next/image';
 import Loader from '../../components/Loader';
 
+type ExhibitionItem = {
+  id: string;
+  attributes: {
+    name: string;
+    description: string;
+    startdate: string;
+    enddate: string;
+  };
+};
+
+type MuseumExhibitionsQueryData = {
+  museum: {
+    data: {
+      id: string;
+      attributes: {
+        name: string;
+        exhibitions: {
+          data: ExhibitionItem[];
+        };
+      };
+    } | null;
+  };
+};
+
+type MuseumExhibitionsQueryVars = {
+  id: string;
+};
+
 const GET_MUSEUM_EXHIBITIONS = gql`
   query ($id: ID!) {
     museum(id: $id) {
@@ -29,7 +57,7 @@ const GET_MUSEUM_EXHIBITIONS = gql`
   }
 `;
 
-function ExhibitionCard({ data }) {
+function ExhibitionCard({ data }: { data: ExhibitionItem }) {
   function handleAddItem() {
     // will add some logic here
   }
@@ -63,14 +91,26 @@ function ExhibitionCard({ data }) {
 
 export default function Museum() {
   const router = useRouter();
-  const { loading, error, data } = useQuery(GET_MUSEUM_EXHIBITIONS, {
-    variables: { id: router.query.id },
-  });
+  const museumId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+
+  const { loading, error, data } = useQuery<MuseumExhibitionsQueryData, MuseumExhibitionsQueryVars>(
+    GET_MUSEUM_EXHIBITIONS,
+    {
+      variables: { id: museumId ?? '' },
+      skip: !museumId,
+    },
+  );
+
+  const exhibitions = data?.museum?.data?.attributes?.exhibitions?.data ?? [];
+
+  if (!museumId) return <Loader />;
 
   if (error) return 'Error Loading Exhibitions';
   if (loading) return <Loader />;
-  if (data.museum.data.attributes.exhibitions.data.length) {
-    const { museum } = data;
+  if (exhibitions.length) {
+    const museum = data?.museum;
+
+    if (!museum?.data) return <h1>No Exhibitions Found</h1>;
 
     return (
       <div>
@@ -78,7 +118,7 @@ export default function Museum() {
         <div>
           <div>
             <div>
-              {museum.data.attributes.exhibitions.data.map((res) => {
+              {exhibitions.map((res) => {
                 return <ExhibitionCard key={res.id} data={res} />;
               })}
             </div>
