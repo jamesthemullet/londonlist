@@ -61,7 +61,7 @@ const getUser = async () => {
       },
     },
   });
-  return data.me;
+  return (data as GetMeQueryData | null)?.me ?? null;
 };
 
 export const useAppContext = () => {

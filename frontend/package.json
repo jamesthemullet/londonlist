@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "ts-check": "tsc --noEmit",
+    "check": "yarn lint && yarn ts-check",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint --fix",
