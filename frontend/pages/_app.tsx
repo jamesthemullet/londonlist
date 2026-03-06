@@ -1,4 +1,5 @@
-import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
+import { ApolloProvider } from '@apollo/client/react';
 import { AppProvider } from '../context/AppContext';
 import fetch from 'cross-fetch';
 

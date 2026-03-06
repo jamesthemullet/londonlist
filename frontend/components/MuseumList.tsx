@@ -1,4 +1,5 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Loader from './Loader';
