@@ -9,11 +9,28 @@ import Loader from '../components/Loader';
 import Link from 'next/link';
 import Form from '../components/core/form/form';
 
+type LoginMutationData = {
+  login: {
+    jwt: string;
+    user: {
+      id: string;
+      username: string;
+      email: string;
+    };
+  };
+};
+
+type LoginMutationVariables = {
+  identifier: string;
+  password: string;
+};
+
 const LOGIN_MUTATION = gql`
   mutation Login($identifier: String!, $password: String!) {
     login(input: { identifier: $identifier, password: $password }) {
       jwt
       user {
+        id
         username
         email
       }
@@ -26,7 +43,10 @@ export default function LoginRoute() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [loginMutation, { loading, error }] = useMutation(LOGIN_MUTATION);
+  const [loginMutation, { loading, error }] = useMutation<
+    LoginMutationData,
+    LoginMutationVariables
+  >(LOGIN_MUTATION);
 
   const handleLogin = async () => {
     const { email, password } = formData;

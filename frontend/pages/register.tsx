@@ -8,11 +8,29 @@ import Cookie from 'js-cookie';
 import Form from '../components/core/form/form';
 import Loader from '../components/Loader';
 
+type RegisterMutationData = {
+  register: {
+    jwt: string;
+    user: {
+      id: string;
+      username: string;
+      email: string;
+    };
+  };
+};
+
+type RegisterMutationVariables = {
+  username: string;
+  email: string;
+  password: string;
+};
+
 const REGISTER_MUTATION = gql`
   mutation Register($username: String!, $email: String!, $password: String!) {
     register(input: { username: $username, email: $email, password: $password }) {
       jwt
       user {
+        id
         username
         email
       }
@@ -25,7 +43,10 @@ export default function RegisterRoute() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [registerMutation, { loading, error }] = useMutation(REGISTER_MUTATION);
+  const [registerMutation, { loading, error }] = useMutation<
+    RegisterMutationData,
+    RegisterMutationVariables
+  >(REGISTER_MUTATION);
 
   const handleRegister = async () => {
     const { email, password } = formData;

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "typecheck": "yarn ts-check",
     "ts-check": "tsc --noEmit",
     "check": "yarn lint && yarn ts-check",
     "start": "next start",
