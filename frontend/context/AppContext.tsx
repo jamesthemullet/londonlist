@@ -3,10 +3,25 @@ import Cookie from 'js-cookie';
 import { gql } from '@apollo/client';
 import { client } from '../pages/_app';
 
-const AppContext = createContext(null);
+type User = {
+  id: string;
+  email: string;
+  username: string;
+};
+
+type AppContextValue = {
+  user: User | null;
+  setUser: (user: User | null) => void;
+};
+
+type GetMeQueryData = {
+  me: User | null;
+};
+
+const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +45,7 @@ export const AppProvider = ({ children }) => {
 const getUser = async () => {
   const token = Cookie.get('token');
   if (!token) return null;
-  const { data } = await client.query({
+  const { data } = await client.query<GetMeQueryData>({
     query: gql`
       query {
         me {
@@ -46,7 +61,7 @@ const getUser = async () => {
       },
     },
   });
-  return data.me;
+  return (data as GetMeQueryData | null)?.me ?? null;
 };
 
 export const useAppContext = () => {

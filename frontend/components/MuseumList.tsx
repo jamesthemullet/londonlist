@@ -1,7 +1,35 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Loader from './Loader';
+
+type MuseumImageData = {
+  attributes: {
+    url: string;
+  };
+};
+
+type MuseumItem = {
+  id: string;
+  attributes: {
+    name: string;
+    description: string;
+    image: {
+      data: MuseumImageData[];
+    };
+  };
+};
+
+type MuseumsQueryData = {
+  museums: {
+    data: MuseumItem[];
+  };
+};
+
+type MuseumListProps = {
+  query: string;
+};
 
 const QUERY = gql`
   {
@@ -24,7 +52,7 @@ const QUERY = gql`
   }
 `;
 
-function MuseumCard({ data }) {
+function MuseumCard({ data }: { data: MuseumItem }) {
   return (
     <div>
       <div>
@@ -50,13 +78,13 @@ function MuseumCard({ data }) {
   );
 }
 
-function MuseumList(props) {
-  const { loading, error, data } = useQuery(QUERY);
+function MuseumList(props: MuseumListProps) {
+  const { loading, error, data } = useQuery<MuseumsQueryData>(QUERY);
 
   if (error) return 'Error loading museums';
   if (loading) return <Loader />;
 
-  if (data.museums.data && data.museums.data.length) {
+  if (data?.museums?.data && data.museums.data.length) {
     const searchQuery = data.museums.data.filter((query) =>
       query.attributes.name.toLowerCase().includes(props.query.toLowerCase()),
     );

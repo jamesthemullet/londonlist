@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 import { useEffect, useState } from 'react';
-import { useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import useDebounce from '../../hooks/use-debounce';
 
 const categories = [

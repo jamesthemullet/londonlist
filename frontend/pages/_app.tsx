@@ -1,4 +1,5 @@
-import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
+import { ApolloProvider } from '@apollo/client/react';
 import { AppProvider } from '../context/AppContext';
 import fetch from 'cross-fetch';
 
@@ -15,7 +16,6 @@ const httpLink = new HttpLink({
 
 export const client = new ApolloClient({
   link: httpLink,
-  uri: `${API_URL}/graphql`,
   cache: new InMemoryCache(),
   defaultOptions: {
     mutate: {
