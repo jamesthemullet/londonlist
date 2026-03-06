@@ -3,6 +3,25 @@ import { useQuery } from '@apollo/client/react';
 import Link from 'next/link';
 import Loader from '../Loader';
 
+type AttractionItem = {
+  id: string;
+  attributes: {
+    name: string;
+    description: string;
+    category: string;
+  };
+};
+
+type AttractionsQueryData = {
+  attractions: {
+    data: AttractionItem[];
+  };
+};
+
+type AttractionsListProps = {
+  query: string;
+};
+
 const QUERY = gql`
   {
     attractions {
@@ -18,7 +37,7 @@ const QUERY = gql`
   }
 `;
 
-function AttractionsCard({ data }) {
+function AttractionsCard({ data }: { data: AttractionItem }) {
   return (
     <div>
       <div>
@@ -37,13 +56,13 @@ function AttractionsCard({ data }) {
   );
 }
 
-function AttractionsList(props) {
-  const { loading, error, data } = useQuery(QUERY);
+function AttractionsList(props: AttractionsListProps) {
+  const { loading, error, data } = useQuery<AttractionsQueryData>(QUERY);
 
   if (error) return 'Error loading attractions';
   if (loading) return <Loader />;
 
-  if (data.attractions.data && data.attractions.data.length) {
+  if (data?.attractions?.data && data.attractions.data.length) {
     const searchQuery = data.attractions.data.filter((query) =>
       query.attributes.name.toLowerCase().includes(props.query.toLowerCase()),
     );
