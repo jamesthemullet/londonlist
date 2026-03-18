@@ -12,8 +12,8 @@
   "devDependencies": {},
   "dependencies": {
     "@strapi/plugin-graphql": "^5.0.0",
-    "@strapi/plugin-users-permissions": "5.39.0",
-    "@strapi/strapi": "5.39.0",
+    "@strapi/plugin-users-permissions": "5.40.0",
+    "@strapi/strapi": "5.40.0",
     "pg": "^8.11.2",
     "pg-connection-string": "^2.6.2"
   },
