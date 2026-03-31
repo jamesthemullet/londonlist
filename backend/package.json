@@ -24,7 +24,11 @@
     "serialize-javascript": ">=7.0.3",
     "ajv": ">=8.18.0",
     "markdown-it": ">=14.1.1",
-    "tmp": ">=0.2.4"
+    "tmp": ">=0.2.4",
+    "picomatch": ">=2.3.2",
+    "handlebars": ">=4.7.9",
+    "undici": ">=6.24.0",
+    "path-to-regexp": ">=0.1.13"
   },
   "author": {
     "name": "A Strapi developer"
