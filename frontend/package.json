@@ -18,22 +18,25 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "cross-fetch": "^4.1.0",
-    "graphql": "^16.7.1",
-    "js-cookie": "^3.0.5",
-    "lint-staged": "^16.0.0",
+    "cross-fetch": "4.1.0",
+    "graphql": "16.7.1",
+    "js-cookie": "3.0.5",
+    "lint-staged": "16.0.0",
     "next": "16.2.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "rxjs": "^7.8.2",
-    "ts-node": "^10.9.2",
-    "tsc-files": "^1.1.4",
-    "typescript": "^5.1.6"
+    "rxjs": "7.8.2",
+    "ts-node": "10.9.2",
+    "tsc-files": "1.1.4",
+    "typescript": "5.1.6"
   },
   "devDependencies": {
-    "eslint-config-prettier": "^10.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "husky": "^9.0.11",
-    "prettier": "^3.0.1"
+    "eslint-config-prettier": "10.0.0",
+    "eslint-plugin-prettier": "5.0.0",
+    "husky": "9.0.11",
+    "prettier": "3.0.1"
+  },
+  "resolutions": {
+    "picomatch": "^4.0.4"
   }
 }
