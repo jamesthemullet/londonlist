@@ -3,5 +3,12 @@
   "prConcurrentLimit": 2,
   "prHourlyLimit": 10,
   "timezone": "Europe/London",
-  "schedule": ["every weekday"]
+  "minimumReleaseAge": "1 day",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    }
+  ]
 }
