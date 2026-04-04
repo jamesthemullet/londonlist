@@ -8662,9 +8662,9 @@ path-scurry@^2.0.2:
     minipass "^7.1.2"
 
 path-to-regexp@>=0.1.13, path-to-regexp@^6.3.0, path-to-regexp@~0.1.12:
-  version "8.4.1"
-  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-8.4.1.tgz#1dbe9c340367a44340e5bc114f515b56c7210f19"
-  integrity sha512-fvU78fIjZ+SBM9YwCknCvKOUKkLVqtWDVctl0s7xIqfmfb38t2TT4ZU2gHm+Z8xGwgW+QWEU3oQSAzIbo89Ggw==
+  version "8.4.2"
+  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-8.4.2.tgz#795c420c4f7ca45c5b887366f622ee0c9852cccd"
+  integrity sha512-qRcuIdP69NPm4qbACK+aDogI5CBDMi1jKe0ry5rSQJz8JVLsC7jV8XpiJjGRLLol3N+R5ihGYcrPLTno6pAdBA==
 
 path-type@^4.0.0:
   version "4.0.0"
@@ -10524,9 +10524,9 @@ undici-types@~7.18.0:
   integrity sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==
 
 undici@6.24.0, undici@>=6.24.0:
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/undici/-/undici-8.0.0.tgz#77bb9701692771800deab19e012b7a47e3b8fe75"
-  integrity sha512-RGabV5g1ggSX5mU4k+B8BLWgb418gDbg0wAVFeiU00iOxtw4ufGsE6GFsuSd2uqOKooWSLf71JGapOFYpE8f+A==
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-8.0.1.tgz#6fbc65d4d49deee769896cb1eb28058a2db80ce9"
+  integrity sha512-6qdTUr+jabXmYKeYkv/+pIvO7d0bs1k9uy+5PFnXr4segNVwILH1KExhwRh3/iGa6gSLmySK3hTnSs3k7ZPnjQ==
 
 unified@^11.0.0:
   version "11.0.5"
