@@ -12,8 +12,8 @@
   "devDependencies": {},
   "dependencies": {
     "@strapi/plugin-graphql": "^5.0.0",
-    "@strapi/plugin-users-permissions": "5.41.1",
-    "@strapi/strapi": "5.41.1",
+    "@strapi/plugin-users-permissions": "5.42.0",
+    "@strapi/strapi": "5.42.0",
     "pg": "^8.11.2",
     "pg-connection-string": "^2.6.2"
   },
@@ -27,7 +27,7 @@
     "tmp": ">=0.2.4",
     "picomatch": ">=2.3.2",
     "handlebars": ">=4.7.9",
-    "undici": "^7.0.0",
+    "undici": "^8.0.0",
     "path-to-regexp": ">=0.1.13",
     "lodash": ">=4.18.0",
     "lodash-es": ">=4.18.0"
