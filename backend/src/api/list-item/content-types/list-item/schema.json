@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "list_items",
+  "info": {
+    "singularName": "list-item",
+    "pluralName": "list-items",
+    "displayName": "List Item",
+    "description": "A place on a user's London to-do list"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "osm_id": {
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "lat": {
+      "type": "decimal"
+    },
+    "lng": {
+      "type": "decimal"
+    },
+    "category": {
+      "type": "string"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}
