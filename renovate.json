@@ -1,22 +1,15 @@
 {
-  "extends": [
-    "config:recommended"
-  ],
+  "extends": ["config:recommended"],
   "prConcurrentLimit": 2,
   "prHourlyLimit": 10,
   "timezone": "Europe/London",
   "minimumReleaseAge": "1 day",
   "packageRules": [
     {
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
+      "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non-major dependencies",
       "groupSlug": "all-minor-patch"
     }
   ],
-  "schedule": [
-    "after 4am and before 5am"
-  ]
+  "schedule": ["* 2-5 * * *"]
 }
