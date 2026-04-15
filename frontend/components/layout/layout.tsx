@@ -36,6 +36,7 @@ function Navigation() {
         <div>
           {user ? (
             <div>
+              <Link href="/my-list">My List</Link>
               <span>{user.username}</span>
               <Button onClick={handleLogout}>Log Out</Button>
             </div>

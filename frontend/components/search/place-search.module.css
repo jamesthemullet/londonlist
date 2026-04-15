@@ -1,0 +1,112 @@
+.container {
+  width: 100%;
+  max-width: 640px;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: #333;
+}
+
+.spinner {
+  position: absolute;
+  right: 1rem;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.results {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.result:last-child {
+  border-bottom: none;
+}
+
+.resultInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.resultName {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultType {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: capitalize;
+}
+
+.addButton {
+  flex-shrink: 0;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  border: 2px solid #333;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.addButton:hover:not(:disabled) {
+  background: #333;
+  color: white;
+}
+
+.addButton:disabled {
+  border-color: #aaa;
+  color: #aaa;
+  cursor: default;
+}
+
+.noResults {
+  margin-top: 0.75rem;
+  color: #888;
+  font-size: 0.9rem;
+}
