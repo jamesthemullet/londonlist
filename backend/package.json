@@ -13,8 +13,8 @@
   "dependencies": {
     "@strapi/plugin-graphql": "^5.0.0",
     "better-sqlite3": "^12.9.0",
-    "@strapi/plugin-users-permissions": "5.42.0",
-    "@strapi/strapi": "5.42.0",
+    "@strapi/plugin-users-permissions": "5.42.1",
+    "@strapi/strapi": "5.42.1",
     "pg": "^8.11.2",
     "pg-connection-string": "^2.6.2",
     "react": "^18.0.0",
@@ -44,7 +44,7 @@
     "uuid": "5fc86eda-9832-4cdc-9418-d20eb44bd4f5"
   },
   "engines": {
-    "node": ">=14.19.1 <=24.14.1",
+    "node": ">=14.19.1 <=24.15.0",
     "npm": ">=6.0.0"
   },
   "license": "MIT"
