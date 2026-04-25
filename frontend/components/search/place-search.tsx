@@ -5,15 +5,24 @@ import Cookie from 'js-cookie';
 import useDebounce from '../../hooks/use-debounce';
 import styles from './place-search.module.css';
 
-type NominatimResult = {
-  place_id: number;
-  osm_id: number;
-  osm_type: string;
-  display_name: string;
-  lat: string;
-  lon: string;
-  type: string;
-  class: string;
+type PhotonFeature = {
+  type: 'Feature';
+  geometry: { type: 'Point'; coordinates: [number, number] };
+  properties: {
+    osm_id: number;
+    osm_type: 'N' | 'W' | 'R';
+    name?: string;
+    street?: string;
+    district?: string;
+    city?: string;
+    country?: string;
+    osm_key?: string;
+    osm_value?: string;
+  };
+};
+
+type PhotonResponse = {
+  features: PhotonFeature[];
 };
 
 const CREATE_LIST_ITEM = gql`
@@ -44,15 +53,28 @@ const CREATE_LIST_ITEM = gql`
   }
 `;
 
-function shortName(displayName: string): string {
-  return displayName.split(',').slice(0, 2).join(',');
+function featureName(props: PhotonFeature['properties']): string {
+  return props.name ?? props.street ?? '';
+}
+
+function featureSubtitle(props: PhotonFeature['properties']): string {
+  const parts = [props.street, props.district, props.city].filter(Boolean);
+  if (props.name && parts.length) return parts.slice(0, 3).join(', ');
+  return parts.slice(1, 3).join(', ');
+}
+
+function osmTypeExpanded(short: string): string {
+  if (short === 'N') return 'node';
+  if (short === 'W') return 'way';
+  if (short === 'R') return 'relation';
+  return short.toLowerCase();
 }
 
 export default function PlaceSearch() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<NominatimResult[]>([]);
+  const [results, setResults] = useState<PhotonFeature[]>([]);
   const [searching, setSearching] = useState(false);
-  const [added, setAdded] = useState<Set<number>>(new Set());
+  const [added, setAdded] = useState<Set<string>>(new Set());
   const [createListItem] = useMutation(CREATE_LIST_ITEM);
 
   const debouncedQuery = useDebounce(query, 400);
@@ -65,42 +87,41 @@ export default function PlaceSearch() {
     setSearching(true);
     const params = new URLSearchParams({
       q: debouncedQuery,
-      countrycodes: 'gb',
-      viewbox: '-0.51,51.69,0.33,51.29',
-      bounded: '1',
-      format: 'json',
-      addressdetails: '0',
       limit: '10',
+      lang: 'en',
+      // London bounding box: lon_min,lat_min,lon_max,lat_max
+      bbox: '-0.51,51.29,0.33,51.69',
     });
-    fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
-      headers: { 'Accept-Language': 'en' },
-    })
+    fetch(`https://photon.komoot.io/api/?${params}`)
       .then((r) => r.json())
-      .then((data: NominatimResult[]) => setResults(data))
+      .then((data: PhotonResponse) => setResults(data.features ?? []))
       .catch(() => setResults([]))
       .finally(() => setSearching(false));
   }, [debouncedQuery]);
 
-  async function handleAdd(result: NominatimResult) {
+  async function handleAdd(feature: PhotonFeature) {
     const token = Cookie.get('token');
     if (!token) {
       alert('Please log in to add places to your list.');
       return;
     }
+    const { properties, geometry } = feature;
+    const osmType = osmTypeExpanded(properties.osm_type);
+    const key = `${osmType}/${properties.osm_id}`;
     try {
       await createListItem({
         variables: {
-          osm_id: `${result.osm_type}/${result.osm_id}`,
-          name: shortName(result.display_name),
-          lat: parseFloat(result.lat),
-          lng: parseFloat(result.lon),
-          category: result.class,
+          osm_id: key,
+          name: featureName(properties),
+          lat: geometry.coordinates[1],
+          lng: geometry.coordinates[0],
+          category: properties.osm_value ?? properties.osm_key ?? '',
         },
         context: {
           headers: { Authorization: `Bearer ${token}` },
         },
       });
-      setAdded((prev) => new Set(prev).add(result.place_id));
+      setAdded((prev) => new Set(prev).add(key));
     } catch {
       alert('Could not add to list. Please try again.');
     }
@@ -121,20 +142,28 @@ export default function PlaceSearch() {
 
       {results.length > 0 && (
         <ul className={styles.results}>
-          {results.map((r) => (
-            <li key={r.place_id} className={styles.result}>
-              <div className={styles.resultInfo}>
-                <span className={styles.resultName}>{shortName(r.display_name)}</span>
-                {r.type && <span className={styles.resultType}>{r.type}</span>}
-              </div>
-              <button
-                className={styles.addButton}
-                disabled={added.has(r.place_id)}
-                onClick={() => handleAdd(r)}>
-                {added.has(r.place_id) ? 'Added ✓' : '+ Add to list'}
-              </button>
-            </li>
-          ))}
+          {results.map((r) => {
+            const key = `${osmTypeExpanded(r.properties.osm_type)}/${r.properties.osm_id}`;
+            return (
+              <li key={key} className={styles.result}>
+                <div className={styles.resultInfo}>
+                  <span className={styles.resultName}>{featureName(r.properties)}</span>
+                  {featureSubtitle(r.properties) && (
+                    <span className={styles.resultSubtitle}>{featureSubtitle(r.properties)}</span>
+                  )}
+                  {r.properties.osm_value && (
+                    <span className={styles.resultType}>{r.properties.osm_value}</span>
+                  )}
+                </div>
+                <button
+                  className={styles.addButton}
+                  disabled={added.has(key)}
+                  onClick={() => handleAdd(r)}>
+                  {added.has(key) ? 'Added ✓' : '+ Add to list'}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
 
