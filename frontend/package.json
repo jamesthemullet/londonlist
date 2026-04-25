@@ -48,8 +48,7 @@
     "husky": "9.1.7",
     "prettier": "3.8.3",
     "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0",
-    "prettier": "3.8.3"
+    "jest-environment-jsdom": "^30.3.0"
   },
   "resolutions": {
     "picomatch": "^4.0.4"
