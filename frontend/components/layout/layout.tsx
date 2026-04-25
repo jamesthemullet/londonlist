@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import Cookie from 'js-cookie';
 
@@ -10,14 +11,8 @@ import { Button } from '../core/button/button';
 const crimsonText = Crimson_Text({ weight: '400', subsets: ['latin'] });
 import styles from './layout.module.css';
 
-type AppContextType = {
-  // update later
-  user: any;
-  setUser: any;
-};
-
 function Navigation() {
-  const { user, setUser } = useAppContext() as AppContextType;
+  const { user, setUser } = useAppContext();
 
   const router = useRouter();
 
@@ -57,7 +52,7 @@ function Navigation() {
   );
 }
 
-export default function Layout(props) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const currentUrl = router.asPath ?? '';
 
@@ -65,7 +60,7 @@ export default function Layout(props) {
     <>
       <Meta currentUrl={currentUrl} />
       <Navigation />
-      <div className={styles.pageContainer}>{props.children}</div>
+      <div className={styles.pageContainer}>{children}</div>
       <Footer />
     </>
   );
