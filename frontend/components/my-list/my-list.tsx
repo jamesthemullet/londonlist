@@ -18,8 +18,8 @@ type ListItemsData = {
 };
 
 const GET_MY_LIST = gql`
-  query GetMyList($userId: ID!) {
-    listItems(filters: { user: { documentId: { eq: $userId } } }, sort: "createdAt:desc") {
+  query GetMyList {
+    listItems(sort: "createdAt:desc") {
       documentId
       name
       category
@@ -46,16 +46,13 @@ const DELETE_LIST_ITEM = gql`
   }
 `;
 
-type MyListProps = {
-  userId: string;
-};
+type MyListProps = Record<string, never>;
 
-export default function MyList({ userId }: MyListProps) {
+export default function MyList(_props: MyListProps) {
   const token = Cookie.get('token');
   const authHeader = { Authorization: `Bearer ${token}` };
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
-    variables: { userId },
     context: { headers: authHeader },
   });
 
@@ -65,7 +62,7 @@ export default function MyList({ userId }: MyListProps) {
 
   const [deleteItem] = useMutation(DELETE_LIST_ITEM, {
     context: { headers: authHeader },
-    refetchQueries: [{ query: GET_MY_LIST, variables: { userId }, context: { headers: authHeader } }],
+    refetchQueries: [{ query: GET_MY_LIST, context: { headers: authHeader } }],
   });
 
   if (loading) return <Loader />;
