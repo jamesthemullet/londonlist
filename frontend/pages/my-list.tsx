@@ -32,7 +32,7 @@ export default function MyListPage() {
           <PlaceSearch />
         </section>
         <section className={styles.section}>
-          <MyList userId={user.id} />
+          <MyList userId={user.documentId} />
         </section>
       </main>
     </>

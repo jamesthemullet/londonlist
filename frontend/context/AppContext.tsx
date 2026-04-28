@@ -5,6 +5,7 @@ import { client } from '../pages/_app';
 
 type User = {
   id: string;
+  documentId: string;
   email: string;
   username: string;
 };
@@ -50,6 +51,7 @@ const getUser = async () => {
       query {
         me {
           id
+          documentId
           email
           username
         }
