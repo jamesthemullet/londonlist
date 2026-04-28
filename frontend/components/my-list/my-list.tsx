@@ -18,7 +18,7 @@ type ListItemsData = {
 };
 
 const GET_MY_LIST = gql`
-  query GetMyList($userId: String!) {
+  query GetMyList($userId: ID!) {
     listItems(filters: { user: { documentId: { eq: $userId } } }, sort: "createdAt:desc") {
       documentId
       name
