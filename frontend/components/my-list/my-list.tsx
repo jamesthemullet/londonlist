@@ -2,6 +2,7 @@ import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
 import Loader from '../Loader';
+import ProgressBar from '../progress-bar/progress-bar';
 import styles from './my-list.module.css';
 
 type ListItem = {
@@ -99,6 +100,7 @@ export default function MyList({ userId }: MyListProps) {
 
   return (
     <div className={styles.container}>
+      <ProgressBar total={items.length} done={done.length} />
       {todo.length > 0 && (
         <section>
           <h2 className={styles.sectionHeading}>To do ({todo.length})</h2>
