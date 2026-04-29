@@ -14,6 +14,7 @@ type LoginMutationData = {
     jwt: string;
     user: {
       id: string;
+      documentId: string;
       username: string;
       email: string;
     };
@@ -31,6 +32,7 @@ const LOGIN_MUTATION = gql`
       jwt
       user {
         id
+        documentId
         username
         email
       }

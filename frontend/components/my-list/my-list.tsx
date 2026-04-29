@@ -2,73 +2,57 @@ import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
 import Loader from '../Loader';
+import ProgressBar from '../progress-bar/progress-bar';
 import styles from './my-list.module.css';
 
 type ListItem = {
-  id: string;
-  attributes: {
-    name: string;
-    category: string | null;
-    completed: boolean;
-    osm_id: string;
-  };
+  documentId: string;
+  name: string;
+  category: string | null;
+  completed: boolean;
+  osm_id: string;
 };
 
 type ListItemsData = {
-  listItems: {
-    data: ListItem[];
-  };
+  listItems: ListItem[];
 };
 
 const GET_MY_LIST = gql`
-  query GetMyList($userId: ID!) {
-    listItems(filters: { user: { id: { eq: $userId } } }, sort: "createdAt:desc") {
-      data {
-        id
-        attributes {
-          name
-          category
-          completed
-          osm_id
-        }
-      }
+  query GetMyList {
+    listItems(sort: "createdAt:desc") {
+      documentId
+      name
+      category
+      completed
+      osm_id
     }
   }
 `;
 
 const TOGGLE_COMPLETE = gql`
-  mutation ToggleComplete($id: ID!, $completed: Boolean!) {
-    updateListItem(id: $id, data: { completed: $completed }) {
-      data {
-        id
-        attributes {
-          completed
-        }
-      }
+  mutation ToggleComplete($documentId: ID!, $completed: Boolean!) {
+    updateListItem(documentId: $documentId, data: { completed: $completed }) {
+      documentId
+      completed
     }
   }
 `;
 
 const DELETE_LIST_ITEM = gql`
-  mutation DeleteListItem($id: ID!) {
-    deleteListItem(id: $id) {
-      data {
-        id
-      }
+  mutation DeleteListItem($documentId: ID!) {
+    deleteListItem(documentId: $documentId) {
+      documentId
     }
   }
 `;
 
-type MyListProps = {
-  userId: string;
-};
+type MyListProps = Record<string, never>;
 
-export default function MyList({ userId }: MyListProps) {
+export default function MyList(_props: MyListProps) {
   const token = Cookie.get('token');
   const authHeader = { Authorization: `Bearer ${token}` };
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
-    variables: { userId },
     context: { headers: authHeader },
   });
 
@@ -78,13 +62,13 @@ export default function MyList({ userId }: MyListProps) {
 
   const [deleteItem] = useMutation(DELETE_LIST_ITEM, {
     context: { headers: authHeader },
-    refetchQueries: [{ query: GET_MY_LIST, variables: { userId }, context: { headers: authHeader } }],
+    refetchQueries: [{ query: GET_MY_LIST, context: { headers: authHeader } }],
   });
 
   if (loading) return <Loader />;
   if (error) return <p>Error loading your list.</p>;
 
-  const items = data?.listItems?.data ?? [];
+  const items = data?.listItems ?? [];
 
   if (items.length === 0) {
     return (
@@ -94,23 +78,24 @@ export default function MyList({ userId }: MyListProps) {
     );
   }
 
-  const todo = items.filter((i) => !i.attributes.completed);
-  const done = items.filter((i) => i.attributes.completed);
+  const todo = items.filter((i) => !i.completed);
+  const done = items.filter((i) => i.completed);
 
   return (
     <div className={styles.container}>
+      <ProgressBar total={items.length} done={done.length} />
       {todo.length > 0 && (
         <section>
           <h2 className={styles.sectionHeading}>To do ({todo.length})</h2>
           <ul className={styles.list}>
             {todo.map((item) => (
               <ListItemRow
-                key={item.id}
+                key={item.documentId}
                 item={item}
                 onToggle={() =>
-                  toggleComplete({ variables: { id: item.id, completed: true } })
+                  toggleComplete({ variables: { documentId: item.documentId, completed: true } })
                 }
-                onDelete={() => deleteItem({ variables: { id: item.id } })}
+                onDelete={() => deleteItem({ variables: { documentId: item.documentId } })}
               />
             ))}
           </ul>
@@ -123,12 +108,12 @@ export default function MyList({ userId }: MyListProps) {
           <ul className={styles.list}>
             {done.map((item) => (
               <ListItemRow
-                key={item.id}
+                key={item.documentId}
                 item={item}
                 onToggle={() =>
-                  toggleComplete({ variables: { id: item.id, completed: false } })
+                  toggleComplete({ variables: { documentId: item.documentId, completed: false } })
                 }
-                onDelete={() => deleteItem({ variables: { id: item.id } })}
+                onDelete={() => deleteItem({ variables: { documentId: item.documentId } })}
               />
             ))}
           </ul>
@@ -151,14 +136,14 @@ function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
         <input
           type="checkbox"
           className={styles.checkbox}
-          checked={item.attributes.completed}
+          checked={item.completed}
           onChange={onToggle}
         />
-        <span className={item.attributes.completed ? styles.nameDone : styles.name}>
-          {item.attributes.name}
+        <span className={item.completed ? styles.nameDone : styles.name}>
+          {item.name}
         </span>
-        {item.attributes.category && (
-          <span className={styles.category}>{item.attributes.category}</span>
+        {item.category && (
+          <span className={styles.category}>{item.category}</span>
         )}
       </label>
       <button className={styles.deleteButton} onClick={onDelete} aria-label="Remove">

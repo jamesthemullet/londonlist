@@ -13,6 +13,7 @@ type RegisterMutationData = {
     jwt: string;
     user: {
       id: string;
+      documentId: string;
       username: string;
       email: string;
     };
@@ -31,6 +32,7 @@ const REGISTER_MUTATION = gql`
       jwt
       user {
         id
+        documentId
         username
         email
       }

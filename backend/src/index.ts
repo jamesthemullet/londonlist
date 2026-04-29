@@ -1,18 +1,25 @@
 export default {
-  /**
-   * An asynchronous register function that runs before
-   * your application is initialized.
-   *
-   * This gives you an opportunity to extend code.
-   */
-  register(/*{ strapi }*/) {},
+  register({ strapi }) {
+    const extensionService = strapi.plugin('graphql').service('extension');
 
-  /**
-   * An asynchronous bootstrap function that runs before
-   * your application gets started.
-   *
-   * This gives you an opportunity to set up your data model,
-   * run jobs, or perform some special logic.
-   */
+    extensionService.use(() => ({
+      resolvers: {
+        Query: {
+          listItems: {
+            async resolve(_parent, args, context) {
+              const user = context.state?.user;
+              if (!user) throw new Error('Forbidden access');
+
+              return strapi.documents('api::list-item.list-item').findMany({
+                filters: { user: { id: { $eq: user.id } } },
+                sort: args.sort ?? 'createdAt:desc',
+              });
+            },
+          },
+        },
+      },
+    }));
+  },
+
   bootstrap(/*{ strapi }*/) {},
 };
