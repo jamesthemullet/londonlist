@@ -1,7 +1,8 @@
+import React from 'react';
 import styles from './button.module.css';
 
 type ButtonProps = {
-  children: any;
+  children: React.ReactNode;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;

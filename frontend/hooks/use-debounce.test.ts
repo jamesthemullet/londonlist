@@ -47,15 +47,21 @@ describe('useDebounce', () => {
     });
 
     rerender({ value: 'b', delay: 300 });
-    act(() => { jest.advanceTimersByTime(100); });
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
 
     rerender({ value: 'c', delay: 300 });
-    act(() => { jest.advanceTimersByTime(100); });
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
 
     // Only 200ms elapsed since last change — should still be 'a'
     expect(result.current).toBe('a');
 
-    act(() => { jest.advanceTimersByTime(200); });
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
 
     expect(result.current).toBe('c');
   });

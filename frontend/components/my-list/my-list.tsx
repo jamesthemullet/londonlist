@@ -46,9 +46,7 @@ const DELETE_LIST_ITEM = gql`
   }
 `;
 
-type MyListProps = Record<string, never>;
-
-export default function MyList(_props: MyListProps) {
+export default function MyList() {
   const token = Cookie.get('token');
   const authHeader = { Authorization: `Bearer ${token}` };
 
@@ -140,12 +138,8 @@ function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
           checked={item.completed}
           onChange={onToggle}
         />
-        <span className={item.completed ? styles.nameDone : styles.name}>
-          {item.name}
-        </span>
-        {item.category && (
-          <span className={styles.category}>{item.category}</span>
-        )}
+        <span className={item.completed ? styles.nameDone : styles.name}>{item.name}</span>
+        {item.category && <span className={styles.category}>{item.category}</span>}
       </label>
       <button className={styles.deleteButton} onClick={onDelete} aria-label="Remove">
         ✕
