@@ -45,10 +45,9 @@
     "babel-jest": "^30.3.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.5",
-    "husky": "9.1.7",
-    "prettier": "3.8.3",
     "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0"
+    "jest-environment-jsdom": "^30.3.0",
+    "prettier": "3.8.3"
   },
   "resolutions": {
     "picomatch": "^4.0.4"
