@@ -122,7 +122,7 @@ export default function PlaceSearch() {
     const osmType = osmTypeExpanded(properties.osm_type);
     const key = `${osmType}/${properties.osm_id}`;
     try {
-      const { errors } = await createListItem({
+      const result = await createListItem({
         variables: {
           osm_id: key,
           name: featureName(properties),
@@ -135,7 +135,7 @@ export default function PlaceSearch() {
         },
         refetchQueries: ['GetMyList'],
       });
-      if (errors && errors.length > 0) {
+      if (!result.data?.createListItem) {
         setAddError('Could not add to list. Please try again.');
         return;
       }
