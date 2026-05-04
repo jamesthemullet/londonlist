@@ -73,7 +73,8 @@ export default function PlaceSearch() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [added, setAdded] = useState<Set<string>>(new Set());
   const [addError, setAddError] = useState<string | null>(null);
-  const [createListItem] = useMutation(CREATE_LIST_ITEM);
+  type CreateListItemData = { createListItem: { documentId: string; name: string } | null };
+  const [createListItem] = useMutation<CreateListItemData>(CREATE_LIST_ITEM);
 
   const debouncedQuery = useDebounce(query, 400);
 
