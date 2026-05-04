@@ -17,6 +17,21 @@ export default {
             },
           },
         },
+        Mutation: {
+          createListItem: {
+            async resolve(_parent, args, context) {
+              const user = context.state?.user;
+              if (!user) throw new Error('Forbidden access');
+
+              return strapi.documents('api::list-item.list-item').create({
+                data: {
+                  ...args.data,
+                  user: user.id,
+                },
+              });
+            },
+          },
+        },
       },
     }));
   },

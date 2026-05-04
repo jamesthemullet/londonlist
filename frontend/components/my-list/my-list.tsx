@@ -46,14 +46,13 @@ const DELETE_LIST_ITEM = gql`
   }
 `;
 
-type MyListProps = Record<string, never>;
-
-export default function MyList(_props: MyListProps) {
+export default function MyList() {
   const token = Cookie.get('token');
   const authHeader = { Authorization: `Bearer ${token}` };
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
     context: { headers: authHeader },
+    fetchPolicy: 'network-only',
   });
 
   const [toggleComplete] = useMutation(TOGGLE_COMPLETE, {
@@ -65,7 +64,7 @@ export default function MyList(_props: MyListProps) {
     refetchQueries: [{ query: GET_MY_LIST, context: { headers: authHeader } }],
   });
 
-  if (loading) return <Loader />;
+  if (loading && !data) return <Loader />;
   if (error) return <p>Error loading your list.</p>;
 
   const items = data?.listItems ?? [];
@@ -139,12 +138,8 @@ function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
           checked={item.completed}
           onChange={onToggle}
         />
-        <span className={item.completed ? styles.nameDone : styles.name}>
-          {item.name}
-        </span>
-        {item.category && (
-          <span className={styles.category}>{item.category}</span>
-        )}
+        <span className={item.completed ? styles.nameDone : styles.name}>{item.name}</span>
+        {item.category && <span className={styles.category}>{item.category}</span>}
       </label>
       <button className={styles.deleteButton} onClick={onDelete} aria-label="Remove">
         ✕
