@@ -43,12 +43,8 @@ const CREATE_LIST_ITEM = gql`
         completed: false
       }
     ) {
-      data {
-        id
-        attributes {
-          name
-        }
-      }
+      documentId
+      name
     }
   }
 `;
@@ -74,7 +70,9 @@ export default function PlaceSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PhotonFeature[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [added, setAdded] = useState<Set<string>>(new Set());
+  const [addError, setAddError] = useState<string | null>(null);
   const [createListItem] = useMutation(CREATE_LIST_ITEM);
 
   const debouncedQuery = useDebounce(query, 400);
@@ -82,34 +80,49 @@ export default function PlaceSearch() {
   useEffect(() => {
     if (debouncedQuery.length < 3) {
       setResults([]);
+      setSearchError(null);
       return;
     }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort('timeout'), 5000);
+
     setSearching(true);
+    setSearchError(null);
     const params = new URLSearchParams({
       q: debouncedQuery,
       limit: '10',
       lang: 'en',
-      // London bounding box: lon_min,lat_min,lon_max,lat_max
       bbox: '-0.51,51.29,0.33,51.69',
     });
-    fetch(`https://photon.komoot.io/api/?${params}`)
+    fetch(`https://photon.komoot.io/api/?${params}`, { signal: controller.signal })
       .then((r) => r.json())
       .then((data: PhotonResponse) => setResults(data.features ?? []))
-      .catch(() => setResults([]))
+      .catch((err) => {
+        if (err?.name === 'AbortError') {
+          setSearchError('Search timed out. Please try again.');
+        }
+        setResults([]);
+      })
       .finally(() => setSearching(false));
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [debouncedQuery]);
 
   async function handleAdd(feature: PhotonFeature) {
+    setAddError(null);
     const token = Cookie.get('token');
     if (!token) {
-      alert('Please log in to add places to your list.');
+      setAddError('Please log in to add places to your list.');
       return;
     }
     const { properties, geometry } = feature;
     const osmType = osmTypeExpanded(properties.osm_type);
     const key = `${osmType}/${properties.osm_id}`;
     try {
-      await createListItem({
+      const { errors } = await createListItem({
         variables: {
           osm_id: key,
           name: featureName(properties),
@@ -120,10 +133,15 @@ export default function PlaceSearch() {
         context: {
           headers: { Authorization: `Bearer ${token}` },
         },
+        refetchQueries: ['GetMyList'],
       });
+      if (errors && errors.length > 0) {
+        setAddError('Could not add to list. Please try again.');
+        return;
+      }
       setAdded((prev) => new Set(prev).add(key));
     } catch {
-      alert('Could not add to list. Please try again.');
+      setAddError('Could not add to list. Please try again.');
     }
   }
 
@@ -139,6 +157,9 @@ export default function PlaceSearch() {
         />
         {searching && <span className={styles.spinner} />}
       </div>
+
+      {searchError && <p className={styles.error}>{searchError}</p>}
+      {addError && <p className={styles.error}>{addError}</p>}
 
       {results.length > 0 && (
         <ul className={styles.results}>

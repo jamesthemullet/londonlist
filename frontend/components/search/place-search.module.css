@@ -118,3 +118,9 @@
   color: #888;
   font-size: 0.9rem;
 }
+
+.error {
+  margin-top: 0.75rem;
+  color: #c0392b;
+  font-size: 0.9rem;
+}

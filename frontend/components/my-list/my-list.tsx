@@ -54,6 +54,7 @@ export default function MyList(_props: MyListProps) {
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
     context: { headers: authHeader },
+    fetchPolicy: 'network-only',
   });
 
   const [toggleComplete] = useMutation(TOGGLE_COMPLETE, {
@@ -65,7 +66,7 @@ export default function MyList(_props: MyListProps) {
     refetchQueries: [{ query: GET_MY_LIST, context: { headers: authHeader } }],
   });
 
-  if (loading) return <Loader />;
+  if (loading && !data) return <Loader />;
   if (error) return <p>Error loading your list.</p>;
 
   const items = data?.listItems ?? [];

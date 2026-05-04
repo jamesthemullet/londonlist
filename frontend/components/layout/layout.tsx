@@ -57,11 +57,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const currentUrl = router.asPath ?? '';
 
   return (
-    <>
+    <div className={styles.wrapper}>
       <Meta currentUrl={currentUrl} />
       <Navigation />
       <div className={styles.pageContainer}>{children}</div>
       <Footer />
-    </>
+    </div>
   );
 }
