@@ -1,13 +1,13 @@
+import Cookie from 'js-cookie';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import React from 'react';
+import type React from 'react';
 import { useAppContext } from '../../context/AppContext';
-import Cookie from 'js-cookie';
 
 import { Crimson_Text } from 'next/font/google';
+import { Button } from '../core/button/button';
 import Footer from '../footer/footer';
 import Meta from '../meta/meta';
-import { Button } from '../core/button/button';
 const crimsonText = Crimson_Text({ weight: '400', subsets: ['latin'] });
 import styles from './layout.module.css';
 

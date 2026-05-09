@@ -1,6 +1,6 @@
-import { useState, createContext, useContext, useEffect } from 'react';
-import Cookie from 'js-cookie';
 import { gql } from '@apollo/client';
+import Cookie from 'js-cookie';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { client } from '../pages/_app';
 
 type User = {
@@ -37,7 +37,8 @@ export const AppProvider = ({ children }) => {
       value={{
         user,
         setUser,
-      }}>
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

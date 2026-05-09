@@ -62,12 +62,12 @@ function AttractionsList(props: AttractionsListProps) {
   if (error) return 'Error loading attractions';
   if (loading) return <Loader />;
 
-  if (data?.attractions?.data && data.attractions.data.length) {
+  if (data?.attractions?.data?.length) {
     const searchQuery = data.attractions.data.filter((query) =>
       query.attributes.name.toLowerCase().includes(props.query.toLowerCase()),
     );
 
-    if (searchQuery.length != 0) {
+    if (searchQuery.length !== 0) {
       return (
         <div>
           <div>
@@ -79,9 +79,8 @@ function AttractionsList(props: AttractionsListProps) {
           </div>
         </div>
       );
-    } else {
-      return <h1>No Attractions Found</h1>;
     }
+    return <h1>No Attractions Found</h1>;
   }
 }
 export default AttractionsList;

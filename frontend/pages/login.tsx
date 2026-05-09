@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { useAppContext } from '../context/AppContext';
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { useAppContext } from '../context/AppContext';
 
-import Loader from '../components/Loader';
 import Link from 'next/link';
+import Loader from '../components/Loader';
 import Form from '../components/core/form/form';
 
 type LoginMutationData = {

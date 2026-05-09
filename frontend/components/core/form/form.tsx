@@ -1,6 +1,6 @@
 import React from 'react';
-import styles from './form.module.css';
 import { Button } from '../button/button';
+import styles from './form.module.css';
 
 const isValidEmail = (email) => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

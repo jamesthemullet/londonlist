@@ -1,7 +1,7 @@
-import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { ApolloProvider } from '@apollo/client/react';
-import { AppProvider } from '../context/AppContext';
 import fetch from 'cross-fetch';
+import { AppProvider } from '../context/AppContext';
 
 import Layout from '../components/layout/layout';
 import '../styles/globals.css';

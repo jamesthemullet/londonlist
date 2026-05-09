@@ -7,9 +7,15 @@
     "develop": "strapi develop",
     "start": "strapi start",
     "build": "strapi build",
-    "strapi": "strapi"
+    "strapi": "strapi",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write ."
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4"
+  },
   "dependencies": {
     "@strapi/plugin-graphql": "^5.0.0",
     "better-sqlite3": "^12.9.0",

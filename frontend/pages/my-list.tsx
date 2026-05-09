@@ -1,9 +1,9 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { useAppContext } from '../context/AppContext';
-import PlaceSearch from '../components/search/place-search';
 import MyList from '../components/my-list/my-list';
+import PlaceSearch from '../components/search/place-search';
+import { useAppContext } from '../context/AppContext';
 import styles from './my-list.module.css';
 
 export default function MyListPage() {
