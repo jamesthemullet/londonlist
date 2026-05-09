@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
-import { useEffect, useState } from 'react';
 import { useMutation } from '@apollo/client/react';
+import { useEffect, useState } from 'react';
 import useDebounce from '../../hooks/use-debounce';
 
 const categories = [
@@ -56,7 +56,6 @@ function CreateAttractionForm() {
 
   const [createAttraction, { loading, error }] = useMutation(CREATE_ATTRACTION_MUTATION, {
     onCompleted: (data) => {
-      console.log('Attraction created:', data);
       // Optionally, redirect or update the UI after successful creation
     },
   });
@@ -71,9 +70,7 @@ function CreateAttractionForm() {
           );
           const data = await response.json();
           setSuggestions(data);
-        } catch (error) {
-          console.error('Error fetching address suggestions:', error);
-        }
+        } catch (error) {}
       } else {
         setSuggestions([]);
       }
@@ -104,8 +101,14 @@ function CreateAttractionForm() {
         <input id="address" type="text" value={address} onChange={handleAddressChange} required />
         {suggestions.length > 0 && (
           <ul>
-            {suggestions.map((suggestion, index) => (
-              <li key={index} onClick={() => handleSuggestionClick(suggestion)}>
+            {suggestions.map((suggestion) => (
+              <li
+                key={suggestion.display_name}
+                onClick={() => handleSuggestionClick(suggestion)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') handleSuggestionClick(suggestion);
+                }}
+              >
                 {suggestion.display_name}
               </li>
             ))}
@@ -137,7 +140,8 @@ function CreateAttractionForm() {
           id="category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          required>
+          required
+        >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}

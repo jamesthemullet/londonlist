@@ -1,7 +1,7 @@
 module.exports = {
   graphql: {
     config: {
-      endpoint: "/graphql",
+      endpoint: '/graphql',
       shadowCRUD: true,
       playgroundAlways: true,
       depthLimit: 10,

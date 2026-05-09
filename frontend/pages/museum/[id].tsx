@@ -74,13 +74,13 @@ function ExhibitionCard({ data }: { data: ExhibitionItem }) {
           alt=''
         /> */}
         <div>
-          <a href="#">
-            <h3>{data.attributes.name}</h3>
-          </a>
+          <h3>{data.attributes.name}</h3>
           <p>{data.attributes.description}</p>
           <div>
             <div>
-              <button onClick={handleAddItem}>+ Add to Cart</button>
+              <button type="button" onClick={handleAddItem}>
+                + Add to Cart
+              </button>
             </div>
           </div>
         </div>
@@ -126,7 +126,6 @@ export default function Museum() {
         </div>
       </div>
     );
-  } else {
-    return <h1>No Exhibitions Found</h1>;
   }
+  return <h1>No Exhibitions Found</h1>;
 }

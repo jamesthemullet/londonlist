@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
+import { useEffect, useState } from 'react';
 import useDebounce from '../../hooks/use-debounce';
 import styles from './place-search.module.css';
 
@@ -178,9 +178,11 @@ export default function PlaceSearch() {
                   )}
                 </div>
                 <button
+                  type="button"
                   className={styles.addButton}
                   disabled={added.has(key)}
-                  onClick={() => handleAdd(r)}>
+                  onClick={() => handleAdd(r)}
+                >
                   {added.has(key) ? 'Added ✓' : '+ Add to list'}
                 </button>
               </li>

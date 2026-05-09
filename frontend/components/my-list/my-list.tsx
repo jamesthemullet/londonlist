@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-import { useQuery, useMutation } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import Cookie from 'js-cookie';
 import Loader from '../Loader';
 import ProgressBar from '../progress-bar/progress-bar';
@@ -141,7 +141,7 @@ function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
         <span className={item.completed ? styles.nameDone : styles.name}>{item.name}</span>
         {item.category && <span className={styles.category}>{item.category}</span>}
       </label>
-      <button className={styles.deleteButton} onClick={onDelete} aria-label="Remove">
+      <button type="button" className={styles.deleteButton} onClick={onDelete} aria-label="Remove">
         ✕
       </button>
     </li>

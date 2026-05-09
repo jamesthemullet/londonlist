@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import Loader from './Loader';
 
 type MuseumImageData = {
@@ -84,12 +84,12 @@ function MuseumList(props: MuseumListProps) {
   if (error) return 'Error loading museums';
   if (loading) return <Loader />;
 
-  if (data?.museums?.data && data.museums.data.length) {
+  if (data?.museums?.data?.length) {
     const searchQuery = data.museums.data.filter((query) =>
       query.attributes.name.toLowerCase().includes(props.query.toLowerCase()),
     );
 
-    if (searchQuery.length != 0) {
+    if (searchQuery.length !== 0) {
       return (
         <div>
           <div>
@@ -101,9 +101,8 @@ function MuseumList(props: MuseumListProps) {
           </div>
         </div>
       );
-    } else {
-      return <h1>No Museums Found</h1>;
     }
+    return <h1>No Museums Found</h1>;
   }
   return <h5>Add Museums</h5>;
 }
