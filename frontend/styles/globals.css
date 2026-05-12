@@ -11,7 +11,6 @@ body {
     Ubuntu,
     Cantarell,
     Fira Sans,
-    /* biome-ignore lint/suspicious/noDuplicateFontNames: false positive — "Sans" in "Fira Sans" and "Droid Sans" are different fonts */
     Droid Sans,
     Helvetica Neue,
     sans-serif;
