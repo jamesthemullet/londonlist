@@ -15,14 +15,14 @@ const REQUEST_RESET_MUTATION = gql`
 export default function ForgotPassword() {
   // const router = useRouter();
   const [formData, setFormData] = useState({ email: '' });
-  const [resetPassword, { loading, error }] = useMutation(REQUEST_RESET_MUTATION);
+  const [resetPassword, { error }] = useMutation(REQUEST_RESET_MUTATION);
 
   const handleRequestReset = async () => {
     try {
-      const { data } = await resetPassword({
+      await resetPassword({
         variables: { email: formData.email },
       });
-    } catch (error) {}
+    } catch (_error) {}
   };
 
   return (

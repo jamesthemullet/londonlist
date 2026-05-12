@@ -55,7 +55,7 @@ function CreateAttractionForm() {
   const debouncedAddress = useDebounce(address, 300);
 
   const [createAttraction, { loading, error }] = useMutation(CREATE_ATTRACTION_MUTATION, {
-    onCompleted: (data) => {
+    onCompleted: (_data) => {
       // Optionally, redirect or update the UI after successful creation
     },
   });
@@ -70,7 +70,7 @@ function CreateAttractionForm() {
           );
           const data = await response.json();
           setSuggestions(data);
-        } catch (error) {}
+        } catch (_error) {}
       } else {
         setSuggestions([]);
       }
