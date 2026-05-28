@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "list_settings",
+  "info": {
+    "singularName": "list-setting",
+    "pluralName": "list-settings",
+    "displayName": "List Setting"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "isPublic": {
+      "type": "boolean",
+      "default": false
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}
