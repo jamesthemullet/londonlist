@@ -1,12 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { ApolloProvider } from '@apollo/client/react';
-
-declare module '@apollo/client' {
-  interface DeclareDefaultOptions {
-    mutate: { errorPolicy: 'all' };
-    query: { errorPolicy: 'all' };
-  }
-}
 import fetch from 'cross-fetch';
 import { AppProvider } from '../context/AppContext';
 
