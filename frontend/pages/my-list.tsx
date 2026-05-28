@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
 import MyList from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
 import { useAppContext } from '../context/AppContext';
@@ -33,6 +34,10 @@ export default function MyListPage() {
         </section>
         <section className={styles.section}>
           <MyList />
+        </section>
+        <section className={styles.section}>
+          <h2 className={styles.subheading}>List settings</h2>
+          <ListVisibilityToggle />
         </section>
       </main>
     </>
