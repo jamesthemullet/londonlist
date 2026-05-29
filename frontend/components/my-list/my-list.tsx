@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
-import Cookie from 'js-cookie';
 import Loader from '../Loader';
 import ProgressBar from '../progress-bar/progress-bar';
+import { useAuthHeader } from '../../hooks/use-auth-header';
 import styles from './my-list.module.css';
 
 type ListItem = {
@@ -18,8 +18,11 @@ type ListItemsData = {
 };
 
 const GET_MY_LIST = gql`
-  query GetMyList {
-    listItems(sort: "createdAt:desc") {
+  query GetMyList($listDocumentId: ID) {
+    listItems(
+      sort: "createdAt:desc"
+      filters: { list: { documentId: { eq: $listDocumentId } } }
+    ) {
       documentId
       name
       category
@@ -46,11 +49,15 @@ const DELETE_LIST_ITEM = gql`
   }
 `;
 
-export default function MyList() {
-  const token = Cookie.get('token');
-  const authHeader = { Authorization: `Bearer ${token}` };
+type Props = {
+  listId: string;
+};
+
+export default function MyList({ listId }: Props) {
+  const authHeader = useAuthHeader();
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
+    variables: { listDocumentId: listId },
     context: { headers: authHeader },
     fetchPolicy: 'network-only',
   });
@@ -61,7 +68,13 @@ export default function MyList() {
 
   const [deleteItem] = useMutation(DELETE_LIST_ITEM, {
     context: { headers: authHeader },
-    refetchQueries: [{ query: GET_MY_LIST, context: { headers: authHeader } }],
+    refetchQueries: [
+      {
+        query: GET_MY_LIST,
+        variables: { listDocumentId: listId },
+        context: { headers: authHeader },
+      },
+    ],
   });
 
   if (loading && !data) return <Loader />;
