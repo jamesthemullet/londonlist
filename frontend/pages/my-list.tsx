@@ -102,7 +102,7 @@ export default function MyListPage() {
         if (newList) setActiveListId(newList.documentId);
       });
     }
-  }, [listsLoading, initialized, user, autoCreating]);
+  }, [listsLoading, lists.length, initialized, user, autoCreating, createList]);
 
   useEffect(() => {
     if (lists.length > 0 && !activeListId) {

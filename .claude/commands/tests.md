@@ -24,36 +24,7 @@ Count existing test files in `frontend/` and `backend/` (patterns: `**/*.test.ts
 
 ## Step 2 — Install missing libraries
 
-### If Playwright is not installed:
-Run these commands:
-```bash
-cd frontend && yarn add --dev @playwright/test
-npx playwright install chromium --with-deps
-```
-Then create `frontend/playwright.config.ts` if it doesn't exist:
-```ts
-import { defineConfig, devices } from '@playwright/test';
-
-export default defineConfig({
-  testDir: './e2e',
-  fullyParallel: false,
-  retries: 0,
-  use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
-  },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
-    command: 'yarn dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
-});
-```
-Add a test script to `frontend/package.json`: `"test:e2e": "playwright test"`.
-
-**After successfully installing Playwright and creating the config, edit this skill file (`.claude/commands/tests.md`) to remove the entire "If Playwright is not installed" block above (from the `### If Playwright is not installed:` heading through the closing paragraph), replacing it with a single line: `### Playwright: already installed`.**
+### Playwright: already installed
 
 ### If frontend unit testing libraries are missing:
 Install Jest + React Testing Library:
