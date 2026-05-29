@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
-import Cookie from 'js-cookie';
 import Loader from '../Loader';
 import ProgressBar from '../progress-bar/progress-bar';
+import { useAuthHeader } from '../../hooks/use-auth-header';
 import styles from './my-list.module.css';
 
 type ListItem = {
@@ -54,8 +54,7 @@ type Props = {
 };
 
 export default function MyList({ listId }: Props) {
-  const token = Cookie.get('token');
-  const authHeader = { Authorization: `Bearer ${token}` };
+  const authHeader = useAuthHeader();
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
     variables: { listDocumentId: listId },

@@ -1,6 +1,5 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
-import Cookie from 'js-cookie';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -8,6 +7,7 @@ import ListVisibilityToggle from '../components/list-visibility-toggle/list-visi
 import MyList from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
 import { useAppContext } from '../context/AppContext';
+import { useAuthHeader } from '../hooks/use-auth-header';
 import styles from './my-list.module.css';
 
 type List = {
@@ -59,8 +59,7 @@ const DELETE_MY_LIST = gql`
 export default function MyListPage() {
   const { user, initialized } = useAppContext();
   const router = useRouter();
-  const token = Cookie.get('token');
-  const authHeader = { Authorization: `Bearer ${token}` };
+  const authHeader = useAuthHeader();
   const [activeListId, setActiveListId] = useState<string | null>(null);
   const [autoCreating, setAutoCreating] = useState(false);
 
