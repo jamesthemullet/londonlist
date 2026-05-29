@@ -13,6 +13,7 @@ type User = {
 type AppContextValue = {
   user: User | null;
   setUser: (user: User | null) => void;
+  initialized: boolean;
 };
 
 type GetMeQueryData = {
@@ -23,11 +24,13 @@ const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       const userData = await getUser();
       setUser(userData);
+      setInitialized(true);
     };
     fetchData();
   }, []);
@@ -37,6 +40,7 @@ export const AppProvider = ({ children }) => {
       value={{
         user,
         setUser,
+        initialized,
       }}
     >
       {children}

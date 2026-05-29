@@ -32,6 +32,7 @@ const CREATE_LIST_ITEM = gql`
     $lat: Float
     $lng: Float
     $category: String
+    $list: ID
   ) {
     createListItem(
       data: {
@@ -41,6 +42,7 @@ const CREATE_LIST_ITEM = gql`
         lng: $lng
         category: $category
         completed: false
+        list: $list
       }
     ) {
       documentId
@@ -66,7 +68,11 @@ function osmTypeExpanded(short: string): string {
   return short.toLowerCase();
 }
 
-export default function PlaceSearch() {
+type Props = {
+  listId?: string;
+};
+
+export default function PlaceSearch({ listId }: Props) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PhotonFeature[]>([]);
   const [searching, setSearching] = useState(false);
@@ -130,6 +136,7 @@ export default function PlaceSearch() {
           lat: geometry.coordinates[1],
           lng: geometry.coordinates[0],
           category: properties.osm_value ?? properties.osm_key ?? '',
+          list: listId,
         },
         context: {
           headers: { Authorization: `Bearer ${token}` },
