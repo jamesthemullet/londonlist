@@ -1,3 +1,7 @@
+function isOwnedBy(doc: unknown, userId: number): boolean {
+  return ((doc as { user?: { id: number } | null } | null)?.user?.id) === userId;
+}
+
 export default {
   register({ strapi }) {
     const extensionService = strapi.plugin('graphql').service('extension');
@@ -37,7 +41,7 @@ export default {
                   },
                 });
 
-                if (!list || (list.user as { id: number } | null)?.id !== user.id) {
+                if (!list || !isOwnedBy(list, user.id)) {
                   throw new Error('Forbidden access');
                 }
 
@@ -85,7 +89,7 @@ export default {
                   documentId: listDocumentId,
                   populate: ['user'],
                 });
-                if (!list || (list.user as { id: number } | null)?.id !== user.id) {
+                if (!list || !isOwnedBy(list, user.id)) {
                   throw new Error('Forbidden access');
                 }
               }
@@ -119,7 +123,7 @@ export default {
                 populate: ['user'],
               });
 
-              if (!existing || (existing.user as { id: number } | null)?.id !== user.id) {
+              if (!existing || !isOwnedBy(existing, user.id)) {
                 throw new Error('Forbidden access');
               }
 
@@ -169,7 +173,7 @@ export default {
                 populate: ['user'],
               });
 
-              if (!existing || (existing.user as { id: number } | null)?.id !== user.id) {
+              if (!existing || !isOwnedBy(existing, user.id)) {
                 throw new Error('Forbidden access');
               }
 
@@ -193,7 +197,7 @@ export default {
                 populate: ['user'],
               });
 
-              if (!existing || (existing.user as { id: number } | null)?.id !== user.id) {
+              if (!existing || !isOwnedBy(existing, user.id)) {
                 throw new Error('Forbidden access');
               }
 

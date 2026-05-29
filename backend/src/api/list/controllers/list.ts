@@ -1,5 +1,9 @@
 import { factories } from '@strapi/strapi';
 
+function isOwnedBy(doc: unknown, userId: number): boolean {
+  return ((doc as { user?: { id: number } | null } | null)?.user?.id) === userId;
+}
+
 export default factories.createCoreController('api::list.list', ({ strapi }) => ({
   async getPublicList(ctx) {
     const { username, listId } = ctx.params;
@@ -17,7 +21,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       populate: ['user'],
     });
 
-    if (!list || (list.user as { id: number } | null)?.id !== user.id) {
+    if (!list || !isOwnedBy(list, user.id)) {
       return ctx.notFound('List not found');
     }
 
