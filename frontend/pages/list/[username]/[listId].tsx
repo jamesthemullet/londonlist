@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import styles from '../[username].module.css';
 
+const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
+
 type ListItem = {
   documentId: string;
   name: string;
@@ -24,8 +26,6 @@ export default function PublicListPage() {
   const { username, listId } = router.query;
   const [listData, setListData] = useState<PublicListData | null>(null);
   const [pageState, setPageState] = useState<PageState>('loading');
-
-  const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
   useEffect(() => {
     if (!username || typeof username !== 'string' || !listId || typeof listId !== 'string') return;
@@ -52,7 +52,7 @@ export default function PublicListPage() {
     };
 
     fetchPublicList();
-  }, [username, listId, API_URL]);
+  }, [username, listId]);
 
   if (pageState === 'loading') {
     return (
