@@ -5,6 +5,26 @@ function isOwnedBy(doc: unknown, userId: number): boolean {
 }
 
 export default factories.createCoreController('api::list.list', ({ strapi }) => ({
+  async getAllPublicLists(ctx) {
+    const { page = 1, pageSize = 20 } = ctx.query as { page?: number; pageSize?: number };
+
+    const lists = await strapi.documents('api::list.list').findMany({
+      filters: { isPublic: { $eq: true } },
+      populate: ['user'],
+      sort: 'createdAt:desc',
+      limit: Number(pageSize),
+      offset: (Number(page) - 1) * Number(pageSize),
+    });
+
+    return {
+      data: lists.map((list) => ({
+        documentId: list.documentId,
+        name: list.name,
+        username: (list as { user?: { username?: string } | null }).user?.username ?? null,
+      })),
+    };
+  },
+
   async getPublicList(ctx) {
     const { username, listId } = ctx.params;
 
