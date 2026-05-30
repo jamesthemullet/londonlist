@@ -2,6 +2,7 @@ import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
 import { useEffect, useState } from 'react';
+import { useAuthHeader } from '../../hooks/use-auth-header';
 import useDebounce from '../../hooks/use-debounce';
 import styles from './place-search.module.css';
 
@@ -73,6 +74,7 @@ type Props = {
 };
 
 export default function PlaceSearch({ listId }: Props) {
+  const authHeader = useAuthHeader();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PhotonFeature[]>([]);
   const [searching, setSearching] = useState(false);
@@ -139,7 +141,7 @@ export default function PlaceSearch({ listId }: Props) {
           list: listId,
         },
         context: {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: authHeader,
         },
         refetchQueries: ['GetMyList'],
       });

@@ -2,7 +2,7 @@ import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
 import MyList from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
@@ -61,7 +61,7 @@ export default function MyListPage() {
   const router = useRouter();
   const authHeader = useAuthHeader();
   const [activeListId, setActiveListId] = useState<string | null>(null);
-  const [autoCreating, setAutoCreating] = useState(false);
+  const hasAutoCreated = useRef(false);
 
   useEffect(() => {
     if (initialized && user === null) {
@@ -75,7 +75,7 @@ export default function MyListPage() {
     fetchPolicy: 'network-only',
   });
 
-  const [createList] = useMutation(CREATE_MY_LIST, {
+  const [createList] = useMutation<{ createMyList: List }>(CREATE_MY_LIST, {
     context: { headers: authHeader },
     refetchQueries: [{ query: GET_MY_LISTS, context: { headers: authHeader } }],
     awaitRefetchQueries: true,
@@ -94,14 +94,14 @@ export default function MyListPage() {
   const lists = data?.myLists ?? [];
 
   useEffect(() => {
-    if (!listsLoading && lists.length === 0 && initialized && user && !autoCreating) {
-      setAutoCreating(true);
+    if (!listsLoading && lists.length === 0 && initialized && user && !hasAutoCreated.current) {
+      hasAutoCreated.current = true;
       createList({ variables: { name: 'My List' } }).then((result) => {
-        const newList = (result.data as { createMyList?: List } | null)?.createMyList;
+        const newList = result.data?.createMyList;
         if (newList) setActiveListId(newList.documentId);
       });
     }
-  }, [listsLoading, lists.length, initialized, user, autoCreating, createList]);
+  }, [listsLoading, lists.length, initialized, user, createList]);
 
   useEffect(() => {
     if (lists.length > 0 && !activeListId) {
@@ -118,7 +118,7 @@ export default function MyListPage() {
     const name = window.prompt('List name:');
     if (!name?.trim()) return;
     const result = await createList({ variables: { name: name.trim() } });
-    const newList = (result.data as { createMyList?: List } | null)?.createMyList;
+    const newList = result.data?.createMyList;
     if (newList) setActiveListId(newList.documentId);
   };
 
@@ -170,14 +170,14 @@ export default function MyListPage() {
           </button>
         </div>
 
-        {activeList && activeListId && (
+        {activeList && (
           <>
             <section className={styles.section}>
               <h2 className={styles.subheading}>Add a place</h2>
-              <PlaceSearch listId={activeListId} />
+              <PlaceSearch listId={activeList.documentId} />
             </section>
             <section className={styles.section}>
-              <MyList listId={activeListId} />
+              <MyList listId={activeList.documentId} />
             </section>
             <section className={styles.section}>
               <h2 className={styles.subheading}>List settings</h2>

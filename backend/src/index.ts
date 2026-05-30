@@ -2,6 +2,12 @@ function isOwnedBy(doc: unknown, userId: number): boolean {
   return ((doc as { user?: { id: number } | null } | null)?.user?.id) === userId;
 }
 
+function requireUser(context: { state?: { user?: unknown } }) {
+  const user = context.state?.user as { id: number } | undefined;
+  if (!user) throw new Error('Forbidden access');
+  return user;
+}
+
 export default {
   register({ strapi }) {
     const extensionService = strapi.plugin('graphql').service('extension');
@@ -26,8 +32,7 @@ export default {
         Query: {
           listItems: {
             async resolve(_parent, args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               const listDocumentId = args.filters?.list?.documentId?.eq;
 
@@ -56,8 +61,7 @@ export default {
           },
           listSettings: {
             async resolve(_parent, _args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               return strapi.documents('api::list-setting.list-setting').findMany({
                 filters: { user: { id: { $eq: user.id } } },
@@ -66,8 +70,7 @@ export default {
           },
           myLists: {
             async resolve(_parent, _args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               return strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
@@ -79,8 +82,7 @@ export default {
         Mutation: {
           createListItem: {
             async resolve(_parent, args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               const { list: listDocumentId, ...itemData } = args.data;
 
@@ -105,8 +107,7 @@ export default {
           },
           createListSetting: {
             async resolve(_parent, args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               return strapi.documents('api::list-setting.list-setting').create({
                 data: { ...args.data, user: user.id },
@@ -115,8 +116,7 @@ export default {
           },
           updateListSetting: {
             async resolve(_parent, args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               const existing = await strapi.documents('api::list-setting.list-setting').findOne({
                 documentId: args.documentId,
@@ -135,8 +135,7 @@ export default {
           },
           createMyList: {
             async resolve(_parent, args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               const existingLists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
@@ -148,16 +147,10 @@ export default {
 
               // On first list creation, migrate any pre-existing unassigned items into it
               if (existingLists.length === 0) {
-                const unassigned = await strapi.db
-                  .query('api::list-item.list-item')
-                  .findMany({ where: { user: user.id, list: null } });
-
-                for (const item of unassigned) {
-                  await strapi.documents('api::list-item.list-item').update({
-                    documentId: item.documentId,
-                    data: { list: newList.documentId },
-                  });
-                }
+                await strapi.db.query('api::list-item.list-item').updateMany({
+                  where: { user: user.id, list: null },
+                  data: { list: newList.id },
+                });
               }
 
               return newList;
@@ -165,8 +158,7 @@ export default {
           },
           updateMyList: {
             async resolve(_parent, args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               const existing = await strapi.documents('api::list.list').findOne({
                 documentId: args.documentId,
@@ -189,8 +181,7 @@ export default {
           },
           deleteMyList: {
             async resolve(_parent, args, context) {
-              const user = context.state?.user;
-              if (!user) throw new Error('Forbidden access');
+              const user = requireUser(context);
 
               const existing = await strapi.documents('api::list.list').findOne({
                 documentId: args.documentId,
@@ -201,15 +192,9 @@ export default {
                 throw new Error('Forbidden access');
               }
 
-              const items = await strapi.documents('api::list-item.list-item').findMany({
-                filters: { list: { documentId: { $eq: args.documentId } } },
+              await strapi.db.query('api::list-item.list-item').deleteMany({
+                where: { list: { document_id: args.documentId } },
               });
-
-              for (const item of items) {
-                await strapi.documents('api::list-item.list-item').delete({
-                  documentId: item.documentId,
-                });
-              }
 
               await strapi.documents('api::list.list').delete({ documentId: args.documentId });
               return true;
