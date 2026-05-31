@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import Home from './index';
+import Home from '../../pages/index';
 
-jest.mock('../context/AppContext', () => ({
+jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
 }));
 
-jest.mock('../components/search/place-search', () => ({
+jest.mock('../../components/search/place-search', () => ({
   __esModule: true,
   default: () => <div data-testid="place-search" />,
 }));
@@ -22,7 +22,7 @@ jest.mock('next/link', () => ({
   ),
 }));
 
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../../context/AppContext';
 const mockUseAppContext = useAppContext as jest.Mock;
 
 const PUBLIC_LISTS = [
