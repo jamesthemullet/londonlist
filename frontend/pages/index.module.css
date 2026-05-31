@@ -37,3 +37,51 @@
   text-decoration: underline;
   font-weight: 500;
 }
+
+.publicLists {
+  width: 100%;
+}
+
+.sectionHeading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+}
+
+.listGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.listCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.listCard:hover {
+  border-color: #999;
+  background: #fafafa;
+}
+
+.listName {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.listAuthor {
+  font-size: 0.8rem;
+  color: #888;
+  white-space: nowrap;
+}

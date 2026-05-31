@@ -1,11 +1,28 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import PlaceSearch from '../components/search/place-search';
 import { useAppContext } from '../context/AppContext';
 import styles from './index.module.css';
 
+const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
+
+type PublicList = {
+  documentId: string;
+  name: string;
+  username: string | null;
+};
+
 export default function Home() {
   const { user } = useAppContext();
+  const [publicLists, setPublicLists] = useState<PublicList[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/lists/public`)
+      .then((res) => res.json())
+      .then((json) => setPublicLists(json.data ?? []))
+      .catch(() => {});
+  }, []);
 
   return (
     <>
@@ -31,6 +48,25 @@ export default function Home() {
           <p className={styles.loginPrompt}>
             <Link href="/my-list">View your list &rarr;</Link>
           </p>
+        )}
+        {publicLists.length > 0 && (
+          <section className={styles.publicLists}>
+            <h2 className={styles.sectionHeading}>Community lists</h2>
+            <ul className={styles.listGrid}>
+              {publicLists.map((list) => (
+                <li key={list.documentId}>
+                  <Link
+                    href={`/list/${list.username}/${list.documentId}`}
+                    className={styles.listCard}>
+                    <span className={styles.listName}>{list.name}</span>
+                    {list.username && (
+                      <span className={styles.listAuthor}>by {list.username}</span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
       </main>
     </>
