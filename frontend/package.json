@@ -46,13 +46,7 @@
     "@types/react-dom": "^19.0.0",
     "babel-jest": "^30.3.0",
     "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0",
-    "lint-staged": "^16.1.0"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
-    ]
+    "jest-environment-jsdom": "^30.3.0"
   },
   "resolutions": {
     "picomatch": "^4.0.4"
