@@ -158,14 +158,25 @@ export default function PlaceSearch({ listId }: Props) {
   return (
     <div className={styles.container}>
       <div className={styles.inputWrapper}>
+        <label htmlFor="place-search-input" className={styles.srOnly}>
+          Search for a place in London
+        </label>
         <input
+          id="place-search-input"
           className={styles.input}
           type="text"
           placeholder="Search for a place in London..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        {searching && <span className={styles.spinner} />}
+        {searching && <span className={styles.spinner} aria-hidden="true" />}
+      </div>
+
+      <div role="status" aria-live="polite" aria-atomic="true" className={styles.srOnly}>
+        {!searching && query.length >= 3 && results.length > 0 &&
+          `${results.length} result${results.length === 1 ? '' : 's'} found`}
+        {!searching && query.length >= 3 && results.length === 0 &&
+          `No places found in London for ${query}`}
       </div>
 
       {searchError && <p className={styles.error}>{searchError}</p>}
