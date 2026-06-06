@@ -114,6 +114,18 @@ Report what you wrote, why you chose it, and the test result (pass/fail/not-runn
 
 ---
 
+## Step 6 — Create a pull request
+
+After the test passes, create a PR:
+
+1. Stage only the new/modified test file(s): `git add <test-file-path>`
+2. Commit: `git commit -m "tests: <one-line description of what was tested>"`
+3. Push the branch and open a PR with `gh pr create`:
+   - Title: `tests: <short description>`
+   - Body should summarise: what was tested, why it was chosen, and the test result
+
+---
+
 ## What counts as a good e2e test
 
 A good e2e test:
