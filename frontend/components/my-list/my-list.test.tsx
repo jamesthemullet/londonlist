@@ -18,8 +18,8 @@ jest.mock('../../hooks/use-auth-header', () => ({
 jest.mock('../Loader', () => () => <div data-testid="loader" />);
 jest.mock('../progress-bar/progress-bar', () => () => null);
 
-const mockUseQuery = useQuery as jest.Mock;
-const mockUseMutation = useMutation as jest.Mock;
+const mockUseQuery = useQuery as unknown as jest.Mock;
+const mockUseMutation = useMutation as unknown as jest.Mock;
 
 const TODO_ITEMS = [
   { documentId: 'item-1', name: 'British Museum', category: 'museum', completed: false, osm_id: '123' },
