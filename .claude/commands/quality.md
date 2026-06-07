@@ -44,7 +44,17 @@ Identify the **single clearest, most impactful** instance of the chosen category
 
 Make the fix. Keep scope tight — one issue, one or two files. Do not refactor beyond what is needed to address the specific finding.
 
-### Step 4 — Report
+### Step 4 — Create a pull request
+
+After making the fix:
+
+1. Stage only the changed file(s): `git add <file>`
+2. Commit: `git commit -m "quality(<category>): <one-line description>"`
+3. Push the branch and open a PR with `gh pr create`:
+   - Title: `quality(<category>): <short description>`
+   - Body should include: what was found, why it matters, and what was changed
+
+### Step 5 — Report
 
 Output exactly this structure:
 
@@ -55,6 +65,7 @@ Output exactly this structure:
 **File:** <path:line>
 **Issue:** <one sentence describing the problem>
 **Fix:** <what was changed and why>
+**PR:** <url>
 **Next suggestion:** <the next candidate worth tackling in this category, with file path>
 ```
 
