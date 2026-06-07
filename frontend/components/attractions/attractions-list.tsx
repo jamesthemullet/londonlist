@@ -62,25 +62,26 @@ function AttractionsList(props: AttractionsListProps) {
   if (error) return 'Error loading attractions';
   if (loading) return <Loader />;
 
-  if (data?.attractions?.data?.length) {
-    const searchQuery = data.attractions.data.filter((query) =>
-      query.attributes.name.toLowerCase().includes(props.query.toLowerCase()),
-    );
+  const attractions = data?.attractions?.data ?? [];
 
-    if (searchQuery.length !== 0) {
-      return (
+  if (!attractions.length) return <h1>No Attractions Found</h1>;
+
+  const searchQuery = attractions.filter((query) =>
+    query.attributes.name.toLowerCase().includes(props.query.toLowerCase()),
+  );
+
+  if (!searchQuery.length) return <h1>No Attractions Found</h1>;
+
+  return (
+    <div>
+      <div>
         <div>
-          <div>
-            <div>
-              {searchQuery.map((res) => {
-                return <AttractionsCard key={res.id} data={res} />;
-              })}
-            </div>
-          </div>
+          {searchQuery.map((res) => {
+            return <AttractionsCard key={res.id} data={res} />;
+          })}
         </div>
-      );
-    }
-    return <h1>No Attractions Found</h1>;
-  }
+      </div>
+    </div>
+  );
 }
 export default AttractionsList;
