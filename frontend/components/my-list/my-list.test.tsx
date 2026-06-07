@@ -21,13 +21,17 @@ jest.mock('../progress-bar/progress-bar', () => () => null);
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 
+const THIS_MONTH_DATE = new Date();
+THIS_MONTH_DATE.setDate(1);
+const THIS_MONTH_ISO = THIS_MONTH_DATE.toISOString();
+
 const TODO_ITEMS = [
-  { documentId: 'item-1', name: 'British Museum', category: 'museum', completed: false, osm_id: '123' },
-  { documentId: 'item-2', name: 'Hyde Park', category: 'park', completed: false, osm_id: '456' },
+  { documentId: 'item-1', name: 'British Museum', category: 'museum', completed: false, osm_id: '123', visitedAt: null },
+  { documentId: 'item-2', name: 'Hyde Park', category: 'park', completed: false, osm_id: '456', visitedAt: null },
 ];
 
 const DONE_ITEMS = [
-  { documentId: 'item-3', name: 'Tower of London', category: 'attraction', completed: true, osm_id: '789' },
+  { documentId: 'item-3', name: 'Tower of London', category: 'attraction', completed: true, osm_id: '789', visitedAt: THIS_MONTH_ISO },
 ];
 
 function setupMutations() {
@@ -137,8 +141,49 @@ describe('MyList — rendering items', () => {
   });
 });
 
+describe('MyList — visit diary', () => {
+  it('renders a visited date beneath a completed item that has visitedAt', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    expect(screen.getByText(/^Visited /)).toBeInTheDocument();
+  });
+
+  it('does not render a visited date when visitedAt is null', () => {
+    setupMutations();
+    const itemWithoutDate = [{ ...DONE_ITEMS[0], visitedAt: null }];
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: itemWithoutDate }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    expect(screen.queryByText(/^Visited /)).not.toBeInTheDocument();
+  });
+
+  it('shows the monthly summary when completed items were visited this month', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    expect(screen.getByText(/place.*visited this month/i)).toBeInTheDocument();
+  });
+
+  it('does not show the monthly summary when no items were visited this month', () => {
+    setupMutations();
+    const oldDate = new Date(2000, 0, 1).toISOString();
+    const itemOldVisit = [{ ...DONE_ITEMS[0], visitedAt: oldDate }];
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: itemOldVisit }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    expect(screen.queryByText(/visited this month/i)).not.toBeInTheDocument();
+  });
+});
+
 describe('MyList — interactions', () => {
-  it('calls toggleComplete with completed: true when a todo item is checked', () => {
+  it('calls toggleComplete with completed: true and a visitedAt timestamp when a todo item is checked', () => {
     const { mockToggle } = setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
@@ -148,11 +193,11 @@ describe('MyList — interactions', () => {
     fireEvent.click(checkboxes[0]);
 
     expect(mockToggle).toHaveBeenCalledWith({
-      variables: { documentId: 'item-1', completed: true },
+      variables: { documentId: 'item-1', completed: true, visitedAt: expect.any(String) },
     });
   });
 
-  it('calls toggleComplete with completed: false when a done item is unchecked', () => {
+  it('calls toggleComplete with completed: false and visitedAt: null when a done item is unchecked', () => {
     const { mockToggle } = setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
 
@@ -162,7 +207,7 @@ describe('MyList — interactions', () => {
     fireEvent.click(checkbox);
 
     expect(mockToggle).toHaveBeenCalledWith({
-      variables: { documentId: 'item-3', completed: false },
+      variables: { documentId: 'item-3', completed: false, visitedAt: null },
     });
   });
 

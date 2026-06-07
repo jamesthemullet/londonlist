@@ -98,3 +98,15 @@
   color: #c00;
   background: #fff0f0;
 }
+
+.visitedAt {
+  font-size: 0.75rem;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.monthlySummary {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 1rem 0 0.25rem;
+}

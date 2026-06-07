@@ -11,6 +11,7 @@ type ListItem = {
   category: string | null;
   completed: boolean;
   osm_id: string;
+  visitedAt: string | null;
 };
 
 type ListItemsData = {
@@ -28,15 +29,17 @@ const GET_MY_LIST = gql`
       category
       completed
       osm_id
+      visitedAt
     }
   }
 `;
 
 const TOGGLE_COMPLETE = gql`
-  mutation ToggleComplete($documentId: ID!, $completed: Boolean!) {
-    updateListItem(documentId: $documentId, data: { completed: $completed }) {
+  mutation ToggleComplete($documentId: ID!, $completed: Boolean!, $visitedAt: DateTime) {
+    updateListItem(documentId: $documentId, data: { completed: $completed, visitedAt: $visitedAt }) {
       documentId
       completed
+      visitedAt
     }
   }
 `;
@@ -93,6 +96,13 @@ export default function MyList({ listId }: Props) {
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
 
+  const now = new Date();
+  const visitedThisMonth = done.filter((i) => {
+    if (!i.visitedAt) return false;
+    const d = new Date(i.visitedAt);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }).length;
+
   return (
     <div className={styles.container}>
       <ProgressBar total={items.length} done={done.length} />
@@ -105,7 +115,13 @@ export default function MyList({ listId }: Props) {
                 key={item.documentId}
                 item={item}
                 onToggle={() =>
-                  toggleComplete({ variables: { documentId: item.documentId, completed: true } })
+                  toggleComplete({
+                    variables: {
+                      documentId: item.documentId,
+                      completed: true,
+                      visitedAt: new Date().toISOString(),
+                    },
+                  })
                 }
                 onDelete={() => deleteItem({ variables: { documentId: item.documentId } })}
               />
@@ -116,6 +132,11 @@ export default function MyList({ listId }: Props) {
 
       {done.length > 0 && (
         <section>
+          {visitedThisMonth > 0 && (
+            <p className={styles.monthlySummary}>
+              {visitedThisMonth} {visitedThisMonth === 1 ? 'place' : 'places'} visited this month
+            </p>
+          )}
           <h2 className={styles.sectionHeading}>Done ({done.length})</h2>
           <ul className={styles.list}>
             {done.map((item) => (
@@ -123,7 +144,13 @@ export default function MyList({ listId }: Props) {
                 key={item.documentId}
                 item={item}
                 onToggle={() =>
-                  toggleComplete({ variables: { documentId: item.documentId, completed: false } })
+                  toggleComplete({
+                    variables: {
+                      documentId: item.documentId,
+                      completed: false,
+                      visitedAt: null,
+                    },
+                  })
                 }
                 onDelete={() => deleteItem({ variables: { documentId: item.documentId } })}
               />
@@ -142,6 +169,11 @@ type ListItemRowProps = {
 };
 
 function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
+  const visitedLabel =
+    item.completed && item.visitedAt
+      ? `Visited ${new Date(item.visitedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`
+      : null;
+
   return (
     <li className={styles.item}>
       <label className={styles.checkLabel}>
@@ -154,6 +186,11 @@ function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
         <span className={item.completed ? styles.nameDone : styles.name}>{item.name}</span>
         {item.category && <span className={styles.category}>{item.category}</span>}
       </label>
+      {visitedLabel && (
+        <time className={styles.visitedAt} dateTime={item.visitedAt!}>
+          {visitedLabel}
+        </time>
+      )}
       <button type="button" className={styles.deleteButton} onClick={onDelete} aria-label="Remove">
         ✕
       </button>
