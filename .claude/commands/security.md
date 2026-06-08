@@ -1,6 +1,6 @@
 ---
 name: security
-description: Audit the London List app for security vulnerabilities, create GitHub issues for findings, and open PRs with fixes — one PR per major issue, one combined PR for all minor issues.
+description: Audit the London List app for security vulnerabilities and create GitHub issues for findings. Does not make code changes or open PRs.
 ---
 
 You are a security engineer auditing the **London List** app for real-world vulnerabilities.
@@ -69,7 +69,7 @@ Audit across these categories:
 - `next.config.js` not setting security headers via the `headers()` export
 
 **Dependency & supply-chain:**
-- Run `npm audit --audit-level=high` in both `frontend/` and `backend/` and report critical/high CVEs
+- Run `yarn audit --level high` in both `frontend/` and `backend/` and report critical/high CVEs
 - Packages with known vulnerabilities that have a patched version available
 
 **Data exposure:**
@@ -85,8 +85,8 @@ Audit across these categories:
 
 Classify each finding as **Major** or **Minor**:
 
-- **Major** — direct, exploitable vulnerability or serious data exposure risk. Examples: exposed secrets, missing auth on sensitive routes, XSS via `dangerouslySetInnerHTML`, unauthenticated access to user data, high-severity CVEs. Each warrants its own issue and PR.
-- **Minor** — defence-in-depth improvement, hardening, or low-exploitability concern. Examples: missing security headers, verbose error messages, overly broad CORS on a public endpoint, low-severity CVEs. Bundle all minor findings into one issue and one PR.
+- **Major** — direct, exploitable vulnerability or serious data exposure risk. Examples: exposed secrets, missing auth on sensitive routes, XSS via `dangerouslySetInnerHTML`, unauthenticated access to user data, high-severity CVEs. Each warrants its own issue.
+- **Minor** — defence-in-depth improvement, hardening, or low-exploitability concern. Examples: missing security headers, verbose error messages, overly broad CORS on a public endpoint, low-severity CVEs. Bundle all minor findings into one issue.
 
 **If you find nothing worth improving, stop here and report:** "No significant security issues found. The current implementation is appropriate for the app's scale."
 
@@ -155,61 +155,9 @@ These are individually low-risk but collectively improve the security posture."
 
 If there are no findings at all, do **not** create any issues. Report the clean outcome instead.
 
-### Step 6 — Fix and open PRs
+### Step 6 — Report issue URLs
 
-Work through each finding and create pull requests with fixes.
-
-**For each major finding** — fix it, then create a separate PR:
-
-1. Create a branch: `git checkout -b security/<short-slug>`
-2. Make the targeted fix (one issue, one or two files — do not refactor beyond what is needed)
-3. Stage and commit: `git add <files> && git commit -m "security: <one-line description>"`
-4. Push and open a PR:
-
-```bash
-gh pr create \
-  --title "security: <short description>" \
-  --body "## Summary
-
-<what was fixed and why it matters>
-
-## Changes
-
-<file:line — one-sentence description of each change>
-
-## Closes
-
-Closes #<issue-number>"
-```
-
-**For all minor findings combined** — fix them all on one branch, then create one PR:
-
-1. Create a branch: `git checkout -b security/minor-hardening`
-2. Apply all minor fixes
-3. Commit: `git commit -m "security: minor hardening improvements"`
-4. Push and open a PR:
-
-```bash
-gh pr create \
-  --title "security: minor hardening improvements" \
-  --body "## Summary
-
-Security hardening improvements — defence in depth, low individual risk.
-
-## Changes
-
-<bulleted list: file:line — one-sentence description per fix>
-
-## Closes
-
-Closes #<minor-issue-number>"
-```
-
-If a finding has no clear safe automated fix (e.g. a CVE requiring a major version bump with breaking changes), note it in the issue but skip the PR — flag it to the user instead.
-
-### Step 7 — Report issue and PR URLs
-
-List every issue and PR created with its URL. If none were created, confirm why.
+List every issue created with its URL. If none were created, confirm why. Do not make any code changes or open any PRs.
 
 ---
 
