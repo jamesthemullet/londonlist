@@ -22,7 +22,7 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "cross-fetch": "4.1.0",
-    "graphql": "16.14.1",
+    "graphql": "16.14.2",
     "js-cookie": "3.0.8",
     "next": "16.2.7",
     "react": "19.2.7",
