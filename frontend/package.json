@@ -15,7 +15,8 @@
     "check:fix": "biome check --write .",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "knip": "knip"
   },
   "dependencies": {
     "@apollo/client": "^4.0.0",
@@ -46,7 +47,8 @@
     "@types/react-dom": "^19.0.0",
     "babel-jest": "^30.3.0",
     "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0"
+    "jest-environment-jsdom": "^30.3.0",
+    "knip": "^6.16.1"
   },
   "resolutions": {
     "picomatch": "^4.0.4"
