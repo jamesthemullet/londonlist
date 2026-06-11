@@ -15,7 +15,8 @@
     "check:fix": "biome check --write .",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "knip": "knip"
   },
   "dependencies": {
     "@apollo/client": "^4.0.0",
@@ -28,14 +29,9 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "rxjs": "7.8.2",
-    "ts-node": "10.9.2",
-    "tsc-files": "1.1.4",
     "typescript": "6.0.3"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.29.2",
-    "@babel/preset-react": "^7.28.5",
-    "@babel/preset-typescript": "^7.28.5",
     "@biomejs/biome": "^2.0.0",
     "@playwright/test": "^1.60.0",
     "@testing-library/dom": "^10.4.1",
@@ -46,7 +42,8 @@
     "@types/react-dom": "^19.0.0",
     "babel-jest": "^30.3.0",
     "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0"
+    "jest-environment-jsdom": "^30.3.0",
+    "knip": "^6.16.1"
   },
   "resolutions": {
     "picomatch": "^4.0.4"

@@ -11,16 +11,18 @@
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "check": "biome check .",
-    "check:fix": "biome check --write ."
+    "check:fix": "biome check --write .",
+    "knip": "knip"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.0"
+    "@biomejs/biome": "^2.0.0",
+    "knip": "^6.16.1"
   },
   "dependencies": {
     "@strapi/plugin-graphql": "^5.0.0",
-    "better-sqlite3": "^12.9.0",
     "@strapi/plugin-users-permissions": "5.47.1",
     "@strapi/strapi": "5.47.1",
+    "better-sqlite3": "^12.9.0",
     "pg": "^8.11.2",
     "pg-connection-string": "^2.6.2",
     "react": "^19.0.0",
