@@ -8,9 +8,9 @@
   integrity sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==
 
 "@apollo/client@^4.0.0":
-  version "4.2.2"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-4.2.2.tgz#1bc2dd7bb9b034c3da7e87c51fca183f863b58a3"
-  integrity sha512-tiI91oRHFB43QBDy1Y9gaBYYcz+0YmU7qtziHZfVAdXYyaI+y5NIvfT7fYPUzeAYfT6gXU6/lndcdmsr4MsOBQ==
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-4.2.3.tgz#04177a6a170e3733346f9ae15103161abd50cdce"
+  integrity sha512-+auRYBXow2v7cT+wKzvjyMyyEojq+G7Sf80vIR57rtEPcxRFuMXuU9IKjwxZ3muclUgdGKwZXNeuki+g0GabgQ==
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.1"
     "@wry/caches" "^1.0.0"
@@ -1373,9 +1373,9 @@
     undici-types "~7.19.0"
 
 "@types/node@^24.0.0":
-  version "24.13.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.13.1.tgz#890e6a3832959d8181a11c4c91c3a0de8410e697"
-  integrity sha512-RSpUJGmvsJ1ZeBehQZFhIdpsz+bIpES0nIQXko4Ybq+N+kX6XvOq3Jo+iJ82FWLdblFq85AsMikd3m35jgezYg==
+  version "24.13.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.13.2.tgz#3b9b280a7055128359f125eb1067d9a190f39854"
+  integrity sha512-fRa09kZTgu8o71KFcDjUFuc7F+dEbZYZmkI0mg5YBTRs0yMKjYHsq/c0urDKeDb+D5qVgXOdFcuu+DZPKOITwA==
   dependencies:
     undici-types "~7.18.0"
 
