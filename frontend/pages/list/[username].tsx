@@ -1,7 +1,8 @@
 import Head from 'next/head';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { GetServerSideProps } from 'next';
 import styles from './[username].module.css';
+
+const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
 type ListItem = {
   documentId: string;
@@ -16,51 +17,15 @@ type PublicListData = {
   username: string;
 };
 
-type PageState = 'loading' | 'found' | 'private' | 'not_found';
+type PageState = 'found' | 'private' | 'not_found';
 
-export default function PublicListPage() {
-  const router = useRouter();
-  const { username } = router.query;
-  const [listData, setListData] = useState<PublicListData | null>(null);
-  const [pageState, setPageState] = useState<PageState>('loading');
+type Props = {
+  pageState: PageState;
+  listData: PublicListData | null;
+  username: string;
+};
 
-  const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-
-  useEffect(() => {
-    if (!username || typeof username !== 'string') return;
-
-    setPageState('loading');
-
-    const fetchPublicList = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/list-settings/public/${username}`);
-        if (res.status === 403) {
-          setPageState('private');
-        } else if (res.status === 404) {
-          setPageState('not_found');
-        } else if (res.ok) {
-          const data: PublicListData = await res.json();
-          setListData(data);
-          setPageState('found');
-        } else {
-          setPageState('not_found');
-        }
-      } catch {
-        setPageState('not_found');
-      }
-    };
-
-    fetchPublicList();
-  }, [username, API_URL]);
-
-  if (pageState === 'loading') {
-    return (
-      <main className={styles.main}>
-        <p>Loading...</p>
-      </main>
-    );
-  }
-
+export default function PublicListPage({ pageState, listData, username }: Props) {
   if (pageState === 'not_found') {
     return (
       <main className={styles.main}>
@@ -132,3 +97,24 @@ export default function PublicListPage() {
     </>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<Props> = async (context) => {
+  const { username } = context.params as { username: string };
+
+  try {
+    const res = await fetch(`${API_URL}/api/list-settings/public/${username}`);
+    if (res.status === 403) {
+      return { props: { pageState: 'private', listData: null, username } };
+    }
+    if (res.status === 404) {
+      return { props: { pageState: 'not_found', listData: null, username } };
+    }
+    if (res.ok) {
+      const data: PublicListData = await res.json();
+      return { props: { pageState: 'found', listData: data, username } };
+    }
+    return { props: { pageState: 'not_found', listData: null, username } };
+  } catch {
+    return { props: { pageState: 'not_found', listData: null, username } };
+  }
+};
