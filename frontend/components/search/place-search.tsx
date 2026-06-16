@@ -186,12 +186,13 @@ export default function PlaceSearch({ listId }: Props) {
         <ul className={styles.results}>
           {results.map((r) => {
             const key = `${osmTypeExpanded(r.properties.osm_type)}/${r.properties.osm_id}`;
+            const subtitle = featureSubtitle(r.properties);
             return (
               <li key={key} className={styles.result}>
                 <div className={styles.resultInfo}>
                   <span className={styles.resultName}>{featureName(r.properties)}</span>
-                  {featureSubtitle(r.properties) && (
-                    <span className={styles.resultSubtitle}>{featureSubtitle(r.properties)}</span>
+                  {subtitle && (
+                    <span className={styles.resultSubtitle}>{subtitle}</span>
                   )}
                   {r.properties.osm_value && (
                     <span className={styles.resultType}>{r.properties.osm_value}</span>
