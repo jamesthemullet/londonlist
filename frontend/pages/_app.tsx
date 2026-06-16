@@ -1,6 +1,5 @@
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { ApolloProvider } from '@apollo/client/react';
-import fetch from 'cross-fetch';
 import { AppProvider } from '../context/AppContext';
 
 import Layout from '../components/layout/layout';
@@ -8,10 +7,8 @@ import '../styles/globals.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
-// Create a new HttpLink with the fetch option
 const httpLink = new HttpLink({
   uri: `${API_URL}/graphql`,
-  fetch,
 });
 
 export const client = new ApolloClient({

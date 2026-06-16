@@ -62,7 +62,7 @@ export default function MyList({ listId }: Props) {
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
     variables: { listDocumentId: listId },
     context: { headers: authHeader },
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
   });
 
   const [toggleComplete] = useMutation(TOGGLE_COMPLETE, {
