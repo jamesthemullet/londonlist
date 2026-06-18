@@ -80,6 +80,43 @@ export default {
           },
         },
         Mutation: {
+          updateListItem: {
+            async resolve(_parent, args, context) {
+              const user = requireUser(context);
+
+              const existing = await strapi.documents('api::list-item.list-item').findOne({
+                documentId: args.documentId,
+                populate: ['user'],
+              });
+
+              if (!existing || !isOwnedBy(existing, user.id)) {
+                throw new Error('Forbidden access');
+              }
+
+              return strapi.documents('api::list-item.list-item').update({
+                documentId: args.documentId,
+                data: args.data,
+              });
+            },
+          },
+          deleteListItem: {
+            async resolve(_parent, args, context) {
+              const user = requireUser(context);
+
+              const existing = await strapi.documents('api::list-item.list-item').findOne({
+                documentId: args.documentId,
+                populate: ['user'],
+              });
+
+              if (!existing || !isOwnedBy(existing, user.id)) {
+                throw new Error('Forbidden access');
+              }
+
+              return strapi.documents('api::list-item.list-item').delete({
+                documentId: args.documentId,
+              });
+            },
+          },
           createListItem: {
             async resolve(_parent, args, context) {
               const user = requireUser(context);
