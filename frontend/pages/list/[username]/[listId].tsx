@@ -10,6 +10,7 @@ type ListItem = {
   category: string | null;
   completed: boolean;
   osm_id: string;
+  visitedAt: string | null;
 };
 
 type PublicListData = {
@@ -90,6 +91,16 @@ export default function PublicListPage({ pageState, listData, username }: Props)
                     <li key={item.documentId} className={styles.item}>
                       <span className={styles.nameDone}>{item.name}</span>
                       {item.category && <span className={styles.category}>{item.category}</span>}
+                      {item.visitedAt && (
+                        <time className={styles.visitedAt} dateTime={item.visitedAt}>
+                          Visited{' '}
+                          {new Date(item.visitedAt).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })}
+                        </time>
+                      )}
                     </li>
                   ))}
                 </ul>
