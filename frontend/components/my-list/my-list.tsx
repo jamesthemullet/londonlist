@@ -67,17 +67,13 @@ export default function MyList({ listId }: Props) {
 
   const [toggleComplete] = useMutation(TOGGLE_COMPLETE, {
     context: { headers: authHeader },
-    update(cache, { data: mutationData }) {
-      const updated = mutationData?.updateListItem;
-      if (!updated) return;
-      cache.modify({
-        id: cache.identify({ __typename: 'ListItem', documentId: updated.documentId }),
-        fields: {
-          completed: () => updated.completed,
-          visitedAt: () => updated.visitedAt,
-        },
-      });
-    },
+    refetchQueries: [
+      {
+        query: GET_MY_LIST,
+        variables: { listDocumentId: listId },
+        context: { headers: authHeader },
+      },
+    ],
   });
 
   const [deleteItem] = useMutation(DELETE_LIST_ITEM, {
