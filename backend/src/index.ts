@@ -255,6 +255,11 @@ async function grantPermissions(strapi) {
   if (!authenticatedRole) return;
 
   const actions = [
+    'api::list-item.list-item.find',
+    'api::list-item.list-item.findOne',
+    'api::list-item.list-item.create',
+    'api::list-item.list-item.update',
+    'api::list-item.list-item.delete',
     'api::list-setting.list-setting.find',
     'api::list-setting.list-setting.findOne',
     'api::list-setting.list-setting.create',
