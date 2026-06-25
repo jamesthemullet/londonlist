@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@strapi/plugin-graphql": "^5.0.0",
-    "@strapi/plugin-users-permissions": "5.48.0",
-    "@strapi/strapi": "5.48.0",
+    "@strapi/plugin-users-permissions": "5.48.1",
+    "@strapi/strapi": "5.48.1",
     "better-sqlite3": "^12.9.0",
     "pg": "^8.11.2",
     "pg-connection-string": "^2.6.2",
@@ -53,7 +53,7 @@
     "uuid": "5fc86eda-9832-4cdc-9418-d20eb44bd4f5"
   },
   "engines": {
-    "node": ">=14.19.1 <=24.16.0",
+    "node": ">=14.19.1 <=24.18.0",
     "npm": ">=6.0.0"
   },
   "license": "MIT"

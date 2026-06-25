@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { GetServerSideProps } from 'next';
+import type { GetServerSideProps } from 'next';
 import styles from './[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';

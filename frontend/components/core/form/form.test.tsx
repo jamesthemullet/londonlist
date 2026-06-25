@@ -106,7 +106,7 @@ describe('Form — interactions', () => {
       />
     );
 
-    const form = screen.getByRole('button', { name: 'Submit' }).closest('form')!;
+    const form = screen.getByRole('button', { name: 'Submit' }).closest('form') as HTMLFormElement;
     fireEvent.submit(form);
 
     expect(callback).toHaveBeenCalledTimes(1);
