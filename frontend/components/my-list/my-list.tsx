@@ -89,11 +89,11 @@ export default function MyList({ listId }: Props) {
     ],
   });
 
-  if (loading && !data) return <Loader />;
-  if (error) return <p>Error loading your list.</p>;
-
   const items = data?.listItems ?? [];
   const { streak, atRisk } = useStreak(items);
+
+  if (loading && !data) return <Loader />;
+  if (error) return <p>Error loading your list.</p>;
 
   if (items.length === 0) {
     return (
