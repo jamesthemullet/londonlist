@@ -2,7 +2,9 @@ import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import Loader from '../Loader';
 import ProgressBar from '../progress-bar/progress-bar';
+import StreakBadge from '../streak-badge/streak-badge';
 import { useAuthHeader } from '../../hooks/use-auth-header';
+import { useStreak } from '../../hooks/use-streak';
 import styles from './my-list.module.css';
 
 type ListItem = {
@@ -87,10 +89,11 @@ export default function MyList({ listId }: Props) {
     ],
   });
 
+  const items = data?.listItems ?? [];
+  const { streak, atRisk } = useStreak(items);
+
   if (loading && !data) return <Loader />;
   if (error) return <p>Error loading your list.</p>;
-
-  const items = data?.listItems ?? [];
 
   if (items.length === 0) {
     return (
@@ -112,6 +115,7 @@ export default function MyList({ listId }: Props) {
 
   return (
     <div className={styles.container}>
+      <StreakBadge streak={streak} atRisk={atRisk} />
       <ProgressBar total={items.length} done={done.length} />
       {todo.length > 0 && (
         <section>
