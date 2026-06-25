@@ -194,7 +194,7 @@ function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
         {item.category && <span className={styles.category}>{item.category}</span>}
       </label>
       {visitedLabel && (
-        <time className={styles.visitedAt} dateTime={item.visitedAt!}>
+        <time className={styles.visitedAt} dateTime={item.visitedAt ?? ''}>
           {visitedLabel}
         </time>
       )}
