@@ -1,5 +1,7 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
+import { useAppContext } from '../../../context/AppContext';
 import styles from '../[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -28,6 +30,7 @@ type Props = {
 };
 
 export default function PublicListPage({ pageState, listData, username }: Props) {
+  const { user, initialized } = useAppContext();
   if (pageState === 'not_found') {
     return (
       <main className={styles.main}>
@@ -109,6 +112,15 @@ export default function PublicListPage({ pageState, listData, username }: Props)
           </div>
         )}
       </main>
+      {initialized && !user && (
+        <aside className={styles.conversionBanner}>
+          <p className={styles.conversionHeadline}>Inspired by {username}&apos;s list?</p>
+          <p className={styles.conversionTagline}>Build your own London bucket list — it&apos;s free.</p>
+          <Link href="/register?ref=shared-list" className={styles.conversionCta}>
+            Create your list
+          </Link>
+        </aside>
+      )}
     </>
   );
 }
