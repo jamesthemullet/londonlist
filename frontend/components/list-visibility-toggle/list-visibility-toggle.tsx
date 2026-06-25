@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import styles from './list-visibility-toggle.module.css';
 
@@ -10,6 +11,7 @@ type Props = {
 
 export default function ListVisibilityToggle({ isPublic, onToggle, listDocumentId, listName }: Props) {
   const { user } = useAppContext();
+  const [copied, setCopied] = useState(false);
 
   const shareUrl =
     user && typeof window !== 'undefined'
@@ -29,12 +31,24 @@ export default function ListVisibilityToggle({ isPublic, onToggle, listDocumentI
         <span className={styles.toggle} />
       </label>
       {isPublic && shareUrl && (
-        <p className={styles.shareText}>
-          Share your list:{' '}
-          <a href={shareUrl} className={styles.shareLink} target="_blank" rel="noreferrer">
-            {shareUrl}
-          </a>
-        </p>
+        <div className={styles.shareRow}>
+          <p className={styles.shareText}>
+            Share your list:{' '}
+            <a href={shareUrl} className={styles.shareLink} target="_blank" rel="noreferrer">
+              {shareUrl}
+            </a>
+          </p>
+          <button
+            className={styles.copyButton}
+            onClick={() => {
+              navigator.clipboard.writeText(shareUrl);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+          >
+            {copied ? 'Copied!' : 'Copy link'}
+          </button>
+        </div>
       )}
     </div>
   );
