@@ -1,0 +1,10 @@
+.badge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin: 0 0 0.75rem;
+}
+
+.atRisk {
+  color: #b45309;
+}
