@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useAppContext } from '../../context/AppContext';
-import styles from './list-visibility-toggle.module.css';
+import { useState } from "react";
+import { useAppContext } from "../../context/AppContext";
+import styles from "./list-visibility-toggle.module.css";
 
 type Props = {
   listDocumentId: string;
@@ -9,19 +9,26 @@ type Props = {
   listName: string;
 };
 
-export default function ListVisibilityToggle({ isPublic, onToggle, listDocumentId, listName }: Props) {
+export default function ListVisibilityToggle({
+  isPublic,
+  onToggle,
+  listDocumentId,
+  listName,
+}: Props) {
   const { user } = useAppContext();
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
-    user && typeof window !== 'undefined'
+    user && typeof window !== "undefined"
       ? `${window.location.origin}/list/${user.username}/${listDocumentId}`
-      : '';
+      : "";
 
   return (
     <div className={styles.container}>
       <label className={styles.toggleLabel}>
-        <span className={styles.labelText}>Make &ldquo;{listName}&rdquo; public</span>
+        <span className={styles.labelText}>
+          Make &ldquo;{listName}&rdquo; public
+        </span>
         <input
           type="checkbox"
           className={styles.checkbox}
@@ -33,20 +40,26 @@ export default function ListVisibilityToggle({ isPublic, onToggle, listDocumentI
       {isPublic && shareUrl && (
         <div className={styles.shareRow}>
           <p className={styles.shareText}>
-            Share your list:{' '}
-            <a href={shareUrl} className={styles.shareLink} target="_blank" rel="noreferrer">
+            Share your list:{" "}
+            <a
+              href={shareUrl}
+              className={styles.shareLink}
+              target="_blank"
+              rel="noreferrer"
+            >
               {shareUrl}
             </a>
           </p>
           <button
             className={styles.copyButton}
+            type="button"
             onClick={() => {
               navigator.clipboard.writeText(shareUrl);
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
           >
-            {copied ? 'Copied!' : 'Copy link'}
+            {copied ? "Copied!" : "Copy link"}
           </button>
         </div>
       )}
