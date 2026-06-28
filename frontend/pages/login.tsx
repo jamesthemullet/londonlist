@@ -57,7 +57,10 @@ export default function LoginRoute() {
     });
     if (data?.login.user) {
       setUser(data.login.user);
-      Cookie.set('token', data.login.jwt);
+      Cookie.set('token', data.login.jwt, {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
       router.push('/');
     }
   };
