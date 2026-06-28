@@ -58,7 +58,10 @@ export default function RegisterRoute() {
     if (data?.register.user) {
       setUser(data.register.user);
       router.push('/');
-      Cookie.set('token', data.register.jwt);
+      Cookie.set('token', data.register.jwt, {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
     }
   };
 
