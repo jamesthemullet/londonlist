@@ -7567,9 +7567,9 @@ knex@3.0.1:
     tildify "2.0.0"
 
 knip@^6.16.1:
-  version "6.20.0"
-  resolved "https://registry.yarnpkg.com/knip/-/knip-6.20.0.tgz#e7b1ac1accf6ef4e556e648479a76012f4ca37a1"
-  integrity sha512-q+HYrS7FOERk32GM7g43IdTG7TurN7+YMLZrNpCxubZPYZyQwliBgd18yH4oYQL7YgGtOxP2fCqess3K2XaK2Q==
+  version "6.23.0"
+  resolved "https://registry.yarnpkg.com/knip/-/knip-6.23.0.tgz#8581f5c01e24be0b21990094f6444aa15b89f11e"
+  integrity sha512-2DvAOX2pZWiG4SLvRRxOAU0aWGEn1ZoVblI541xIoXFdHqq2THMZXy66/qcY5WGuW3TXhb9T1x1zd/Hd1u+yqg==
   dependencies:
     fdir "^6.5.0"
     formatly "^0.3.0"
@@ -10793,9 +10793,9 @@ tar-stream@2.2.0, tar-stream@^2.1.4:
     readable-stream "^3.1.1"
 
 tar@7.5.16, tar@>=7.5.10:
-  version "7.5.17"
-  resolved "https://registry.yarnpkg.com/tar/-/tar-7.5.17.tgz#5eace4af68b088bb1d737ba9fffdacbbb70ba6e0"
-  integrity sha512-wPEBwzapC+2PaTYPH6e2L+cNOEE227S47wUYFqlegcs8zlLLmeb9Fcff1HVZY4Fwku/1Eyv38n7GYwB2aaS71g==
+  version "7.5.19"
+  resolved "https://registry.yarnpkg.com/tar/-/tar-7.5.19.tgz#d8915e6b717f8036a79d839ca9448198b002b0a7"
+  integrity sha512-4LeEWl96twnS2Q7Bz4MGqgazLqO+hJN63GZxXoIqh1T3VweYD997gbU1ItNsQafqqXTXd5WFyFdReLtwvRBNiw==
   dependencies:
     "@isaacs/fs-minipass" "^4.0.0"
     chownr "^3.0.0"
@@ -11103,9 +11103,9 @@ umzug@3.8.1:
     type-fest "^4.0.0"
 
 unbash@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/unbash/-/unbash-4.0.1.tgz#efa4876b0f95ab86931546aa1e699e7e353de7ad"
-  integrity sha512-1ajSo3813sDoVIHx4inJdUS4l5L2ic5cFiddemPiyjb/PZEoBAhFwHtbaEdRDFxbAKy7FCG7s5ww3/uCFawuIA==
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/unbash/-/unbash-4.0.2.tgz#79ec0fcca990e24c78e6bddcc9b8cb7d756533f0"
+  integrity sha512-8gwNZ29+0/3zmXw7ToIHZtg6wK37xnniRUdBt7B27xZxaxfgR5tGMaGHT0t0dLtBV9fXE7zurh0s6Z1DHVjfWg==
 
 unc-path-regex@^0.1.2:
   version "0.1.2"
