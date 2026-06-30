@@ -12,6 +12,12 @@
   margin-left: 1rem;
 }
 
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .wrapper {
   display: flex;
   flex-direction: column;
