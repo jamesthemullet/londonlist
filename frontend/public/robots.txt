@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://londonlist.co.uk/sitemap.xml
