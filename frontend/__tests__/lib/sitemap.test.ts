@@ -11,9 +11,10 @@ describe('buildSitemapEntries', () => {
     expect(home?.changefreq).toBe('daily');
   });
 
-  it('includes static pages (register, login)', () => {
+  it('includes static pages (explore, register, login)', () => {
     const entries = buildSitemapEntries([]);
     const locs = entries.map((e) => e.loc);
+    expect(locs).toContain('/explore');
     expect(locs).toContain('/register');
     expect(locs).toContain('/login');
   });
@@ -40,7 +41,7 @@ describe('buildSitemapEntries', () => {
 
   it('returns only static pages when the list is empty', () => {
     const entries = buildSitemapEntries([]);
-    expect(entries.length).toBe(3); // homepage, register, login
+    expect(entries.length).toBe(4); // homepage, explore, register, login
   });
 
   it('returns static pages plus one entry per valid list', () => {
@@ -49,7 +50,7 @@ describe('buildSitemapEntries', () => {
       { documentId: 'b', username: 'bob' },
     ];
     const entries = buildSitemapEntries(lists);
-    expect(entries.length).toBe(5); // 3 static + 2 lists
+    expect(entries.length).toBe(6); // 4 static + 2 lists
   });
 });
 

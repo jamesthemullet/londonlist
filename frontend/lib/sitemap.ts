@@ -12,6 +12,7 @@ export type PublicListForSitemap = {
 
 const STATIC_PAGES: SitemapEntry[] = [
   { loc: '/', changefreq: 'daily', priority: '1.0' },
+  { loc: '/explore', changefreq: 'daily', priority: '0.9' },
   { loc: '/register', changefreq: 'monthly', priority: '0.5' },
   { loc: '/login', changefreq: 'monthly', priority: '0.3' },
 ];
