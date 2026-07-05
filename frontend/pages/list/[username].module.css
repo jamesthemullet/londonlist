@@ -50,14 +50,44 @@
 
 .item {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.4rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #eee;
 }
 
 .item:last-child {
   border-bottom: none;
+}
+
+.itemMain {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bookingLinks {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bookingLink {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #1a5276;
+  text-decoration: none;
+  border: 1px solid #aed6f1;
+  border-radius: 4px;
+  padding: 0.15rem 0.55rem;
+  background: #eaf4fb;
+  transition: background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.bookingLink:hover {
+  background: #d6eaf8;
+  border-color: #5dade2;
 }
 
 .name {

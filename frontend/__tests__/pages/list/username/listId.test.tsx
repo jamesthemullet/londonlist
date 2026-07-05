@@ -413,6 +413,119 @@ describe('buildItemListJsonLd — unit tests', () => {
   });
 });
 
+describe('PublicListPage — booking links', () => {
+  it('shows a Viator booking link for a museum item', () => {
+    const listData = {
+      data: [TODO_ITEM], // museum category
+      username: 'alice',
+      listName: 'Museums',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    const link = screen.getByRole('link', { name: /Find tours & tickets for British Museum/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', expect.stringContaining('viator.com'));
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('shows a Viator booking link for an attraction item in the Done section', () => {
+    const listData = {
+      data: [DONE_ITEM], // attraction category
+      username: 'alice',
+      listName: 'Done places',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    const link = screen.getByRole('link', { name: /Find tours & tickets for Tower of London/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', expect.stringContaining('viator.com'));
+  });
+
+  it('shows an OpenTable booking link for a restaurant item', () => {
+    const restaurantItem = {
+      documentId: 'item-3',
+      name: 'The Ivy',
+      category: 'restaurant',
+      completed: false,
+      osm_id: '789',
+      visitedAt: null,
+    };
+    const listData = {
+      data: [restaurantItem],
+      username: 'alice',
+      listName: 'Restaurants',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    const link = screen.getByRole('link', { name: /Reserve a table for The Ivy/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', expect.stringContaining('opentable.co.uk'));
+  });
+
+  it('shows no booking link for a park item', () => {
+    const parkItem = {
+      documentId: 'item-4',
+      name: 'Hyde Park',
+      category: 'park',
+      completed: false,
+      osm_id: '999',
+      visitedAt: null,
+    };
+    const listData = {
+      data: [parkItem],
+      username: 'alice',
+      listName: 'Parks',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.queryByRole('link', { name: /Find tours/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Reserve a table/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Check availability/i })).not.toBeInTheDocument();
+  });
+
+  it('shows no booking link for an item with null category', () => {
+    const noCatItem = {
+      documentId: 'item-5',
+      name: 'Some Place',
+      category: null,
+      completed: false,
+      osm_id: '111',
+      visitedAt: null,
+    };
+    const listData = {
+      data: [noCatItem],
+      username: 'alice',
+      listName: 'Places',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.queryByRole('link', { name: /Find tours/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Reserve a table/i })).not.toBeInTheDocument();
+  });
+
+  it('the Viator link URL encodes the place name and London', () => {
+    const listData = {
+      data: [TODO_ITEM], // 'British Museum', 'museum'
+      username: 'alice',
+      listName: 'Museums',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    const link = screen.getByRole('link', { name: /Find tours & tickets for British Museum/i });
+    expect(link).toHaveAttribute(
+      'href',
+      expect.stringContaining(encodeURIComponent('British Museum London')),
+    );
+  });
+});
+
 describe('PublicListPage — JSON-LD script tag in DOM', () => {
   const listData = {
     data: [TODO_ITEM, DONE_ITEM],

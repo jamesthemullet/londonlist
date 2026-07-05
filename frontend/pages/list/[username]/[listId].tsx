@@ -2,10 +2,13 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
+import { getBookingLinks } from '../../../lib/booking-links';
 import styles from '../[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 const SITE_URL = 'https://londonlist.vercel.app';
+const VIATOR_PARTNER_ID = process.env.NEXT_PUBLIC_VIATOR_PARTNER_ID ?? '';
+const BOOKING_AFFILIATE_ID = process.env.NEXT_PUBLIC_BOOKING_AFFILIATE_ID ?? '';
 
 type ListItem = {
   documentId: string;
@@ -137,12 +140,40 @@ export default function PublicListPage({ pageState, listData, username, listId }
               <section>
                 <h2 className={styles.sectionHeading}>To do ({todo.length})</h2>
                 <ul className={styles.list}>
-                  {todo.map((item) => (
-                    <li key={item.documentId} className={styles.item}>
-                      <span className={styles.name}>{item.name}</span>
-                      {item.category && <span className={styles.category}>{item.category}</span>}
-                    </li>
-                  ))}
+                  {todo.map((item) => {
+                    const bookingLinks = getBookingLinks(
+                      item.name,
+                      item.category,
+                      VIATOR_PARTNER_ID,
+                      BOOKING_AFFILIATE_ID,
+                    );
+                    return (
+                      <li key={item.documentId} className={styles.item}>
+                        <div className={styles.itemMain}>
+                          <span className={styles.name}>{item.name}</span>
+                          {item.category && (
+                            <span className={styles.category}>{item.category}</span>
+                          )}
+                        </div>
+                        {bookingLinks.length > 0 && (
+                          <div className={styles.bookingLinks}>
+                            {bookingLinks.map((link) => (
+                              <a
+                                key={link.provider}
+                                href={link.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.bookingLink}
+                                aria-label={`${link.label} for ${item.name} (opens in new tab)`}
+                              >
+                                {link.label}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             )}
@@ -150,22 +181,50 @@ export default function PublicListPage({ pageState, listData, username, listId }
               <section>
                 <h2 className={styles.sectionHeading}>Done ({done.length})</h2>
                 <ul className={styles.list}>
-                  {done.map((item) => (
-                    <li key={item.documentId} className={styles.item}>
-                      <span className={styles.nameDone}>{item.name}</span>
-                      {item.category && <span className={styles.category}>{item.category}</span>}
-                      {item.visitedAt && (
-                        <time className={styles.visitedAt} dateTime={item.visitedAt}>
-                          Visited{' '}
-                          {new Date(item.visitedAt).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })}
-                        </time>
-                      )}
-                    </li>
-                  ))}
+                  {done.map((item) => {
+                    const bookingLinks = getBookingLinks(
+                      item.name,
+                      item.category,
+                      VIATOR_PARTNER_ID,
+                      BOOKING_AFFILIATE_ID,
+                    );
+                    return (
+                      <li key={item.documentId} className={styles.item}>
+                        <div className={styles.itemMain}>
+                          <span className={styles.nameDone}>{item.name}</span>
+                          {item.category && (
+                            <span className={styles.category}>{item.category}</span>
+                          )}
+                          {item.visitedAt && (
+                            <time className={styles.visitedAt} dateTime={item.visitedAt}>
+                              Visited{' '}
+                              {new Date(item.visitedAt).toLocaleDateString('en-GB', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                              })}
+                            </time>
+                          )}
+                        </div>
+                        {bookingLinks.length > 0 && (
+                          <div className={styles.bookingLinks}>
+                            {bookingLinks.map((link) => (
+                              <a
+                                key={link.provider}
+                                href={link.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.bookingLink}
+                                aria-label={`${link.label} for ${item.name} (opens in new tab)`}
+                              >
+                                {link.label}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             )}
