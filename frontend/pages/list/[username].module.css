@@ -16,6 +16,11 @@
   margin: 0 0 2rem;
 }
 
+.subtitle a {
+  color: #888;
+  text-decoration: underline;
+}
+
 .container {
   width: 100%;
 }
