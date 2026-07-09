@@ -1,7 +1,11 @@
+import { gql } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
+import { useAuthHeader } from '../../../hooks/use-auth-header';
 import styles from '../[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -30,6 +34,91 @@ type Props = {
   username: string;
   listId: string;
 };
+
+const CREATE_MY_LIST = gql`
+  mutation CopyListCreateMyList($name: String!) {
+    createMyList(name: $name) {
+      documentId
+      name
+    }
+  }
+`;
+
+const COPY_LIST_ITEM = gql`
+  mutation CopyListCreateListItem($osm_id: String!, $name: String!, $category: String, $list: ID) {
+    createListItem(
+      data: { osm_id: $osm_id, name: $name, category: $category, completed: false, list: $list }
+    ) {
+      documentId
+    }
+  }
+`;
+
+type CopyListButtonProps = {
+  items: ListItem[];
+  listName: string;
+};
+
+export function CopyListButton({ items, listName }: CopyListButtonProps) {
+  const authHeader = useAuthHeader();
+  const [copyState, setCopyState] = useState<'idle' | 'copying' | 'done' | 'error'>('idle');
+  const [createMyList] = useMutation<{ createMyList: { documentId: string } }>(CREATE_MY_LIST);
+  const [createListItem] = useMutation(COPY_LIST_ITEM);
+
+  async function handleCopy() {
+    setCopyState('copying');
+    try {
+      const { data } = await createMyList({
+        variables: { name: listName },
+        context: { headers: authHeader },
+      });
+      const newListId = data?.createMyList?.documentId;
+      if (!newListId) throw new Error('Failed to create list');
+      for (const item of items) {
+        await createListItem({
+          variables: {
+            osm_id: item.osm_id,
+            name: item.name,
+            category: item.category ?? null,
+            list: newListId,
+          },
+          context: { headers: authHeader },
+        });
+      }
+      setCopyState('done');
+    } catch {
+      setCopyState('error');
+    }
+  }
+
+  if (copyState === 'done') {
+    return (
+      <div className={styles.copySuccess}>
+        List copied!{' '}
+        <Link href="/my-list" className={styles.copySuccessLink}>
+          View your lists →
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.copyWrapper}>
+      <button
+        type="button"
+        className={styles.copyButton}
+        onClick={handleCopy}
+        disabled={copyState === 'copying'}
+        aria-busy={copyState === 'copying'}
+      >
+        {copyState === 'copying' ? 'Copying…' : '+ Copy this list'}
+      </button>
+      {copyState === 'error' && (
+        <p className={styles.copyError}>Something went wrong. Please try again.</p>
+      )}
+    </div>
+  );
+}
 
 const SCHEMA_TYPE_MAP: Record<string, string> = {
   museum: 'Museum',
@@ -129,6 +218,9 @@ export default function PublicListPage({ pageState, listData, username, listId }
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>
         <p className={styles.subtitle}>{username}&apos;s list</p>
+        {initialized && user && items.length > 0 && (
+          <CopyListButton items={items} listName={listData?.listName ?? 'Copied list'} />
+        )}
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>
         ) : (
@@ -174,10 +266,20 @@ export default function PublicListPage({ pageState, listData, username, listId }
       </main>
       {initialized && !user && (
         <aside className={styles.conversionBanner}>
-          <p className={styles.conversionHeadline}>Inspired by {username}&apos;s list?</p>
-          <p className={styles.conversionTagline}>Build your own London bucket list — it&apos;s free.</p>
-          <Link href="/register?ref=shared-list" className={styles.conversionCta}>
-            Create your list
+          <p className={styles.conversionHeadline}>
+            {items.length > 0 ? (
+              <>Copy {username}&apos;s list</>
+            ) : (
+              <>Inspired by {username}&apos;s list?</>
+            )}
+          </p>
+          <p className={styles.conversionTagline}>
+            {items.length > 0
+              ? "Sign up free to copy this list and track your own London adventures."
+              : "Build your own London bucket list — it’s free."}
+          </p>
+          <Link href="/register?ref=copy-list" className={styles.conversionCta}>
+            {items.length > 0 ? "Copy this list" : "Create your list"}
           </Link>
         </aside>
       )}
