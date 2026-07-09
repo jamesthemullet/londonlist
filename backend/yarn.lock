@@ -7375,9 +7375,9 @@ knex@3.0.1:
     tildify "2.0.0"
 
 knip@^6.16.1:
-  version "6.24.0"
-  resolved "https://registry.yarnpkg.com/knip/-/knip-6.24.0.tgz#87ae8c8c322ceacc630568325dc0ec98c2ae0946"
-  integrity sha512-PokLlgeEjLh1rAsB7ts+52wZ37HBr1nDhE6NNONwEaXdeZGCJOkP7ZlIAI2Gtu8xohquzTWy75bc/1diI9shQw==
+  version "6.25.0"
+  resolved "https://registry.yarnpkg.com/knip/-/knip-6.25.0.tgz#5f7311676a89f0dfbc1c78fc687e09eca55061eb"
+  integrity sha512-Q3n41VjOOB/aqsbxb8kallAcFKrUz3b2S5fD5pTODljVpP01t+rvAgy2x3j0Cq8yEpRRHNdar1vHuqFfGuIakQ==
   dependencies:
     fdir "^6.5.0"
     formatly "^0.3.0"
