@@ -13,7 +13,22 @@
 .subtitle {
   font-size: 0.9rem;
   color: #888;
+  margin: 0 0 0.5rem;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin: 0 0 2rem;
+}
+
+.viewCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: #999;
 }
 
 .container {

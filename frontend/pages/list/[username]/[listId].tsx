@@ -20,6 +20,7 @@ type PublicListData = {
   data: ListItem[];
   username: string;
   listName: string;
+  viewCount?: number;
 };
 
 type PageState = 'found' | 'private' | 'not_found';
@@ -128,7 +129,15 @@ export default function PublicListPage({ pageState, listData, username, listId }
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>
-        <p className={styles.subtitle}>{username}&apos;s list</p>
+        <div className={styles.metaRow}>
+          <p className={styles.subtitle}>{username}&apos;s list</p>
+          {listData?.viewCount !== undefined && listData.viewCount > 0 && (
+            <span className={styles.viewCount}>
+              <span aria-hidden="true">👁</span>{' '}
+              {listData.viewCount.toLocaleString()} {listData.viewCount === 1 ? 'view' : 'views'}
+            </span>
+          )}
+        </div>
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>
         ) : (

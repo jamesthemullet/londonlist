@@ -22,6 +22,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         documentId: list.documentId,
         name: list.name,
         username: (list as { user?: { username?: string } | null }).user?.username ?? null,
+        viewCount: (list as { viewCount?: number }).viewCount ?? 0,
       })),
     };
   },
@@ -51,6 +52,12 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       return { error: 'This list is private' };
     }
 
+    const typedList = list as typeof list & { viewCount?: number };
+    await strapi.documents('api::list.list').update({
+      documentId: listId,
+      data: { viewCount: (typedList.viewCount ?? 0) + 1 },
+    });
+
     const items = await strapi.documents('api::list-item.list-item').findMany({
       filters: { list: { documentId: { $eq: listId } } },
       sort: 'createdAt:desc',
@@ -67,6 +74,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       })),
       username: user.username,
       listName: list.name,
+      viewCount: (typedList.viewCount ?? 0) + 1,
     };
   },
 }));
