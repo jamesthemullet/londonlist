@@ -1,8 +1,12 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import styles from '../[username].module.css';
+import type { MapItem } from '../../../components/map/list-map';
+
+const ListMap = dynamic(() => import('../../../components/map/list-map'), { ssr: false });
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 const SITE_URL = 'https://londonlist.vercel.app';
@@ -14,6 +18,8 @@ type ListItem = {
   completed: boolean;
   osm_id: string;
   visitedAt: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type PublicListData = {
@@ -113,6 +119,17 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
 
+  const mapItems: MapItem[] = items
+    .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)
+    .map((i) => ({
+      documentId: i.documentId,
+      name: i.name,
+      lat: i.lat,
+      lng: i.lng,
+      completed: i.completed,
+      category: i.category,
+    }));
+
   return (
     <>
       <Head>
@@ -129,6 +146,23 @@ export default function PublicListPage({ pageState, listData, username, listId }
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>
         <p className={styles.subtitle}>{username}&apos;s list</p>
+        {mapItems.length > 0 && (
+          <>
+            <div className={styles.mapContainer}>
+              <ListMap items={mapItems} />
+            </div>
+            <p className={styles.mapLegend}>
+              <span className={styles.mapLegendItem}>
+                <span className={styles.mapLegendDot} style={{ background: '#c724b1' }} aria-hidden="true" />
+                To do
+              </span>
+              <span className={styles.mapLegendItem}>
+                <span className={styles.mapLegendDot} style={{ background: '#22c55e' }} aria-hidden="true" />
+                Done
+              </span>
+            </p>
+          </>
+        )}
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>
         ) : (
