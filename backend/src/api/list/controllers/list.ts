@@ -64,6 +64,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         completed: item.completed,
         osm_id: item.osm_id,
         visitedAt: item.visitedAt ?? null,
+        notes: (item as { notes?: string | null }).notes ?? null,
       })),
       username: user.username,
       listName: list.name,

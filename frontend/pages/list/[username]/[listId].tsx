@@ -14,6 +14,7 @@ type ListItem = {
   completed: boolean;
   osm_id: string;
   visitedAt: string | null;
+  notes?: string | null;
 };
 
 type PublicListData = {
@@ -139,8 +140,13 @@ export default function PublicListPage({ pageState, listData, username, listId }
                 <ul className={styles.list}>
                   {todo.map((item) => (
                     <li key={item.documentId} className={styles.item}>
-                      <span className={styles.name}>{item.name}</span>
-                      {item.category && <span className={styles.category}>{item.category}</span>}
+                      <div className={styles.itemMain}>
+                        <span className={styles.name}>{item.name}</span>
+                        {item.category && (
+                          <span className={styles.category}>{item.category}</span>
+                        )}
+                      </div>
+                      {item.notes && <p className={styles.itemNotes}>{item.notes}</p>}
                     </li>
                   ))}
                 </ul>
@@ -152,18 +158,23 @@ export default function PublicListPage({ pageState, listData, username, listId }
                 <ul className={styles.list}>
                   {done.map((item) => (
                     <li key={item.documentId} className={styles.item}>
-                      <span className={styles.nameDone}>{item.name}</span>
-                      {item.category && <span className={styles.category}>{item.category}</span>}
-                      {item.visitedAt && (
-                        <time className={styles.visitedAt} dateTime={item.visitedAt}>
-                          Visited{' '}
-                          {new Date(item.visitedAt).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })}
-                        </time>
-                      )}
+                      <div className={styles.itemMain}>
+                        <span className={styles.nameDone}>{item.name}</span>
+                        {item.category && (
+                          <span className={styles.category}>{item.category}</span>
+                        )}
+                        {item.visitedAt && (
+                          <time className={styles.visitedAt} dateTime={item.visitedAt}>
+                            Visited{' '}
+                            {new Date(item.visitedAt).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })}
+                          </time>
+                        )}
+                      </div>
+                      {item.notes && <p className={styles.itemNotes}>{item.notes}</p>}
                     </li>
                   ))}
                 </ul>

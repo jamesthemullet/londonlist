@@ -452,3 +452,74 @@ describe('PublicListPage — JSON-LD script tag in DOM', () => {
     expect(() => JSON.parse(script!.textContent!)).not.toThrow();
   });
 });
+
+// ─── Notes on public list pages ───────────────────────────────────────────
+
+describe('PublicListPage — item notes', () => {
+  it('renders notes for a todo item that has them', () => {
+    const listData = {
+      data: [{ ...TODO_ITEM, notes: 'Book tickets in advance' }],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.getByText('Book tickets in advance')).toBeInTheDocument();
+  });
+
+  it('renders notes for a done item that has them', () => {
+    const listData = {
+      data: [{ ...DONE_ITEM, notes: 'Loved the Crown Jewels exhibit' }],
+      username: 'alice',
+      listName: 'Done Places',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.getByText('Loved the Crown Jewels exhibit')).toBeInTheDocument();
+  });
+
+  it('does not render a notes element when notes is null', () => {
+    const listData = {
+      data: [{ ...TODO_ITEM, notes: null }],
+      username: 'alice',
+      listName: 'Plain List',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.queryByText('Book tickets in advance')).not.toBeInTheDocument();
+  });
+
+  it('does not render a notes element when notes is absent from the item', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'alice',
+      listName: 'Old Format List',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    const notesParagraphs = document.querySelectorAll('p');
+    for (const p of notesParagraphs) {
+      expect(p.textContent).not.toBe('');
+    }
+  });
+
+  it('renders notes for multiple items independently', () => {
+    const listData = {
+      data: [
+        { ...TODO_ITEM, notes: 'First tip' },
+        { ...DONE_ITEM, notes: 'Second tip' },
+      ],
+      username: 'alice',
+      listName: 'Two Items',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.getByText('First tip')).toBeInTheDocument();
+    expect(screen.getByText('Second tip')).toBeInTheDocument();
+  });
+});

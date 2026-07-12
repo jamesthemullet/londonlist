@@ -50,14 +50,28 @@
 
 .item {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.25rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #eee;
 }
 
 .item:last-child {
   border-bottom: none;
+}
+
+.itemMain {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.itemNotes {
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+  margin: 0;
+  line-height: 1.4;
 }
 
 .name {
