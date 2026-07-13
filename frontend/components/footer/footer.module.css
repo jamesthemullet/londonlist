@@ -1,5 +1,67 @@
 .footer {
-  background-color: #333;
-  color: white;
+  background-color: #111;
+  color: #ccc;
   width: 100%;
+  padding: 2rem 1.5rem 1rem;
+}
+
+.inner {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #333;
+  margin-bottom: 1rem;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.brandLink {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.brandLink:hover {
+  text-decoration: underline;
+}
+
+.tagline {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0;
+}
+
+.nav {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.link {
+  color: #aaa;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.15s;
+}
+
+.link:hover {
+  color: #fff;
+}
+
+.copy {
+  max-width: 800px;
+  margin: 0 auto;
+  font-size: 0.75rem;
+  color: #666;
 }
