@@ -4,6 +4,9 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '\\.module\\.css$': '<rootDir>/__mocks__/styleMock.js',
+    '^leaflet/dist/leaflet\\.css$': '<rootDir>/__mocks__/styleMock.js',
+    '^leaflet$': '<rootDir>/__mocks__/leaflet.js',
+    '^react-leaflet$': '<rootDir>/__mocks__/react-leaflet.js',
   },
   transform: {
     '^.+\\.(t|j)sx?$': ['babel-jest', { presets: ['next/babel'] }],

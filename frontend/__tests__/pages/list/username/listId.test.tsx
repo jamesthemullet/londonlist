@@ -27,6 +27,14 @@ jest.mock('next/link', () => ({
   ),
 }));
 
+jest.mock('next/dynamic', () => () => {
+  const MockListMap = ({ items }: { items: { documentId: string }[] }) => (
+    <div data-testid="list-map-mock" data-item-count={items.length} />
+  );
+  MockListMap.displayName = 'ListMap';
+  return MockListMap;
+});
+
 import { useAppContext } from '../../../../context/AppContext';
 const mockUseAppContext = useAppContext as jest.Mock;
 
@@ -450,5 +458,112 @@ describe('PublicListPage — JSON-LD script tag in DOM', () => {
     );
     const script = container.querySelector('script[type="application/ld+json"]');
     expect(() => JSON.parse(script!.textContent!)).not.toThrow();
+  });
+});
+
+const TODO_ITEM_WITH_COORDS = {
+  documentId: 'item-1',
+  name: 'British Museum',
+  category: 'museum',
+  completed: false,
+  osm_id: '123',
+  visitedAt: null,
+  lat: 51.5194,
+  lng: -0.1269,
+};
+
+const DONE_ITEM_WITH_COORDS = {
+  documentId: 'item-2',
+  name: 'Tower of London',
+  category: 'attraction',
+  completed: true,
+  osm_id: '456',
+  visitedAt: null,
+  lat: 51.5081,
+  lng: -0.0759,
+};
+
+describe('PublicListPage — map view', () => {
+  it('renders the map when items have coordinates', () => {
+    const listData = {
+      data: [TODO_ITEM_WITH_COORDS],
+      username: 'alice',
+      listName: 'My London List',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.getByTestId('list-map-mock')).toBeInTheDocument();
+  });
+
+  it('passes the correct item count to the map', () => {
+    const listData = {
+      data: [TODO_ITEM_WITH_COORDS, DONE_ITEM_WITH_COORDS],
+      username: 'alice',
+      listName: 'My London List',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.getByTestId('list-map-mock')).toHaveAttribute('data-item-count', '2');
+  });
+
+  it('does not render the map when no items have coordinates', () => {
+    const listData = {
+      data: [{ ...TODO_ITEM_WITH_COORDS, lat: null, lng: null }],
+      username: 'alice',
+      listName: 'My London List',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.queryByTestId('list-map-mock')).not.toBeInTheDocument();
+  });
+
+  it('does not render the map when the list is empty', () => {
+    const listData = { data: [], username: 'alice', listName: 'Empty List' };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.queryByTestId('list-map-mock')).not.toBeInTheDocument();
+  });
+
+  it('only passes items with valid coordinates to the map', () => {
+    const noCoords = { ...TODO_ITEM_WITH_COORDS, documentId: 'item-3', lat: null, lng: null };
+    const listData = {
+      data: [TODO_ITEM_WITH_COORDS, noCoords],
+      username: 'alice',
+      listName: 'Mixed List',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.getByTestId('list-map-mock')).toHaveAttribute('data-item-count', '1');
+  });
+
+  it('renders the map legend when map is shown', () => {
+    const listData = {
+      data: [TODO_ITEM_WITH_COORDS],
+      username: 'alice',
+      listName: 'My London List',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.getByText('To do')).toBeInTheDocument();
+    expect(screen.getByText('Done')).toBeInTheDocument();
+  });
+
+  it('does not render the map legend when no items have coordinates', () => {
+    const listData = {
+      data: [{ ...TODO_ITEM_WITH_COORDS, lat: null, lng: null }],
+      username: 'alice',
+      listName: 'My London List',
+    };
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.queryByText('To do')).not.toBeInTheDocument();
+    expect(screen.queryByText('Done')).not.toBeInTheDocument();
   });
 });
