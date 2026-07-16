@@ -1,8 +1,11 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
+import { useAppContext } from '../../context/AppContext';
 import styles from './[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
+const SITE_URL = 'https://londonlist.vercel.app';
 
 type ListItem = {
   documentId: string;
@@ -25,7 +28,19 @@ type Props = {
   username: string;
 };
 
-export default function PublicListPage({ pageState, listData, username }: Props) {
+export function buildProfileOgDescription(listData: PublicListData): string {
+  const { data: items, username } = listData;
+  const total = items.length;
+  const done = items.filter((i) => i.completed).length;
+  const todo = total - done;
+  const placeWord = total === 1 ? 'place' : 'places';
+  if (total === 0) return `${username}'s London list`;
+  return `${username}'s London list: ${total} ${placeWord} to explore — ${todo} to visit, ${done} done.`;
+}
+
+export default function PublicProfilePage({ pageState, listData, username }: Props) {
+  const { user, initialized } = useAppContext();
+
   if (pageState === 'not_found') {
     return (
       <main className={styles.main}>
@@ -51,13 +66,24 @@ export default function PublicListPage({ pageState, listData, username }: Props)
   const items = listData?.data ?? [];
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
+  const ogTitle = `${username}'s London List`;
+  const ogDescription = listData ? buildProfileOgDescription(listData) : `${username}'s London list`;
+  const ogUrl = `${SITE_URL}/list/${username}`;
 
   return (
     <>
       <Head>
         <title>{username}&apos;s London List</title>
-        <meta name="description" content={`${username}'s London to-do list`} />
+        <meta name="description" content={ogDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="London List" />
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDescription} />
+        <meta property="og:url" content={ogUrl} />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDescription} />
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{username}&apos;s List</h1>
@@ -94,6 +120,15 @@ export default function PublicListPage({ pageState, listData, username }: Props)
           </div>
         )}
       </main>
+      {initialized && !user && (
+        <aside className={styles.conversionBanner}>
+          <p className={styles.conversionHeadline}>Inspired by {username}&apos;s list?</p>
+          <p className={styles.conversionTagline}>Build your own London bucket list — it&apos;s free.</p>
+          <Link href="/register?ref=shared-profile" className={styles.conversionCta}>
+            Create your list
+          </Link>
+        </aside>
+      )}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import PublicListPage, { buildItemListJsonLd } from '../../../../pages/list/[username]/[listId]';
+import PublicListPage, { buildItemListJsonLd, buildOgDescription } from '../../../../pages/list/[username]/[listId]';
 
 jest.mock('../../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -250,6 +250,121 @@ describe('PublicListPage — only done items', () => {
     );
 
     expect(screen.queryByText(/^To do/)).not.toBeInTheDocument();
+  });
+});
+
+// ─── OG / Twitter meta tags ───────────────────────────────────────────────
+
+describe('buildOgDescription — unit tests', () => {
+  it('includes the item count', () => {
+    const listData = {
+      data: [TODO_ITEM, DONE_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+    };
+    expect(buildOgDescription(listData)).toContain('2 places');
+  });
+
+  it('uses singular "place" for a single item', () => {
+    const listData = { data: [TODO_ITEM], username: 'alice', listName: 'Solo' };
+    expect(buildOgDescription(listData)).toContain('1 place');
+    expect(buildOgDescription(listData)).not.toContain('1 places');
+  });
+
+  it('includes the todo and done counts', () => {
+    const listData = {
+      data: [TODO_ITEM, DONE_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+    };
+    const desc = buildOgDescription(listData);
+    expect(desc).toContain('1 to visit');
+    expect(desc).toContain('1 done');
+  });
+
+  it('returns a fallback for an empty list', () => {
+    const listData = { data: [], username: 'alice', listName: 'Empty' };
+    expect(buildOgDescription(listData)).toContain("alice's London list");
+  });
+
+  it('includes the username', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'bob',
+      listName: 'Hidden Gems',
+    };
+    expect(buildOgDescription(listData)).toContain('bob');
+  });
+});
+
+describe('PublicListPage — OG / Twitter meta tags', () => {
+  const listData = {
+    data: [TODO_ITEM, DONE_ITEM],
+    username: 'alice',
+    listName: 'Weekend Wanders',
+  };
+
+  // React 19 hoists <meta> to document.head, so we query there rather than the container div.
+  function getMeta(attr: string, value: string) {
+    return document.querySelector(`meta[${attr}="${value}"]`);
+  }
+
+  it('renders og:type "website"', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(getMeta('property', 'og:type')).toHaveAttribute('content', 'website');
+  });
+
+  it('renders og:site_name "London List"', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(getMeta('property', 'og:site_name')).toHaveAttribute('content', 'London List');
+  });
+
+  it('renders og:title including the list name and username', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    const ogTitle = getMeta('property', 'og:title');
+    expect(ogTitle?.getAttribute('content')).toContain('Weekend Wanders');
+    expect(ogTitle?.getAttribute('content')).toContain('alice');
+  });
+
+  it('renders og:description with item count', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(getMeta('property', 'og:description')?.getAttribute('content')).toContain('2 places');
+  });
+
+  it('renders og:url with the canonical list URL', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(getMeta('property', 'og:url')?.getAttribute('content')).toContain('/list/alice/list-abc');
+  });
+
+  it('renders twitter:card "summary"', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(getMeta('name', 'twitter:card')).toHaveAttribute('content', 'summary');
+  });
+
+  it('renders twitter:title including the list name', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(getMeta('name', 'twitter:title')?.getAttribute('content')).toContain('Weekend Wanders');
+  });
+
+  it('renders twitter:description with item count', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(getMeta('name', 'twitter:description')?.getAttribute('content')).toContain('2 places');
   });
 });
 
