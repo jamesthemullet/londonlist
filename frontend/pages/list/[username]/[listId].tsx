@@ -49,6 +49,16 @@ function schemaTypeForCategory(category: string | null): string {
   return SCHEMA_TYPE_MAP[category.toLowerCase()] ?? 'TouristAttraction';
 }
 
+export function buildOgDescription(listData: PublicListData): string {
+  const { data: items, username, listName } = listData;
+  const total = items.length;
+  const todo = items.filter((i) => !i.completed).length;
+  const done = items.filter((i) => i.completed).length;
+  const placeWord = total === 1 ? 'place' : 'places';
+  if (total === 0) return `${username}'s London list: ${listName}`;
+  return `${username}'s London list: ${total} ${placeWord} to explore — ${todo} to visit, ${done} done.`;
+}
+
 export function buildItemListJsonLd(
   listData: PublicListData,
   username: string,
@@ -112,6 +122,9 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
+  const ogTitle = listData ? `${listData.listName} — ${username}'s London List` : `${username}'s London List`;
+  const ogDescription = listData ? buildOgDescription(listData) : `${username}'s London list`;
+  const ogUrl = `${SITE_URL}/list/${username}/${listId}`;
 
   return (
     <>
@@ -119,8 +132,16 @@ export default function PublicListPage({ pageState, listData, username, listId }
         <title>
           {listData?.listName} — {username}&apos;s London List
         </title>
-        <meta name="description" content={`${username}'s London list: ${listData?.listName}`} />
+        <meta name="description" content={ogDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="London List" />
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDescription} />
+        <meta property="og:url" content={ogUrl} />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDescription} />
         {jsonLd && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
