@@ -2,10 +2,13 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
+import ShareButtons from '../../../components/share-buttons/share-buttons';
 import styles from '../[username].module.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+const DEFAULT_OG_IMAGE = `${SITE_URL}/images/temp-seo-image.jpg`;
+
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = 'https://londonlist.vercel.app';
 
 type ListItem = {
   documentId: string;
@@ -113,14 +116,31 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
 
+  const canonicalUrl = `${SITE_URL}/list/${username}/${listId}`;
+  const pageTitle = `${listData?.listName} — ${username}'s London List`;
+  const pageDescription =
+    items.length > 0
+      ? `${username} is exploring London. ${items.length} place${items.length === 1 ? '' : 's'} on their "${listData?.listName}" list — ${todo.length} to do, ${done.length} done.`
+      : `${username}'s London list: ${listData?.listName}`;
+
   return (
     <>
       <Head>
-        <title>
-          {listData?.listName} — {username}&apos;s London List
-        </title>
-        <meta name="description" content={`${username}'s London list: ${listData?.listName}`} />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="London List" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={DEFAULT_OG_IMAGE} />
+        <meta property="og:locale" content="en_GB" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
         {jsonLd && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -129,6 +149,7 @@ export default function PublicListPage({ pageState, listData, username, listId }
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>
         <p className={styles.subtitle}>{username}&apos;s list</p>
+        <ShareButtons url={canonicalUrl} title={pageTitle} />
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>
         ) : (

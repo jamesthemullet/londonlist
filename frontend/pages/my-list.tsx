@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
@@ -63,6 +64,16 @@ export default function MyListPage() {
   const [activeListId, setActiveListId] = useState<string | null>(null);
   const hasAutoCreated = useRef(false);
 
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [newListName, setNewListName] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const newListInputRef = useRef<HTMLInputElement>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (initialized && user === null) {
       router.push('/login');
@@ -112,27 +123,87 @@ export default function MyListPage() {
     }
   }, [lists, activeListId]);
 
+  useEffect(() => {
+    if (isCreatingNew) newListInputRef.current?.focus();
+  }, [isCreatingNew]);
+
+  useEffect(() => {
+    if (isRenaming) renameInputRef.current?.focus();
+  }, [isRenaming]);
+
   const activeList = lists.find((l) => l.documentId === activeListId) ?? null;
 
-  const handleNewList = async () => {
-    const name = window.prompt('List name:');
-    if (!name?.trim()) return;
-    const result = await createList({ variables: { name: name.trim() } });
+  const handleOpenNewList = () => {
+    setNewListName('');
+    setIsCreatingNew(true);
+    setIsRenaming(false);
+    setIsConfirmingDelete(false);
+  };
+
+  const handleCreateNewList = async () => {
+    const name = newListName.trim();
+    if (!name) return;
+    setIsCreatingNew(false);
+    setNewListName('');
+    const result = await createList({ variables: { name } });
     const newList = result.data?.createMyList;
     if (newList) setActiveListId(newList.documentId);
   };
 
-  const handleRenameList = async () => {
-    if (!activeList) return;
-    const name = window.prompt('New name:', activeList.name);
-    if (!name?.trim() || name.trim() === activeList.name) return;
-    await updateList({ variables: { documentId: activeList.documentId, name: name.trim() } });
+  const handleCancelNewList = () => {
+    setIsCreatingNew(false);
+    setNewListName('');
   };
 
-  const handleDeleteList = async () => {
+  const handleOpenRename = () => {
     if (!activeList) return;
-    if (!window.confirm(`Delete "${activeList.name}" and all its places?`)) return;
+    setRenameValue(activeList.name);
+    setIsRenaming(true);
+    setIsCreatingNew(false);
+    setIsConfirmingDelete(false);
+  };
+
+  const handleSaveRename = async () => {
+    const name = renameValue.trim();
+    if (!name || name === activeList?.name) {
+      setIsRenaming(false);
+      return;
+    }
+    setIsRenaming(false);
+    await updateList({ variables: { documentId: activeList?.documentId, name } });
+  };
+
+  const handleCancelRename = () => {
+    setIsRenaming(false);
+    setRenameValue('');
+  };
+
+  const handleOpenDeleteConfirm = () => {
+    setIsConfirmingDelete(true);
+    setIsRenaming(false);
+    setIsCreatingNew(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!activeList) return;
+    setIsConfirmingDelete(false);
     await deleteList({ variables: { documentId: activeList.documentId } });
+  };
+
+  const handleCancelDelete = () => {
+    setIsConfirmingDelete(false);
+  };
+
+  const handleCopyLink = async () => {
+    if (!activeList || !user) return;
+    const url = `${window.location.origin}/list/${user.username}/${activeList.documentId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard not available in this context
+    }
   };
 
   const handleToggleVisibility = async () => {
@@ -154,24 +225,118 @@ export default function MyListPage() {
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
 
-        <div className={styles.tabs}>
+        {lists.length >= 3 && !user?.isPro && (
+          <aside className={styles.upgradeBanner}>
+            <p className={styles.upgradeBannerText}>
+              You have {lists.length} lists. Unlock unlimited lists with{' '}
+              <strong>London List Pro</strong>.{' '}
+              <Link href="/pricing" className={styles.upgradeBannerLink}>
+                See pricing
+              </Link>
+            </p>
+          </aside>
+        )}
+
+        <div className={styles.tabs} role="tablist" aria-label="Your lists">
           {lists.map((list) => (
             <button
               key={list.documentId}
               type="button"
+              role="tab"
+              aria-selected={list.documentId === activeListId}
               className={list.documentId === activeListId ? styles.tabActive : styles.tab}
-              onClick={() => setActiveListId(list.documentId)}
-            >
+              onClick={() => {
+                setActiveListId(list.documentId);
+                setIsRenaming(false);
+                setIsConfirmingDelete(false);
+              }}>
               {list.name}
             </button>
           ))}
-          <button type="button" className={styles.tabNew} onClick={handleNewList}>
-            + New list
-          </button>
+          {isCreatingNew ? (
+            <form
+              className={styles.newListForm}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateNewList();
+              }}
+              aria-label="Create new list">
+              <label htmlFor="new-list-name" className={styles.srOnly}>
+                New list name
+              </label>
+              <input
+                id="new-list-name"
+                ref={newListInputRef}
+                type="text"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                className={styles.newListInput}
+                placeholder="List name"
+                maxLength={80}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') handleCancelNewList();
+                }}
+              />
+              <button
+                type="submit"
+                className={styles.newListCreate}
+                disabled={!newListName.trim()}>
+                Create
+              </button>
+              <button
+                type="button"
+                className={styles.newListCancel}
+                onClick={handleCancelNewList}>
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <button type="button" className={styles.tabNew} onClick={handleOpenNewList}>
+              + New list
+            </button>
+          )}
         </div>
 
         {activeList && (
           <>
+            {isRenaming ? (
+              <form
+                className={styles.renameForm}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSaveRename();
+                }}
+                aria-label={`Rename list "${activeList.name}"`}>
+                <label htmlFor="rename-list" className={styles.srOnly}>
+                  New name for &quot;{activeList.name}&quot;
+                </label>
+                <input
+                  id="rename-list"
+                  ref={renameInputRef}
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  className={styles.renameInput}
+                  maxLength={80}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') handleCancelRename();
+                  }}
+                />
+                <button
+                  type="submit"
+                  className={styles.renameSave}
+                  disabled={!renameValue.trim()}>
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className={styles.renameCancel}
+                  onClick={handleCancelRename}>
+                  Cancel
+                </button>
+              </form>
+            ) : null}
+
             <section className={styles.section}>
               <h2 className={styles.subheading}>Add a place</h2>
               <PlaceSearch listId={activeList.documentId} />
@@ -188,20 +353,68 @@ export default function MyListPage() {
                 listName={activeList.name}
               />
             </section>
-            <div className={styles.listActions}>
-              <button type="button" className={styles.actionButton} onClick={handleRenameList}>
-                Rename list
-              </button>
-              {lists.length > 1 && (
-                <button
-                  type="button"
-                  className={`${styles.actionButton} ${styles.actionButtonDanger}`}
-                  onClick={handleDeleteList}
-                >
-                  Delete list
-                </button>
+
+            <section className={styles.section}>
+              <h2 className={styles.subheading}>Share</h2>
+              {activeList.isPublic ? (
+                <div className={styles.shareRow}>
+                  <input
+                    className={styles.shareUrl}
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
+                    aria-label="Public list URL"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <button
+                    type="button"
+                    className={styles.copyButton}
+                    onClick={handleCopyLink}
+                    aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
+                    {copied ? 'Copied!' : 'Copy link'}
+                  </button>
+                </div>
+              ) : (
+                <p className={styles.sharePrivate}>
+                  Make this list public to share it with others.
+                </p>
               )}
-            </div>
+            </section>
+
+            {isConfirmingDelete ? (
+              <div className={styles.deleteConfirm} role="alertdialog" aria-labelledby="delete-confirm-heading">
+                <p id="delete-confirm-heading" className={styles.deleteConfirmText}>
+                  Delete &quot;{activeList.name}&quot;? This cannot be undone.
+                </p>
+                <div className={styles.deleteConfirmButtons}>
+                  <button
+                    type="button"
+                    className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                    onClick={handleConfirmDelete}>
+                    Yes, delete
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={handleCancelDelete}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.listActions}>
+                <button type="button" className={styles.actionButton} onClick={handleOpenRename}>
+                  Rename list
+                </button>
+                {lists.length > 1 && (
+                  <button
+                    type="button"
+                    className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                    onClick={handleOpenDeleteConfirm}>
+                    Delete list
+                  </button>
+                )}
+              </div>
+            )}
           </>
         )}
       </main>
