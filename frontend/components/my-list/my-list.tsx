@@ -202,7 +202,7 @@ function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
           {visitedLabel}
         </time>
       )}
-      <button type="button" className={styles.deleteButton} onClick={onDelete} aria-label="Remove">
+      <button type="button" className={styles.deleteButton} onClick={onDelete} aria-label={`Remove ${item.name}`}>
         ✕
       </button>
     </li>
