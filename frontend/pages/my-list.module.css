@@ -231,3 +231,54 @@
   display: flex;
   gap: 0.5rem;
 }
+
+.shareRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.shareUrl {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #555;
+  background: #fafafa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  outline: none;
+}
+
+.shareUrl:focus {
+  border-color: #c724b1;
+  box-shadow: 0 0 0 2px rgba(199, 36, 177, 0.15);
+}
+
+.copyButton {
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: #c724b1;
+  color: #fff;
+  border: 1px solid #c724b1;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.copyButton:hover {
+  background: #a81c96;
+  border-color: #a81c96;
+}
+
+.sharePrivate {
+  font-size: 0.9rem;
+  color: #888;
+  margin: 0;
+}
