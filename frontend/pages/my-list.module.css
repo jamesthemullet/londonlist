@@ -115,6 +115,8 @@
   font-weight: 600;
   text-decoration: underline;
   color: #6b5700;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;

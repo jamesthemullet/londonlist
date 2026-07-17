@@ -449,6 +449,7 @@ describe('PublicListPage — JSON-LD script tag in DOM', () => {
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
     const script = container.querySelector('script[type="application/ld+json"]');
-    expect(() => JSON.parse(script!.textContent!)).not.toThrow();
+    expect(script).not.toBeNull();
+    expect(() => JSON.parse(script?.textContent ?? '')).not.toThrow();
   });
 });
