@@ -69,6 +69,7 @@ export default function MyListPage() {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -191,6 +192,18 @@ export default function MyListPage() {
 
   const handleCancelDelete = () => {
     setIsConfirmingDelete(false);
+  };
+
+  const handleCopyLink = async () => {
+    if (!activeList || !user) return;
+    const url = `${window.location.origin}/list/${user.username}/${activeList.documentId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard not available in this context
+    }
   };
 
   const handleToggleVisibility = async () => {
@@ -339,6 +352,32 @@ export default function MyListPage() {
                 onToggle={handleToggleVisibility}
                 listName={activeList.name}
               />
+            </section>
+
+            <section className={styles.section}>
+              <h2 className={styles.subheading}>Share</h2>
+              {activeList.isPublic ? (
+                <div className={styles.shareRow}>
+                  <input
+                    className={styles.shareUrl}
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
+                    aria-label="Public list URL"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <button
+                    type="button"
+                    className={styles.copyButton}
+                    onClick={handleCopyLink}
+                    aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
+                    {copied ? 'Copied!' : 'Copy link'}
+                  </button>
+                </div>
+              ) : (
+                <p className={styles.sharePrivate}>
+                  Make this list public to share it with others.
+                </p>
+              )}
             </section>
 
             {isConfirmingDelete ? (
