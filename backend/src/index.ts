@@ -19,6 +19,9 @@ export default {
           name: String!
           isPublic: Boolean!
         }
+        extend type UsersPermissionsMe {
+          isPro: Boolean
+        }
         extend type Query {
           myLists: [ListEntity]
         }
@@ -269,6 +272,7 @@ async function grantPermissions(strapi) {
     'api::list.list.create',
     'api::list.list.update',
     'api::list.list.delete',
+    'api::stripe.stripe.createCheckoutSession',
   ];
 
   for (const action of actions) {

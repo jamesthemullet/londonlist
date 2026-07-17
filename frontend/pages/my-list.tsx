@@ -212,11 +212,11 @@ export default function MyListPage() {
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
 
-        {lists.length >= 3 && (
+        {lists.length >= 3 && !user?.isPro && (
           <aside className={styles.upgradeBanner}>
             <p className={styles.upgradeBannerText}>
               You have {lists.length} lists. Unlock unlimited lists with{' '}
-              <strong>London List Pro</strong> — coming soon.{' '}
+              <strong>London List Pro</strong>.{' '}
               <Link href="/pricing" className={styles.upgradeBannerLink}>
                 See pricing
               </Link>

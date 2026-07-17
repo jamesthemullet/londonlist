@@ -28,6 +28,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.0",
+    "stripe": "^18.5.0",
     "styled-components": "^6.0.0"
   },
   "resolutions": {

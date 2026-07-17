@@ -1,7 +1,12 @@
+import Cookie from 'js-cookie';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import styles from './pricing.module.css';
+
+const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
 const FREE_FEATURES = [
   'Up to 3 lists',
@@ -22,6 +27,34 @@ const PRO_FEATURES = [
 
 export default function PricingPage() {
   const { user } = useAppContext();
+  const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const checkoutStatus = router.query.checkout;
+
+  const handleUpgrade = async () => {
+    const token = Cookie.get('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    setCheckoutError(null);
+    setIsRedirecting(true);
+    try {
+      const response = await fetch(`${API_URL}/api/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to start checkout');
+      const { url } = await response.json();
+      if (!url) throw new Error('Failed to start checkout');
+      window.location.href = url;
+    } catch {
+      setCheckoutError('Something went wrong starting checkout. Please try again.');
+      setIsRedirecting(false);
+    }
+  };
 
   return (
     <>
@@ -39,6 +72,11 @@ export default function PricingPage() {
           <p className={styles.subheading}>
             Start free. Upgrade when you need more.
           </p>
+          {checkoutStatus === 'success' && (
+            <p className={styles.ctaNote}>
+              Payment successful! It may take a moment for Pro features to unlock.
+            </p>
+          )}
         </div>
 
         <div className={styles.cards}>
@@ -72,7 +110,7 @@ export default function PricingPage() {
           </div>
 
           <div className={`${styles.card} ${styles.cardPro}`}>
-            <div className={styles.badge}>Coming soon</div>
+            {user?.isPro && <div className={styles.badge}>Your plan</div>}
             <div className={styles.cardHeader}>
               <h2 className={styles.tierName}>Pro</h2>
               <div className={styles.price}>
@@ -89,10 +127,27 @@ export default function PricingPage() {
               ))}
             </ul>
             <div className={styles.cardCta}>
-              <button type="button" className={styles.ctaPrimary} disabled aria-disabled="true">
-                Upgrade to Pro
-              </button>
-              <p className={styles.ctaNote}>Payments coming soon — join the waitlist below.</p>
+              {user?.isPro ? (
+                <p className={styles.ctaNote}>You&rsquo;re already on Pro. Thank you!</p>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={styles.ctaPrimary}
+                    onClick={handleUpgrade}
+                    disabled={isRedirecting}
+                  >
+                    {isRedirecting ? 'Redirecting…' : 'Upgrade to Pro'}
+                  </button>
+                  {!user && (
+                    <p className={styles.ctaNote}>You&rsquo;ll need to sign in first.</p>
+                  )}
+                  {checkoutStatus === 'cancelled' && (
+                    <p className={styles.ctaNote}>Checkout cancelled — no charge was made.</p>
+                  )}
+                  {checkoutError && <p className={styles.ctaNote}>{checkoutError}</p>}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -108,10 +163,10 @@ export default function PricingPage() {
               </dd>
             </div>
             <div className={styles.faqItem}>
-              <dt className={styles.faqQuestion}>When will Pro launch?</dt>
+              <dt className={styles.faqQuestion}>Can I cancel anytime?</dt>
               <dd className={styles.faqAnswer}>
-                We are working on it. Sign up for a free account and we will let
-                you know as soon as Pro is available.
+                Yes — there is no lock-in. If you cancel, you will keep Pro
+                access until the end of your current billing period.
               </dd>
             </div>
             <div className={styles.faqItem}>
