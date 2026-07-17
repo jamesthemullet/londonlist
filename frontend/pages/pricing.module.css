@@ -1,0 +1,225 @@
+.main {
+  width: 100%;
+  max-width: 860px;
+  padding: 3rem 1rem 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.heading {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.subheading {
+  font-size: 1.05rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ── Cards ── */
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  position: relative;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: #fff;
+}
+
+.cardPro {
+  border-color: #333;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.badge {
+  position: absolute;
+  top: -0.65rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tierName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.amount {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.period {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+/* ── Features ── */
+
+.featureList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.93rem;
+  line-height: 1.4;
+}
+
+.checkIcon {
+  color: #2a7a2a;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 0.05em;
+}
+
+/* ── CTAs ── */
+
+.cardCta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  display: block;
+  text-align: center;
+  padding: 0.7rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.ctaPrimary {
+  background: #333;
+  color: #fff;
+  border: 2px solid #333;
+}
+
+.ctaPrimary:hover:not(:disabled) {
+  background: #111;
+  border-color: #111;
+}
+
+.ctaPrimary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ctaSecondary {
+  background: #fff;
+  color: #333;
+  border: 2px solid #333;
+}
+
+.ctaSecondary:hover {
+  background: #f5f5f5;
+}
+
+.ctaNote {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0;
+  text-align: center;
+}
+
+/* ── FAQ ── */
+
+.faq {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.faqHeading {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin: 0;
+}
+
+.faqItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.faqQuestion {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.faqAnswer {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.5;
+}
