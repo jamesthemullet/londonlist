@@ -273,6 +273,7 @@ async function grantPermissions(strapi) {
     'api::list.list.update',
     'api::list.list.delete',
     'api::stripe.stripe.createCheckoutSession',
+    'api::stripe.stripe.confirmCheckoutSession',
   ];
 
   for (const action of actions) {

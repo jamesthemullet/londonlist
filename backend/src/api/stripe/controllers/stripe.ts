@@ -10,6 +10,19 @@ function getStripeClient(): Stripe {
   return new Stripe(secretKey);
 }
 
+async function activateProFromSession(session: Stripe.Checkout.Session) {
+  const userId = session.client_reference_id ?? session.metadata?.userId;
+  if (!userId) return;
+
+  await strapi.db.query('plugin::users-permissions.user').update({
+    where: { id: userId },
+    data: {
+      isPro: true,
+      stripeCustomerId: session.customer as string,
+    },
+  });
+}
+
 export default {
   async createCheckoutSession(ctx) {
     const user = ctx.state.user as { id: number; email: string } | undefined;
@@ -31,11 +44,38 @@ export default {
       customer_email: user.email,
       client_reference_id: String(user.id),
       metadata: { userId: String(user.id) },
-      success_url: `${frontendUrl}/pricing?checkout=success`,
+      success_url: `${frontendUrl}/pricing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/pricing?checkout=cancelled`,
     });
 
     return { url: session.url };
+  },
+
+  async confirmCheckoutSession(ctx) {
+    const user = ctx.state.user as { id: number } | undefined;
+    if (!user) {
+      return ctx.unauthorized('Authentication required');
+    }
+
+    const { sessionId } = ctx.request.body as { sessionId?: string };
+    if (!sessionId) {
+      return ctx.badRequest('Missing sessionId');
+    }
+
+    const stripe = getStripeClient();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    const ownerId = session.client_reference_id ?? session.metadata?.userId;
+    if (String(ownerId) !== String(user.id)) {
+      return ctx.forbidden('This checkout session does not belong to you');
+    }
+
+    if (session.payment_status !== 'paid') {
+      return { isPro: false };
+    }
+
+    await activateProFromSession(session);
+    return { isPro: true };
   },
 
   async webhook(ctx) {
@@ -59,18 +99,7 @@ export default {
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.client_reference_id ?? session.metadata?.userId;
-
-        if (userId) {
-          await strapi.db.query('plugin::users-permissions.user').update({
-            where: { id: userId },
-            data: {
-              isPro: true,
-              stripeCustomerId: session.customer as string,
-            },
-          });
-        }
+        await activateProFromSession(event.data.object as Stripe.Checkout.Session);
         break;
       }
 

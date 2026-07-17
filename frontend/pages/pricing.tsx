@@ -2,7 +2,7 @@ import Cookie from 'js-cookie';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import styles from './pricing.module.css';
 
@@ -26,11 +26,32 @@ const PRO_FEATURES = [
 ];
 
 export default function PricingPage() {
-  const { user } = useAppContext();
+  const { user, setUser } = useAppContext();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const checkoutStatus = router.query.checkout;
+  const sessionId = router.query.session_id;
+
+  useEffect(() => {
+    if (checkoutStatus !== 'success' || typeof sessionId !== 'string' || !user || user.isPro) {
+      return;
+    }
+
+    const token = Cookie.get('token');
+    if (!token) return;
+
+    fetch(`${API_URL}/api/stripe/confirm-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ sessionId }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.isPro) setUser({ ...user, isPro: true });
+      })
+      .catch(() => {});
+  }, [checkoutStatus, sessionId, user, setUser]);
 
   const handleUpgrade = async () => {
     const token = Cookie.get('token');
