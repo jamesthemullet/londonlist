@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
@@ -210,6 +211,18 @@ export default function MyListPage() {
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
+
+        {lists.length >= 3 && (
+          <aside className={styles.upgradeBanner}>
+            <p className={styles.upgradeBannerText}>
+              You have {lists.length} lists. Unlock unlimited lists with{' '}
+              <strong>London List Pro</strong> — coming soon.{' '}
+              <Link href="/pricing" className={styles.upgradeBannerLink}>
+                See pricing
+              </Link>
+            </p>
+          </aside>
+        )}
 
         <div className={styles.tabs} role="tablist" aria-label="Your lists">
           {lists.map((list) => (
