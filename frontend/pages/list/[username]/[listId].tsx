@@ -34,6 +34,59 @@ type Props = {
   listId: string;
 };
 
+const SCHEMA_TYPE_MAP: Record<string, string> = {
+  museum: 'Museum',
+  restaurant: 'Restaurant',
+  cafe: 'CafeOrCoffeeShop',
+  bar: 'BarOrPub',
+  park: 'Park',
+  hotel: 'Hotel',
+  theatre: 'PerformingArtsTheater',
+  cinema: 'MovieTheater',
+  gallery: 'ArtGallery',
+  library: 'Library',
+};
+
+function schemaTypeForCategory(category: string | null): string {
+  if (!category) return 'TouristAttraction';
+  return SCHEMA_TYPE_MAP[category.toLowerCase()] ?? 'TouristAttraction';
+}
+
+export function buildItemListJsonLd(
+  listData: PublicListData,
+  username: string,
+  listId: string,
+): object {
+  const items = listData.data;
+  const todo = items.filter((i) => !i.completed);
+  const done = items.filter((i) => i.completed);
+  const placeWord = items.length === 1 ? 'place' : 'places';
+  const description = `${username} is exploring London. ${items.length} ${placeWord} on their ${listData.listName} list — ${todo.length} to do, ${done.length} done.`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${listData.listName} — ${username}'s London List`,
+    description,
+    url: `${SITE_URL}/list/${username}/${listId}`,
+    author: {
+      '@type': 'Person',
+      name: username,
+    },
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: {
+        '@type': schemaTypeForCategory(item.category),
+        name: item.name,
+        url: `https://www.openstreetmap.org/${item.osm_id}`,
+      },
+    })),
+  };
+}
+
 export default function PublicListPage({ pageState, listData, username, listId }: Props) {
   const { user, initialized } = useAppContext();
   if (pageState === 'not_found') {
@@ -61,6 +114,7 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const items = listData?.data ?? [];
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
+  const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
 
   const canonicalUrl = `${SITE_URL}/list/${username}/${listId}`;
   const pageTitle = `${listData?.listName} — ${username}'s London List`;
@@ -87,6 +141,10 @@ export default function PublicListPage({ pageState, listData, username, listId }
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
+        {jsonLd && (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        )}
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>

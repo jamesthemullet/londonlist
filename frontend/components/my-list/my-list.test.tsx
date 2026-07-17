@@ -217,7 +217,7 @@ describe('MyList — interactions', () => {
 
     render(<MyList listId="list-1" />);
 
-    const deleteButtons = screen.getAllByRole('button', { name: 'Remove' });
+    const deleteButtons = screen.getAllByRole('button', { name: /^Remove / });
     fireEvent.click(deleteButtons[0]);
 
     expect(mockDelete).toHaveBeenCalledWith({

@@ -17,6 +17,7 @@ type LoginMutationData = {
       documentId: string;
       username: string;
       email: string;
+      isPro: boolean;
     };
   };
 };
@@ -35,6 +36,7 @@ const LOGIN_MUTATION = gql`
         documentId
         username
         email
+        isPro
       }
     }
   }
