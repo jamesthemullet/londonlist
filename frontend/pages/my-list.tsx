@@ -290,6 +290,10 @@ export default function MyListPage() {
                 Cancel
               </button>
             </form>
+          ) : lists.length >= 3 && !user?.isPro ? (
+            <Link href="/pricing" className={styles.tabUpgrade}>
+              Upgrade for unlimited lists →
+            </Link>
           ) : (
             <button type="button" className={styles.tabNew} onClick={handleOpenNewList}>
               + New list

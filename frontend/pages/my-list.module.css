@@ -65,6 +65,26 @@
   color: #333;
 }
 
+.tabUpgrade {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #c724b1;
+  background: transparent;
+  color: #c724b1;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tabUpgrade:hover {
+  background: #c724b1;
+  color: #fff;
+}
+
 .listActions {
   display: flex;
   gap: 0.75rem;
