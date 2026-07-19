@@ -78,6 +78,32 @@ export default {
     return { isPro: true };
   },
 
+  async createCustomerPortalSession(ctx) {
+    const user = ctx.state.user as { id: number } | undefined;
+    if (!user) {
+      return ctx.unauthorized('Authentication required');
+    }
+
+    const dbUser = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: user.id },
+      select: ['stripeCustomerId'],
+    });
+
+    if (!dbUser?.stripeCustomerId) {
+      return ctx.badRequest('No active subscription found');
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const stripe = getStripeClient();
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: dbUser.stripeCustomerId as string,
+      return_url: `${frontendUrl}/pricing`,
+    });
+
+    return { url: portalSession.url };
+  },
+
   async webhook(ctx) {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     const signature = ctx.request.headers['stripe-signature'];

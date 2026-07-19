@@ -30,6 +30,8 @@ export default function PricingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
   const checkoutStatus = router.query.checkout;
   const sessionId = router.query.session_id;
 
@@ -52,6 +54,30 @@ export default function PricingPage() {
       })
       .catch(() => {});
   }, [checkoutStatus, sessionId, user, setUser]);
+
+  const handleManageSubscription = async () => {
+    const token = Cookie.get('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    setPortalError(null);
+    setIsOpeningPortal(true);
+    try {
+      const response = await fetch(`${API_URL}/api/stripe/customer-portal`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to open billing portal');
+      const { url } = await response.json();
+      if (!url) throw new Error('Failed to open billing portal');
+      window.location.href = url;
+    } catch {
+      setPortalError('Something went wrong opening the billing portal. Please try again.');
+      setIsOpeningPortal(false);
+    }
+  };
 
   const handleUpgrade = async () => {
     const token = Cookie.get('token');
@@ -149,7 +175,18 @@ export default function PricingPage() {
             </ul>
             <div className={styles.cardCta}>
               {user?.isPro ? (
-                <p className={styles.ctaNote}>You&rsquo;re already on Pro. Thank you!</p>
+                <div className={styles.proCta}>
+                  <p className={styles.ctaNote}>You&rsquo;re on Pro. Thank you!</p>
+                  <button
+                    type="button"
+                    className={styles.ctaSecondary}
+                    onClick={handleManageSubscription}
+                    disabled={isOpeningPortal}
+                  >
+                    {isOpeningPortal ? 'Opening…' : 'Manage subscription'}
+                  </button>
+                  {portalError && <p className={styles.ctaNote}>{portalError}</p>}
+                </div>
               ) : (
                 <>
                   <button
