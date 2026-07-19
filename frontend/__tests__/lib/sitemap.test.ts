@@ -44,13 +44,39 @@ describe('buildSitemapEntries', () => {
     expect(entries.length).toBe(4); // homepage, explore, register, login
   });
 
-  it('returns static pages plus one entry per valid list', () => {
+  it('returns static pages plus one profile entry and one list entry per valid list', () => {
     const lists = [
       { documentId: 'a', username: 'alice' },
       { documentId: 'b', username: 'bob' },
     ];
     const entries = buildSitemapEntries(lists);
-    expect(entries.length).toBe(6); // 4 static + 2 lists
+    expect(entries.length).toBe(8); // 4 static + 2 profiles + 2 lists
+  });
+
+  it('includes a profile entry for each unique username', () => {
+    const lists = [
+      { documentId: 'a', username: 'alice' },
+      { documentId: 'b', username: 'alice' },
+    ];
+    const entries = buildSitemapEntries(lists);
+    const profileEntries = entries.filter((e) => e.loc.startsWith('/profile/'));
+    expect(profileEntries.length).toBe(1);
+    expect(profileEntries[0].loc).toBe('/profile/alice');
+  });
+
+  it('sets priority 0.6 and weekly changefreq on profile entries', () => {
+    const lists = [{ documentId: 'a', username: 'alice' }];
+    const entries = buildSitemapEntries(lists);
+    const profileEntry = entries.find((e) => e.loc === '/profile/alice');
+    expect(profileEntry?.priority).toBe('0.6');
+    expect(profileEntry?.changefreq).toBe('weekly');
+  });
+
+  it('excludes profile entries for null usernames', () => {
+    const lists = [{ documentId: 'x', username: null }];
+    const entries = buildSitemapEntries(lists);
+    const profileEntries = entries.filter((e) => e.loc.startsWith('/profile/'));
+    expect(profileEntries.length).toBe(0);
   });
 });
 

@@ -148,7 +148,9 @@ export default function PublicListPage({ pageState, listData, username, listId }
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>
-        <p className={styles.subtitle}>{username}&apos;s list</p>
+        <p className={styles.subtitle}>
+          <Link href={`/profile/${username}`}>{username}&apos;s lists</Link>
+        </p>
         <ShareButtons url={canonicalUrl} title={pageTitle} />
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>

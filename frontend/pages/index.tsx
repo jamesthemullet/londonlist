@@ -60,7 +60,13 @@ export default function Home() {
                     className={styles.listCard}>
                     <span className={styles.listName}>{list.name}</span>
                     {list.username && (
-                      <span className={styles.listAuthor}>by {list.username}</span>
+                      <Link
+                        href={`/profile/${list.username}`}
+                        className={styles.listAuthor}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        by {list.username}
+                      </Link>
                     )}
                   </Link>
                 </li>
