@@ -109,7 +109,9 @@ export default function ExplorePage({ lists }: Props) {
 
 export const getServerSideProps: GetServerSideProps<Props> = async () => {
   try {
-    const res = await fetch(`${API_URL}/api/lists/public?pageSize=100`);
+    const res = await fetch(`${API_URL}/api/lists/public?pageSize=100`, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (!res.ok) return { props: { lists: [] } };
     const json = await res.json();
     return { props: { lists: json.data ?? [] } };
