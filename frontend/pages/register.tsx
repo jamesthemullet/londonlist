@@ -16,6 +16,7 @@ type RegisterMutationData = {
       documentId: string;
       username: string;
       email: string;
+      isPro: boolean;
     };
   };
 };
@@ -35,6 +36,7 @@ const REGISTER_MUTATION = gql`
         documentId
         username
         email
+        isPro
       }
     }
   }

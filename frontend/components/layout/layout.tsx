@@ -31,13 +31,15 @@ function Navigation() {
 
         <div>
           {user ? (
-            <div>
+            <div className={styles.navLinks}>
               <Link href="/my-list">My List</Link>
+              <Link href="/pricing">Pricing</Link>
               <span>{user.username}</span>
               <Button onClick={handleLogout}>Log Out</Button>
             </div>
           ) : (
-            <div>
+            <div className={styles.navLinks}>
+              <Link href="/pricing">Pricing</Link>
               <Link href="/login">
                 <Button>Log In</Button>
               </Link>
@@ -59,9 +61,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className={styles.wrapper}>
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to main content
+      </a>
       <Meta currentUrl={currentUrl} />
       <Navigation />
-      <div className={styles.pageContainer}>{children}</div>
+      <div id="main-content" className={styles.pageContainer}>{children}</div>
       <Footer />
     </div>
   );
