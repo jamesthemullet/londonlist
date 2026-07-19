@@ -20,6 +20,15 @@ export default {
     },
     {
       method: 'POST',
+      path: '/stripe/customer-portal',
+      handler: 'stripe.createCustomerPortalSession',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'POST',
       path: '/stripe/webhook',
       handler: 'stripe.webhook',
       config: {
