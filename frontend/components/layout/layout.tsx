@@ -26,6 +26,7 @@ function Navigation() {
       <nav className={styles.nav}>
         <div>
           <Link href="/">London List</Link>
+          <Link href="/explore">Explore</Link>
         </div>
 
         <div>
