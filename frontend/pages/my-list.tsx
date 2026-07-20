@@ -15,6 +15,7 @@ type List = {
   documentId: string;
   name: string;
   isPublic: boolean;
+  viewCount: number;
 };
 
 type MyListsData = {
@@ -27,6 +28,7 @@ const GET_MY_LISTS = gql`
       documentId
       name
       isPublic
+      viewCount
     }
   }
 `;
@@ -37,6 +39,7 @@ const CREATE_MY_LIST = gql`
       documentId
       name
       isPublic
+      viewCount
     }
   }
 `;
@@ -47,6 +50,7 @@ const UPDATE_MY_LIST = gql`
       documentId
       name
       isPublic
+      viewCount
     }
   }
 `;
@@ -357,22 +361,37 @@ export default function MyListPage() {
             <section className={styles.section}>
               <h2 className={styles.subheading}>Share</h2>
               {activeList.isPublic ? (
-                <div className={styles.shareRow}>
-                  <input
-                    className={styles.shareUrl}
-                    readOnly
-                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
-                    aria-label="Public list URL"
-                    onFocus={(e) => e.currentTarget.select()}
-                  />
-                  <button
-                    type="button"
-                    className={styles.copyButton}
-                    onClick={handleCopyLink}
-                    aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
-                    {copied ? 'Copied!' : 'Copy link'}
-                  </button>
-                </div>
+                <>
+                  <div className={styles.shareRow}>
+                    <input
+                      className={styles.shareUrl}
+                      readOnly
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
+                      aria-label="Public list URL"
+                      onFocus={(e) => e.currentTarget.select()}
+                    />
+                    <button
+                      type="button"
+                      className={styles.copyButton}
+                      onClick={handleCopyLink}
+                      aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
+                      {copied ? 'Copied!' : 'Copy link'}
+                    </button>
+                  </div>
+                  {user?.isPro ? (
+                    <p className={styles.viewCountStat}>
+                      <span className={styles.viewCountNumber}>{activeList.viewCount ?? 0}</span>{' '}
+                      {activeList.viewCount === 1 ? 'view' : 'views'}
+                    </p>
+                  ) : (
+                    <p className={styles.viewCountLocked}>
+                      <Link href="/pricing" className={styles.viewCountUpgradeLink}>
+                        Upgrade to Pro
+                      </Link>{' '}
+                      to see how many times your list has been viewed.
+                    </p>
+                  )}
+                </>
               ) : (
                 <p className={styles.sharePrivate}>
                   Make this list public to share it with others.

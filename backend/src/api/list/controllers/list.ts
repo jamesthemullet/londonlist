@@ -93,6 +93,11 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       sort: 'createdAt:desc',
     });
 
+    strapi.documents('api::list.list').update({
+      documentId: listId,
+      data: { viewCount: ((list as { viewCount?: number }).viewCount ?? 0) + 1 },
+    }).catch(() => {});
+
     return {
       data: items.map((item) => ({
         documentId: item.documentId,

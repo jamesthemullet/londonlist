@@ -303,3 +303,27 @@
   color: #888;
   margin: 0;
 }
+
+.viewCountStat {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.viewCountNumber {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.viewCountLocked {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.viewCountUpgradeLink {
+  font-weight: 600;
+  color: #c724b1;
+  text-decoration: underline;
+}

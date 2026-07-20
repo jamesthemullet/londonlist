@@ -29,6 +29,10 @@
       "relation": "oneToMany",
       "target": "api::list-item.list-item",
       "mappedBy": "list"
+    },
+    "viewCount": {
+      "type": "integer",
+      "default": 0
     }
   }
 }
