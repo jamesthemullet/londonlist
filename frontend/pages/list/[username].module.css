@@ -100,6 +100,50 @@
   margin-left: auto;
 }
 
+.copyWrapper {
+  margin: 0 0 1.5rem;
+}
+
+.copyButton {
+  background: #c724b1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.copyButton:hover:not(:disabled) {
+  background: #a81d97;
+}
+
+.copyButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.copySuccess {
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+  color: #1a7f3c;
+  font-weight: 500;
+}
+
+.copySuccessLink {
+  color: #1a7f3c;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.copyError {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: #c0392b;
+}
+
 .conversionBanner {
   position: fixed;
   bottom: 0;
