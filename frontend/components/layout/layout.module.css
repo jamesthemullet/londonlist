@@ -24,8 +24,29 @@
   color: white;
 }
 
+.nav > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav a {
+  color: white;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+
 .nav button {
   margin-left: 1rem;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .wrapper {

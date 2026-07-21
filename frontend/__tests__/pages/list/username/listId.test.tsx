@@ -153,12 +153,14 @@ describe('PublicListPage — found state with items', () => {
     expect(screen.getByText(/Visited/)).toBeInTheDocument();
   });
 
-  it('renders the subtitle with the username', () => {
+  it('renders a link to the user profile in the subtitle', () => {
     render(
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
 
-    expect(screen.getByText("alice's list")).toBeInTheDocument();
+    const profileLink = screen.getByRole('link', { name: "alice's lists" });
+    expect(profileLink).toBeInTheDocument();
+    expect(profileLink).toHaveAttribute('href', '/profile/alice');
   });
 });
 
@@ -468,7 +470,8 @@ describe('PublicListPage — JSON-LD script tag in DOM', () => {
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
     const script = container.querySelector('script[type="application/ld+json"]');
-    expect(() => JSON.parse(script!.textContent!)).not.toThrow();
+    expect(script).not.toBeNull();
+    expect(() => JSON.parse(script?.textContent ?? '')).not.toThrow();
   });
 });
 
