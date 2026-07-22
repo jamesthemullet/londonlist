@@ -91,10 +91,15 @@ describe('PricingPage — CTAs for unauthenticated users', () => {
     expect(link).toHaveAttribute('href', '/register');
   });
 
-  it('shows the "Upgrade to Pro" button and a sign-in note', () => {
+  it('shows the "Start 14-day free trial" button and a sign-in note', () => {
     render(<PricingPage />);
-    expect(screen.getByRole('button', { name: /upgrade to pro/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /start 14-day free trial/i })).toBeEnabled();
     expect(screen.getByText(/you.ll need to sign in first/i)).toBeInTheDocument();
+  });
+
+  it('shows the trial pricing note', () => {
+    render(<PricingPage />);
+    expect(screen.getByText(/14 days free.*£3\.99\/month/i)).toBeInTheDocument();
   });
 });
 
@@ -117,7 +122,7 @@ describe('PricingPage — CTAs for authenticated users', () => {
       initialized: true,
     });
     render(<PricingPage />);
-    expect(screen.queryByRole('button', { name: /upgrade to pro/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /start 14-day free trial/i })).not.toBeInTheDocument();
     expect(screen.getByText(/you.re already on pro/i)).toBeInTheDocument();
   });
 });
@@ -132,5 +137,10 @@ describe('PricingPage — FAQ', () => {
     render(<PricingPage />);
     expect(screen.getByText(/can i try london list for free/i)).toBeInTheDocument();
     expect(screen.getByText(/can i cancel anytime/i)).toBeInTheDocument();
+  });
+
+  it('renders a FAQ item explaining the 14-day free trial', () => {
+    render(<PricingPage />);
+    expect(screen.getByText(/how does the 14-day free trial work/i)).toBeInTheDocument();
   });
 });

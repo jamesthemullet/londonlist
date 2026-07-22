@@ -44,6 +44,7 @@ export default {
       customer_email: user.email,
       client_reference_id: String(user.id),
       metadata: { userId: String(user.id) },
+      subscription_data: { trial_period_days: 14 },
       success_url: `${frontendUrl}/pricing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/pricing?checkout=cancelled`,
     });
@@ -63,14 +64,22 @@ export default {
     }
 
     const stripe = getStripeClient();
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['subscription'],
+    });
 
     const ownerId = session.client_reference_id ?? session.metadata?.userId;
     if (String(ownerId) !== String(user.id)) {
       return ctx.forbidden('This checkout session does not belong to you');
     }
 
-    if (session.payment_status !== 'paid') {
+    const subscription = session.subscription as { status?: string } | null;
+    const isActive =
+      session.payment_status === 'paid' ||
+      subscription?.status === 'trialing' ||
+      subscription?.status === 'active';
+
+    if (!isActive) {
       return { isPro: false };
     }
 
@@ -109,6 +118,23 @@ export default {
           where: { stripeCustomerId: subscription.customer as string },
           data: { isPro: false },
         });
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const inactiveStatuses = ['past_due', 'unpaid', 'canceled', 'paused'];
+        if (inactiveStatuses.includes(subscription.status)) {
+          await strapi.db.query('plugin::users-permissions.user').updateMany({
+            where: { stripeCustomerId: subscription.customer as string },
+            data: { isPro: false },
+          });
+        } else if (subscription.status === 'active') {
+          await strapi.db.query('plugin::users-permissions.user').updateMany({
+            where: { stripeCustomerId: subscription.customer as string },
+            data: { isPro: true },
+          });
+        }
         break;
       }
 

@@ -158,8 +158,9 @@ export default function PricingPage() {
                     onClick={handleUpgrade}
                     disabled={isRedirecting}
                   >
-                    {isRedirecting ? 'Redirecting…' : 'Upgrade to Pro'}
+                    {isRedirecting ? 'Redirecting…' : 'Start 14-day free trial'}
                   </button>
+                  <p className={styles.trialNote}>14 days free — then £3.99/month. Cancel anytime.</p>
                   {!user && (
                     <p className={styles.ctaNote}>You&rsquo;ll need to sign in first.</p>
                   )}
@@ -176,6 +177,14 @@ export default function PricingPage() {
         <div className={styles.faq}>
           <h2 className={styles.faqHeading}>Common questions</h2>
           <dl className={styles.faqList}>
+            <div className={styles.faqItem}>
+              <dt className={styles.faqQuestion}>How does the 14-day free trial work?</dt>
+              <dd className={styles.faqAnswer}>
+                Click &ldquo;Start 14-day free trial&rdquo; and you will get full Pro access
+                immediately — no charge today. Your card is only billed after the 14 days are up.
+                Cancel before the trial ends and you will never be charged.
+              </dd>
+            </div>
             <div className={styles.faqItem}>
               <dt className={styles.faqQuestion}>Can I try London List for free?</dt>
               <dd className={styles.faqAnswer}>
