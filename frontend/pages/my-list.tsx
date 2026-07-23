@@ -57,6 +57,8 @@ const DELETE_MY_LIST = gql`
   }
 `;
 
+const FREE_LIST_LIMIT = 3;
+
 export default function MyListPage() {
   const { user, initialized } = useAppContext();
   const router = useRouter();
@@ -70,6 +72,7 @@ export default function MyListPage() {
   const [renameValue, setRenameValue] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [createListError, setCreateListError] = useState<string | null>(null);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -132,12 +135,18 @@ export default function MyListPage() {
   }, [isRenaming]);
 
   const activeList = lists.find((l) => l.documentId === activeListId) ?? null;
+  const isAtListLimit = !user?.isPro && lists.length >= FREE_LIST_LIMIT;
 
   const handleOpenNewList = () => {
+    if (isAtListLimit) {
+      router.push('/pricing');
+      return;
+    }
     setNewListName('');
     setIsCreatingNew(true);
     setIsRenaming(false);
     setIsConfirmingDelete(false);
+    setCreateListError(null);
   };
 
   const handleCreateNewList = async () => {
@@ -145,9 +154,20 @@ export default function MyListPage() {
     if (!name) return;
     setIsCreatingNew(false);
     setNewListName('');
-    const result = await createList({ variables: { name } });
-    const newList = result.data?.createMyList;
-    if (newList) setActiveListId(newList.documentId);
+    setCreateListError(null);
+    try {
+      const result = await createList({ variables: { name } });
+      const newList = result.data?.createMyList;
+      if (newList) setActiveListId(newList.documentId);
+    } catch (err) {
+      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
+      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
+      if (code === 'FREE_LIST_LIMIT_REACHED') {
+        router.push('/pricing');
+      } else {
+        setCreateListError('Could not create list. Please try again.');
+      }
+    }
   };
 
   const handleCancelNewList = () => {
@@ -225,14 +245,31 @@ export default function MyListPage() {
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
 
-        {lists.length >= 3 && !user?.isPro && (
-          <aside className={styles.upgradeBanner}>
+        {!user?.isPro && (
+          <aside
+            className={styles.upgradeBanner}
+            aria-label="List usage"
+          >
             <p className={styles.upgradeBannerText}>
-              You have {lists.length} lists. Unlock unlimited lists with{' '}
-              <strong>London List Pro</strong>.{' '}
-              <Link href="/pricing" className={styles.upgradeBannerLink}>
-                See pricing
-              </Link>
+              <span className={styles.listCount}>
+                {lists.length}/{FREE_LIST_LIMIT} lists used
+              </span>
+              {lists.length >= FREE_LIST_LIMIT ? (
+                <>
+                  {' '}— Unlock unlimited lists with <strong>London List Pro</strong>.{' '}
+                  <Link href="/pricing" className={styles.upgradeBannerLink}>
+                    Upgrade now
+                  </Link>
+                </>
+              ) : (
+                <>
+                  {' '}({FREE_LIST_LIMIT - lists.length} remaining on the free plan —{' '}
+                  <Link href="/pricing" className={styles.upgradeBannerLink}>
+                    upgrade for unlimited
+                  </Link>
+                  )
+                </>
+              )}
             </p>
           </aside>
         )}
@@ -290,12 +327,27 @@ export default function MyListPage() {
                 Cancel
               </button>
             </form>
+          ) : isAtListLimit ? (
+            <button
+              type="button"
+              className={styles.tabUpgrade}
+              onClick={handleOpenNewList}
+              aria-label="Upgrade to Pro to create more lists"
+            >
+              + New list (Pro)
+            </button>
           ) : (
             <button type="button" className={styles.tabNew} onClick={handleOpenNewList}>
               + New list
             </button>
           )}
         </div>
+
+        {createListError && (
+          <p className={styles.createListError} role="alert">
+            {createListError}
+          </p>
+        )}
 
         {activeList && (
           <>
