@@ -3,10 +3,12 @@ function isOwnedBy(doc: unknown, userId: number): boolean {
 }
 
 function requireUser(context: { state?: { user?: unknown } }) {
-  const user = context.state?.user as { id: number } | undefined;
+  const user = context.state?.user as { id: number; isPro?: boolean } | undefined;
   if (!user) throw new Error('Forbidden access');
   return user;
 }
+
+const FREE_LIST_LIMIT = 3;
 
 export default {
   register({ strapi }) {
@@ -180,6 +182,14 @@ export default {
               const existingLists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
               });
+
+              if (!user.isPro && existingLists.length >= FREE_LIST_LIMIT) {
+                const err = new Error('Free plan limit reached') as Error & {
+                  extensions?: Record<string, unknown>;
+                };
+                err.extensions = { code: 'FREE_LIST_LIMIT_REACHED' };
+                throw err;
+              }
 
               const newList = await strapi.documents('api::list.list').create({
                 data: { name: args.name, isPublic: false, user: user.id },
