@@ -1,11 +1,18 @@
+import { gql } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
+import { useAuthHeader } from '../../../hooks/use-auth-header';
+import ShareButtons from '../../../components/share-buttons/share-buttons';
 import styles from '../[username].module.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+const DEFAULT_OG_IMAGE = `${SITE_URL}/images/temp-seo-image.jpg`;
+
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = 'https://londonlist.vercel.app';
 
 type ListItem = {
   documentId: string;
@@ -31,6 +38,91 @@ type Props = {
   username: string;
   listId: string;
 };
+
+const CREATE_MY_LIST = gql`
+  mutation CopyListCreateMyList($name: String!) {
+    createMyList(name: $name) {
+      documentId
+      name
+    }
+  }
+`;
+
+const COPY_LIST_ITEM = gql`
+  mutation CopyListCreateListItem($osm_id: String!, $name: String!, $category: String, $list: ID) {
+    createListItem(
+      data: { osm_id: $osm_id, name: $name, category: $category, completed: false, list: $list }
+    ) {
+      documentId
+    }
+  }
+`;
+
+type CopyListButtonProps = {
+  items: ListItem[];
+  listName: string;
+};
+
+export function CopyListButton({ items, listName }: CopyListButtonProps) {
+  const authHeader = useAuthHeader();
+  const [copyState, setCopyState] = useState<'idle' | 'copying' | 'done' | 'error'>('idle');
+  const [createMyList] = useMutation<{ createMyList: { documentId: string } }>(CREATE_MY_LIST);
+  const [createListItem] = useMutation(COPY_LIST_ITEM);
+
+  async function handleCopy() {
+    setCopyState('copying');
+    try {
+      const { data } = await createMyList({
+        variables: { name: listName },
+        context: { headers: authHeader },
+      });
+      const newListId = data?.createMyList?.documentId;
+      if (!newListId) throw new Error('Failed to create list');
+      for (const item of items) {
+        await createListItem({
+          variables: {
+            osm_id: item.osm_id,
+            name: item.name,
+            category: item.category ?? null,
+            list: newListId,
+          },
+          context: { headers: authHeader },
+        });
+      }
+      setCopyState('done');
+    } catch {
+      setCopyState('error');
+    }
+  }
+
+  if (copyState === 'done') {
+    return (
+      <div className={styles.copySuccess}>
+        List copied!{' '}
+        <Link href="/my-list" className={styles.copySuccessLink}>
+          View your lists →
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.copyWrapper}>
+      <button
+        type="button"
+        className={styles.copyButton}
+        onClick={handleCopy}
+        disabled={copyState === 'copying'}
+        aria-busy={copyState === 'copying'}
+      >
+        {copyState === 'copying' ? 'Copying…' : '+ Copy this list'}
+      </button>
+      {copyState === 'error' && (
+        <p className={styles.copyError}>Something went wrong. Please try again.</p>
+      )}
+    </div>
+  );
+}
 
 const SCHEMA_TYPE_MAP: Record<string, string> = {
   museum: 'Museum',
@@ -114,14 +206,31 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
 
+  const canonicalUrl = `${SITE_URL}/list/${username}/${listId}`;
+  const pageTitle = `${listData?.listName} — ${username}'s London List`;
+  const pageDescription =
+    items.length > 0
+      ? `${username} is exploring London. ${items.length} place${items.length === 1 ? '' : 's'} on their "${listData?.listName}" list — ${todo.length} to do, ${done.length} done.`
+      : `${username}'s London list: ${listData?.listName}`;
+
   return (
     <>
       <Head>
-        <title>
-          {listData?.listName} — {username}&apos;s London List
-        </title>
-        <meta name="description" content={`${username}'s London list: ${listData?.listName}`} />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="London List" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={DEFAULT_OG_IMAGE} />
+        <meta property="og:locale" content="en_GB" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
         {jsonLd && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -130,7 +239,9 @@ export default function PublicListPage({ pageState, listData, username, listId }
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>
         <div className={styles.metaRow}>
-          <p className={styles.subtitle}>{username}&apos;s list</p>
+          <p className={styles.subtitle}>
+            <Link href={`/profile/${username}`}>{username}&apos;s lists</Link>
+          </p>
           {listData?.viewCount !== undefined && listData.viewCount > 0 && (
             <span className={styles.viewCount}>
               <span aria-hidden="true">👁</span>{' '}
@@ -138,6 +249,10 @@ export default function PublicListPage({ pageState, listData, username, listId }
             </span>
           )}
         </div>
+        <ShareButtons url={canonicalUrl} title={pageTitle} />
+        {initialized && user && items.length > 0 && (
+          <CopyListButton items={items} listName={listData?.listName ?? 'Copied list'} />
+        )}
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>
         ) : (
@@ -183,10 +298,20 @@ export default function PublicListPage({ pageState, listData, username, listId }
       </main>
       {initialized && !user && (
         <aside className={styles.conversionBanner}>
-          <p className={styles.conversionHeadline}>Inspired by {username}&apos;s list?</p>
-          <p className={styles.conversionTagline}>Build your own London bucket list — it&apos;s free.</p>
-          <Link href="/register?ref=shared-list" className={styles.conversionCta}>
-            Create your list
+          <p className={styles.conversionHeadline}>
+            {items.length > 0 ? (
+              <>Copy {username}&apos;s list</>
+            ) : (
+              <>Inspired by {username}&apos;s list?</>
+            )}
+          </p>
+          <p className={styles.conversionTagline}>
+            {items.length > 0
+              ? "Sign up free to copy this list and track your own London adventures."
+              : "Build your own London bucket list — it’s free."}
+          </p>
+          <Link href="/register?ref=copy-list" className={styles.conversionCta}>
+            {items.length > 0 ? "Copy this list" : "Create your list"}
           </Link>
         </aside>
       )}
@@ -198,7 +323,9 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
   const { username, listId } = context.params as { username: string; listId: string };
 
   try {
-    const res = await fetch(`${API_URL}/api/lists/public/${username}/${listId}`);
+    const res = await fetch(`${API_URL}/api/lists/public/${username}/${listId}`, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (res.status === 403) {
       return { props: { pageState: 'private', listData: null, username, listId } };
     }

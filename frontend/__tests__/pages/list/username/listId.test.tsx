@@ -1,9 +1,27 @@
-import { render, screen } from '@testing-library/react';
-import PublicListPage, { buildItemListJsonLd } from '../../../../pages/list/[username]/[listId]';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import PublicListPage, {
+  buildItemListJsonLd,
+  CopyListButton,
+} from '../../../../pages/list/[username]/[listId]';
 
 jest.mock('../../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
 }));
+
+jest.mock('@apollo/client/react', () => ({
+  useMutation: jest.fn(),
+}));
+
+jest.mock('@apollo/client', () => ({
+  gql: jest.fn((strings: TemplateStringsArray) => strings[0]),
+}));
+
+jest.mock('../../../../hooks/use-auth-header', () => ({
+  useAuthHeader: jest.fn(() => ({ Authorization: 'Bearer test-token' })),
+}));
+
+import { useMutation } from '@apollo/client/react';
+const mockUseMutation = useMutation as jest.Mock;
 
 jest.mock('next/head', () => ({
   __esModule: true,
@@ -50,6 +68,7 @@ const DONE_ITEM = {
 
 beforeEach(() => {
   mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
+  mockUseMutation.mockReturnValue([jest.fn().mockResolvedValue({}), {}]);
 });
 
 afterEach(() => {
@@ -134,12 +153,14 @@ describe('PublicListPage — found state with items', () => {
     expect(screen.getByText(/Visited/)).toBeInTheDocument();
   });
 
-  it('renders the subtitle with the username', () => {
+  it('renders a link to the user profile in the subtitle', () => {
     render(
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
 
-    expect(screen.getByText("alice's list")).toBeInTheDocument();
+    const profileLink = screen.getByRole('link', { name: "alice's lists" });
+    expect(profileLink).toBeInTheDocument();
+    expect(profileLink).toHaveAttribute('href', '/profile/alice');
   });
 });
 
@@ -182,18 +203,18 @@ describe('PublicListPage — conversion banner', () => {
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
 
-    expect(screen.getByText("Inspired by alice's list?")).toBeInTheDocument();
+    expect(screen.getByText("Copy alice's list")).toBeInTheDocument();
   });
 
-  it('links the conversion CTA to /register with the correct ref', () => {
+  it('links the conversion CTA to /register with the copy ref when list has items', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
 
     render(
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
 
-    const cta = screen.getByRole('link', { name: 'Create your list' });
-    expect(cta).toHaveAttribute('href', '/register?ref=shared-list');
+    const cta = screen.getByRole('link', { name: 'Copy this list' });
+    expect(cta).toHaveAttribute('href', '/register?ref=copy-list');
   });
 
   it('does not show the conversion banner when the visitor is logged in', () => {
@@ -543,6 +564,221 @@ describe('PublicListPage — JSON-LD script tag in DOM', () => {
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
     const script = container.querySelector('script[type="application/ld+json"]');
-    expect(() => JSON.parse(script!.textContent!)).not.toThrow();
+    expect(script).not.toBeNull();
+    expect(() => JSON.parse(script?.textContent ?? '')).not.toThrow();
+  });
+});
+
+describe('CopyListButton', () => {
+  const ITEMS = [
+    {
+      documentId: 'item-1',
+      name: 'British Museum',
+      category: 'museum',
+      completed: false,
+      osm_id: 'node/123',
+      visitedAt: null,
+    },
+    {
+      documentId: 'item-2',
+      name: 'Tate Modern',
+      category: 'gallery',
+      completed: false,
+      osm_id: 'way/456',
+      visitedAt: null,
+    },
+  ];
+
+  it('renders the copy button in idle state', () => {
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    expect(screen.getByRole('button', { name: '+ Copy this list' })).toBeInTheDocument();
+  });
+
+  it('button is enabled by default', () => {
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    expect(screen.getByRole('button', { name: '+ Copy this list' })).not.toBeDisabled();
+  });
+
+  it('shows "Copying…" and disables button while copying', async () => {
+    let resolveCreate!: (value: unknown) => void;
+    const createListMock = jest.fn(
+      () => new Promise((resolve) => { resolveCreate = resolve; }),
+    );
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([jest.fn(), {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    expect(await screen.findByRole('button', { name: 'Copying…' })).toBeDisabled();
+
+    resolveCreate({ data: { createMyList: { documentId: 'new-list-1' } } });
+  });
+
+  it('shows success message with a link after copy completes', async () => {
+    const createListMock = jest
+      .fn()
+      .mockResolvedValue({ data: { createMyList: { documentId: 'new-list-1' } } });
+    const createItemMock = jest.fn().mockResolvedValue({ data: { createListItem: { documentId: 'new-item-1' } } });
+
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([createItemMock, {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('List copied!')).toBeInTheDocument();
+    });
+
+    const link = screen.getByRole('link', { name: 'View your lists →' });
+    expect(link).toHaveAttribute('href', '/my-list');
+  });
+
+  it('calls createMyList with the list name', async () => {
+    const createListMock = jest
+      .fn()
+      .mockResolvedValue({ data: { createMyList: { documentId: 'new-list-1' } } });
+    const createItemMock = jest.fn().mockResolvedValue({ data: { createListItem: { documentId: 'new-item-1' } } });
+
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([createItemMock, {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    await waitFor(() => expect(createListMock).toHaveBeenCalledWith(
+      expect.objectContaining({ variables: { name: 'Weekend Wanders' } }),
+    ));
+  });
+
+  it('calls createListItem once for each item', async () => {
+    const createListMock = jest
+      .fn()
+      .mockResolvedValue({ data: { createMyList: { documentId: 'new-list-1' } } });
+    const createItemMock = jest.fn().mockResolvedValue({ data: { createListItem: { documentId: 'new-item-1' } } });
+
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([createItemMock, {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    await waitFor(() => expect(createItemMock).toHaveBeenCalledTimes(ITEMS.length));
+  });
+
+  it('shows an error message when the copy fails', async () => {
+    const createListMock = jest.fn().mockRejectedValue(new Error('Network error'));
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([jest.fn(), {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows an error when createMyList returns no documentId', async () => {
+    const createListMock = jest.fn().mockResolvedValue({ data: { createMyList: null } });
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([jest.fn(), {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
+    });
+  });
+});
+
+describe('PublicListPage — copy list integration', () => {
+  const listData = {
+    data: [
+      {
+        documentId: 'item-1',
+        name: 'British Museum',
+        category: 'museum',
+        completed: false,
+        osm_id: 'node/123',
+        visitedAt: null,
+      },
+    ],
+    username: 'alice',
+    listName: 'Weekend Wanders',
+  };
+
+  it('shows "Copy this list" button for authenticated users with items', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', username: 'bob' },
+      initialized: true,
+    });
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    expect(screen.getByRole('button', { name: '+ Copy this list' })).toBeInTheDocument();
+  });
+
+  it('does not show "Copy this list" button for unauthenticated users', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true });
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    expect(screen.queryByRole('button', { name: '+ Copy this list' })).not.toBeInTheDocument();
+  });
+
+  it('shows "Copy this list" CTA in conversion banner for unauthenticated users when list has items', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true });
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    const ctaLink = screen.getByRole('link', { name: 'Copy this list' });
+    expect(ctaLink).toHaveAttribute('href', '/register?ref=copy-list');
+  });
+
+  it('shows generic CTA for unauthenticated users when list is empty', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true });
+    const emptyListData = { data: [], username: 'alice', listName: 'Empty List' };
+
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={emptyListData}
+        username="alice"
+        listId="list-abc"
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: 'Create your list' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Copy this list' })).not.toBeInTheDocument();
+  });
+
+  it('does not show copy button when not yet initialized (avoids flash)', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', username: 'bob' },
+      initialized: false,
+    });
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    expect(screen.queryByRole('button', { name: '+ Copy this list' })).not.toBeInTheDocument();
   });
 });

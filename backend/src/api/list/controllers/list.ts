@@ -27,6 +27,43 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
     };
   },
 
+  async getPublicListsByUsername(ctx) {
+    const { username } = ctx.params;
+
+    const [user] = await strapi.db.query('plugin::users-permissions.user').findMany({
+      where: { username },
+    });
+
+    if (!user) {
+      return ctx.notFound('User not found');
+    }
+
+    const lists = await strapi.documents('api::list.list').findMany({
+      filters: { isPublic: { $eq: true }, user: { id: { $eq: user.id } } },
+      sort: 'createdAt:desc',
+    });
+
+    const listsWithCounts = await Promise.all(
+      lists.map(async (list) => {
+        const items = await strapi.documents('api::list-item.list-item').findMany({
+          filters: { list: { documentId: { $eq: list.documentId } } },
+        });
+        const completedCount = items.filter((i) => (i as { completed?: boolean }).completed).length;
+        return {
+          documentId: list.documentId,
+          name: list.name,
+          itemCount: items.length,
+          completedCount,
+        };
+      }),
+    );
+
+    return {
+      username: user.username,
+      lists: listsWithCounts,
+    };
+  },
+
   async getPublicList(ctx) {
     const { username, listId } = ctx.params;
 
