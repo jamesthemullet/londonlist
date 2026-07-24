@@ -14,7 +14,7 @@ jest.mock('../../pages/_app', () => ({
 import Cookie from 'js-cookie';
 import { client } from '../../pages/_app';
 const mockCookieGet = Cookie.get as jest.Mock;
-const mockClientQuery = (client as { query: jest.Mock }).query;
+const mockClientQuery = (client as unknown as { query: jest.Mock }).query;
 
 function TestConsumer() {
   const { user, initialized } = useAppContext();
