@@ -27,6 +27,7 @@ type PublicListData = {
   data: ListItem[];
   username: string;
   listName: string;
+  viewCount?: number;
 };
 
 type PageState = 'found' | 'private' | 'not_found';
@@ -237,9 +238,17 @@ export default function PublicListPage({ pageState, listData, username, listId }
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>
-        <p className={styles.subtitle}>
-          <Link href={`/profile/${username}`}>{username}&apos;s lists</Link>
-        </p>
+        <div className={styles.metaRow}>
+          <p className={styles.subtitle}>
+            <Link href={`/profile/${username}`}>{username}&apos;s lists</Link>
+          </p>
+          {listData?.viewCount !== undefined && listData.viewCount > 0 && (
+            <span className={styles.viewCount}>
+              <span aria-hidden="true">👁</span>{' '}
+              {listData.viewCount.toLocaleString()} {listData.viewCount === 1 ? 'view' : 'views'}
+            </span>
+          )}
+        </div>
         <ShareButtons url={canonicalUrl} title={pageTitle} />
         {initialized && user && items.length > 0 && (
           <CopyListButton items={items} listName={listData?.listName ?? 'Copied list'} />

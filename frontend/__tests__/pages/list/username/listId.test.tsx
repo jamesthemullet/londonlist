@@ -434,6 +434,100 @@ describe('buildItemListJsonLd — unit tests', () => {
   });
 });
 
+describe('PublicListPage — view count', () => {
+  it('shows the view count when it is greater than zero', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+      viewCount: 42,
+    };
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    expect(screen.getByText('42 views')).toBeInTheDocument();
+  });
+
+  it('uses singular "view" for a count of 1', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+      viewCount: 1,
+    };
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    expect(screen.getByText('1 view')).toBeInTheDocument();
+  });
+
+  it('hides the view count when it is zero', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+      viewCount: 0,
+    };
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    expect(screen.queryByText(/views?$/)).not.toBeInTheDocument();
+  });
+
+  it('hides the view count when viewCount is not provided', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+    };
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    expect(screen.queryByText(/views?$/)).not.toBeInTheDocument();
+  });
+
+  it('formats large view counts with locale separators', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+      viewCount: 1234567,
+    };
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    const badge = screen.getByText(/views$/);
+    expect(badge.textContent).toMatch(/1[,.]234[,.]567/);
+  });
+
+  it('renders the emoji icon as aria-hidden so screen readers skip it', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+      viewCount: 42,
+    };
+
+    const { container } = render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    const hiddenEmoji = container.querySelector('[aria-hidden="true"]');
+    expect(hiddenEmoji).toBeInTheDocument();
+    expect(hiddenEmoji?.textContent).toBe('👁');
+  });
+});
+
 describe('PublicListPage — JSON-LD script tag in DOM', () => {
   const listData = {
     data: [TODO_ITEM, DONE_ITEM],
