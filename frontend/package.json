@@ -24,9 +24,9 @@
     "@types/react": "^19.0.0",
     "graphql": "17.0.2",
     "js-cookie": "3.0.8",
-    "next": "16.2.10",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
+    "next": "16.2.11",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "rxjs": "7.8.2",
     "typescript": "6.0.3"
   },
