@@ -10,7 +10,6 @@ export default [
   {
     name: 'strapi::cors',
     config: {
-      enabled: true,
       origin: (ctx: { request: { header: { origin?: string } } }) => {
         const requestOrigin = ctx.request.header.origin;
         if (!requestOrigin) return allowedOrigins[0];
