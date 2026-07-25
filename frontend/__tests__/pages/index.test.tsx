@@ -89,7 +89,6 @@ describe('Home page — public lists', () => {
 
     render(<Home />);
 
-    // Wait a tick for the fetch to resolve
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
     });
@@ -122,40 +121,77 @@ describe('Home page — public lists', () => {
   });
 });
 
-describe('Home page — auth state', () => {
-  it('shows log in and sign up links when user is not logged in', async () => {
+describe('Home page — logged-out hero', () => {
+  beforeEach(() => {
     mockFetch({ data: [] });
     mockUseAppContext.mockReturnValue({ user: null, setUser: jest.fn(), initialized: true });
-
-    render(<Home />);
-
-    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
-    expect(screen.getByRole('link', { name: 'sign up' })).toHaveAttribute('href', '/register');
   });
 
-  it('shows "View your list" link when user is logged in', async () => {
+  it('shows the marketing headline for logged-out users', () => {
+    render(<Home />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Your London bucket list, beautifully organised',
+    );
+  });
+
+  it('shows "Create your free list" CTA linking to /register', () => {
+    render(<Home />);
+    const link = screen.getByRole('link', { name: 'Create your free list' });
+    expect(link).toHaveAttribute('href', '/register');
+  });
+
+  it('shows "Log in" link for existing users', () => {
+    render(<Home />);
+    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
+  });
+
+  it('shows feature highlights', () => {
+    render(<Home />);
+    expect(screen.getByText('Discover London')).toBeInTheDocument();
+    expect(screen.getByText('Track your visits')).toBeInTheDocument();
+    expect(screen.getByText('Share with friends')).toBeInTheDocument();
+  });
+
+  it('does not show the place search box for logged-out users', () => {
+    render(<Home />);
+    expect(screen.queryByTestId('place-search')).not.toBeInTheDocument();
+  });
+});
+
+describe('Home page — logged-in hero', () => {
+  beforeEach(() => {
     mockFetch({ data: [] });
     mockUseAppContext.mockReturnValue({
       user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice' },
       setUser: jest.fn(),
       initialized: true,
     });
+  });
 
+  it('shows the search prompt headline for logged-in users', () => {
     render(<Home />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'What do you want to do in London?',
+    );
+  });
 
+  it('shows the place search box for logged-in users', () => {
+    render(<Home />);
+    expect(screen.getByTestId('place-search')).toBeInTheDocument();
+  });
+
+  it('shows "View your list" link', () => {
+    render(<Home />);
     expect(screen.getByRole('link', { name: /view your list/i })).toHaveAttribute('href', '/my-list');
   });
 
-  it('does not show log in links when user is logged in', async () => {
-    mockFetch({ data: [] });
-    mockUseAppContext.mockReturnValue({
-      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice' },
-      setUser: jest.fn(),
-      initialized: true,
-    });
-
+  it('does not show the marketing headline for logged-in users', () => {
     render(<Home />);
+    expect(screen.queryByText('Your London bucket list, beautifully organised')).not.toBeInTheDocument();
+  });
 
-    expect(screen.queryByRole('link', { name: 'Log in' })).not.toBeInTheDocument();
+  it('does not show feature highlights for logged-in users', () => {
+    render(<Home />);
+    expect(screen.queryByText('Discover London')).not.toBeInTheDocument();
   });
 });
