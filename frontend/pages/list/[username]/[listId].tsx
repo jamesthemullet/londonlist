@@ -2,12 +2,16 @@ import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
 import styles from '../[username].module.css';
+import type { MapItem } from '../../../components/map/list-map';
+
+const ListMap = dynamic(() => import('../../../components/map/list-map'), { ssr: false });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/images/temp-seo-image.jpg`;
@@ -21,6 +25,8 @@ type ListItem = {
   completed: boolean;
   osm_id: string;
   visitedAt: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type PublicListData = {
@@ -206,6 +212,17 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
 
+  const mapItems: MapItem[] = items
+    .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)
+    .map((i) => ({
+      documentId: i.documentId,
+      name: i.name,
+      lat: i.lat,
+      lng: i.lng,
+      completed: i.completed,
+      category: i.category,
+    }));
+
   const canonicalUrl = `${SITE_URL}/list/${username}/${listId}`;
   const pageTitle = `${listData?.listName} — ${username}'s London List`;
   const pageDescription =
@@ -249,6 +266,23 @@ export default function PublicListPage({ pageState, listData, username, listId }
             </span>
           )}
         </div>
+        {mapItems.length > 0 && (
+          <>
+            <div className={styles.mapContainer}>
+              <ListMap items={mapItems} />
+            </div>
+            <p className={styles.mapLegend}>
+              <span className={styles.mapLegendItem}>
+                <span className={styles.mapLegendDot} style={{ background: '#c724b1' }} aria-hidden="true" />
+                To do
+              </span>
+              <span className={styles.mapLegendItem}>
+                <span className={styles.mapLegendDot} style={{ background: '#22c55e' }} aria-hidden="true" />
+                Done
+              </span>
+            </p>
+          </>
+        )}
         <ShareButtons url={canonicalUrl} title={pageTitle} />
         {initialized && user && items.length > 0 && (
           <CopyListButton items={items} listName={listData?.listName ?? 'Copied list'} />

@@ -92,7 +92,9 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
     const typedList = list as typeof list & { viewCount?: number };
     await strapi.documents('api::list.list').update({
       documentId: listId,
-      data: { viewCount: (typedList.viewCount ?? 0) + 1 },
+      // viewCount is declared in schema.json but Strapi's build-time type
+      // generation can lag behind on CI, so the generated Input type omits it.
+      data: { viewCount: (typedList.viewCount ?? 0) + 1 } as unknown as never,
     });
 
     const items = await strapi.documents('api::list-item.list-item').findMany({
@@ -108,6 +110,8 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         completed: item.completed,
         osm_id: item.osm_id,
         visitedAt: item.visitedAt ?? null,
+        lat: item.lat ?? null,
+        lng: item.lng ?? null,
       })),
       username: user.username,
       listName: list.name,
