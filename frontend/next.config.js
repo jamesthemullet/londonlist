@@ -31,7 +31,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              "connect-src 'self' https://photon.komoot.io " + (process.env.STRAPI_URL || 'http://localhost:1337'),
+              `connect-src 'self' https://photon.komoot.io ${process.env.STRAPI_URL || 'http://localhost:1337'}`,
               "frame-ancestors 'none'",
             ].join('; '),
           },

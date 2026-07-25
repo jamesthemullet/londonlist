@@ -12,19 +12,28 @@ export type PublicListForSitemap = {
 
 const STATIC_PAGES: SitemapEntry[] = [
   { loc: '/', changefreq: 'daily', priority: '1.0' },
+  { loc: '/explore', changefreq: 'daily', priority: '0.9' },
   { loc: '/register', changefreq: 'monthly', priority: '0.5' },
   { loc: '/login', changefreq: 'monthly', priority: '0.3' },
 ];
 
 export function buildSitemapEntries(lists: PublicListForSitemap[]): SitemapEntry[] {
-  const listEntries: SitemapEntry[] = lists
-    .filter((l) => l.username !== null)
-    .map((l) => ({
-      loc: `/list/${l.username}/${l.documentId}`,
-      changefreq: 'weekly',
-      priority: '0.7',
-    }));
-  return [...STATIC_PAGES, ...listEntries];
+  const withUsername = lists.filter((l) => l.username !== null);
+
+  const listEntries: SitemapEntry[] = withUsername.map((l) => ({
+    loc: `/list/${l.username}/${l.documentId}`,
+    changefreq: 'weekly',
+    priority: '0.7',
+  }));
+
+  const uniqueUsernames = [...new Set(withUsername.map((l) => l.username as string))];
+  const profileEntries: SitemapEntry[] = uniqueUsernames.map((username) => ({
+    loc: `/profile/${username}`,
+    changefreq: 'weekly',
+    priority: '0.6',
+  }));
+
+  return [...STATIC_PAGES, ...profileEntries, ...listEntries];
 }
 
 export function generateSitemapXml(entries: SitemapEntry[], siteUrl: string): string {
