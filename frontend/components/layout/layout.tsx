@@ -26,17 +26,20 @@ function Navigation() {
       <nav className={styles.nav}>
         <div>
           <Link href="/">London List</Link>
+          <Link href="/explore">Explore</Link>
         </div>
 
         <div>
           {user ? (
-            <div>
+            <div className={styles.navLinks}>
               <Link href="/my-list">My List</Link>
+              <Link href="/pricing">Pricing</Link>
               <span>{user.username}</span>
               <Button onClick={handleLogout}>Log Out</Button>
             </div>
           ) : (
-            <div>
+            <div className={styles.navLinks}>
+              <Link href="/pricing">Pricing</Link>
               <Link href="/login">
                 <Button>Log In</Button>
               </Link>
