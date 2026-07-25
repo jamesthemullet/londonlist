@@ -102,7 +102,9 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
   const { username } = context.params as { username: string };
 
   try {
-    const res = await fetch(`${API_URL}/api/list-settings/public/${username}`);
+    const res = await fetch(`${API_URL}/api/list-settings/public/${username}`, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (res.status === 403) {
       return { props: { pageState: 'private', listData: null, username } };
     }

@@ -20,5 +20,15 @@ export default {
         middlewares: [],
       },
     },
+    {
+      method: 'GET',
+      path: '/lists/public/:username',
+      handler: 'api::list.list.getPublicListsByUsername',
+      config: {
+        auth: false,
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

@@ -8,6 +8,7 @@ type User = {
   documentId: string;
   email: string;
   username: string;
+  isPro: boolean;
 };
 
 type AppContextValue = {
@@ -59,6 +60,7 @@ const getUser = async () => {
           documentId
           email
           username
+          isPro
         }
       }
     `,
