@@ -149,6 +149,16 @@ function schemaTypeForCategory(category: string | null): string {
   return SCHEMA_TYPE_MAP[category.toLowerCase()] ?? 'TouristAttraction';
 }
 
+export function buildOgDescription(listData: PublicListData): string {
+  const { data: items, username, listName } = listData;
+  const total = items.length;
+  const todo = items.filter((i) => !i.completed).length;
+  const done = items.filter((i) => i.completed).length;
+  const placeWord = total === 1 ? 'place' : 'places';
+  if (total === 0) return `${username}'s London list: ${listName}`;
+  return `${username}'s London list: ${total} ${placeWord} to explore — ${todo} to visit, ${done} done.`;
+}
+
 export function buildItemListJsonLd(
   listData: PublicListData,
   username: string,
@@ -212,6 +222,9 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
+  const ogTitle = listData ? `${listData.listName} — ${username}'s London List` : `${username}'s London List`;
+  const ogDescription = listData ? buildOgDescription(listData) : `${username}'s London list`;
+  const ogUrl = `${SITE_URL}/list/${username}/${listId}`;
 
   const mapItems: MapItem[] = items
     .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)
@@ -234,7 +247,9 @@ export default function PublicListPage({ pageState, listData, username, listId }
   return (
     <>
       <Head>
-        <title>{pageTitle}</title>
+        <title>
+          {listData?.listName} — {username}&apos;s London List
+        </title>
         <meta name="description" content={pageDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={canonicalUrl} />
