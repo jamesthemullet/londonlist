@@ -12,7 +12,9 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   let publicLists: { documentId: string; username: string | null }[] = [];
 
   try {
-    const response = await fetch(`${API_URL}/api/lists/public?pageSize=500`);
+    const response = await fetch(`${API_URL}/api/lists/public?pageSize=500`, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (response.ok) {
       const json = await response.json();
       publicLists = json.data ?? [];
