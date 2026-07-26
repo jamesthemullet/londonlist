@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../context/AppContext';
@@ -395,5 +395,109 @@ describe('MyListPage — inline delete confirmation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete list' }));
 
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — share section', () => {
+  const PUBLIC_LIST = [{ documentId: 'list-pub', name: 'My Public List', isPublic: true }];
+  const PRIVATE_LIST = [{ documentId: 'list-prv', name: 'My Private List', isPublic: false }];
+
+  beforeEach(() => {
+    Object.assign(navigator, {
+      clipboard: { writeText: jest.fn().mockResolvedValue(undefined) },
+    });
+  });
+
+  it('shows the public URL input when the list is public', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    const urlInput = screen.getByRole('textbox', { name: 'Public list URL' });
+    expect(urlInput).toBeInTheDocument();
+    expect((urlInput as HTMLInputElement).value).toContain('/list/alice/list-pub');
+  });
+
+  it('shows a "Copy link" button when the list is public', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('button', { name: 'Copy link to clipboard' })).toBeInTheDocument();
+  });
+
+  it('calls clipboard.writeText with the correct URL when "Copy link" is clicked', async () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link to clipboard' }));
+
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        expect.stringContaining('/list/alice/list-pub'),
+      );
+    });
+  });
+
+  it('changes button text to "Copied!" after clicking', async () => {
+    jest.useFakeTimers();
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link to clipboard' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Link copied' })).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(screen.getByRole('button', { name: 'Copy link to clipboard' })).toBeInTheDocument();
+
+    jest.useRealTimers();
+  });
+
+  it('shows "Make this list public" message when the list is private', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PRIVATE_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText(/Make this list public to share it/)).toBeInTheDocument();
+  });
+
+  it('does not show the URL input when the list is private', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PRIVATE_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByRole('textbox', { name: 'Public list URL' })).not.toBeInTheDocument();
+  });
+
+  it('does not show the "Make public" prompt when the list is public', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByText(/Make this list public to share it/)).not.toBeInTheDocument();
+  });
+
+  it('renders the Share section heading', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('heading', { name: 'Share' })).toBeInTheDocument();
   });
 });

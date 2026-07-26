@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
@@ -68,6 +69,7 @@ export default function MyListPage() {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -192,6 +194,18 @@ export default function MyListPage() {
     setIsConfirmingDelete(false);
   };
 
+  const handleCopyLink = async () => {
+    if (!activeList || !user) return;
+    const url = `${window.location.origin}/list/${user.username}/${activeList.documentId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard not available in this context
+    }
+  };
+
   const handleToggleVisibility = async () => {
     if (!activeList) return;
     await updateList({
@@ -210,6 +224,18 @@ export default function MyListPage() {
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
+
+        {lists.length >= 3 && !user?.isPro && (
+          <aside className={styles.upgradeBanner}>
+            <p className={styles.upgradeBannerText}>
+              You have {lists.length} lists. Unlock unlimited lists with{' '}
+              <strong>London List Pro</strong>.{' '}
+              <Link href="/pricing" className={styles.upgradeBannerLink}>
+                See pricing
+              </Link>
+            </p>
+          </aside>
+        )}
 
         <div className={styles.tabs} role="tablist" aria-label="Your lists">
           {lists.map((list) => (
@@ -326,6 +352,32 @@ export default function MyListPage() {
                 onToggle={handleToggleVisibility}
                 listName={activeList.name}
               />
+            </section>
+
+            <section className={styles.section}>
+              <h2 className={styles.subheading}>Share</h2>
+              {activeList.isPublic ? (
+                <div className={styles.shareRow}>
+                  <input
+                    className={styles.shareUrl}
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
+                    aria-label="Public list URL"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <button
+                    type="button"
+                    className={styles.copyButton}
+                    onClick={handleCopyLink}
+                    aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
+                    {copied ? 'Copied!' : 'Copy link'}
+                  </button>
+                </div>
+              ) : (
+                <p className={styles.sharePrivate}>
+                  Make this list public to share it with others.
+                </p>
+              )}
             </section>
 
             {isConfirmingDelete ? (
