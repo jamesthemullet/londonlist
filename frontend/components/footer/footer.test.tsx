@@ -9,6 +9,8 @@ describe('Footer — rendering', () => {
 
   it('renders footer text', () => {
     render(<Footer />);
-    expect(screen.getByText(/this is footer/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/London List\. All rights reserved\./i)
+    ).toBeInTheDocument();
   });
 });
