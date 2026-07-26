@@ -335,11 +335,11 @@ describe('PublicListPage — OG / Twitter meta tags', () => {
     return document.querySelector(`meta[${attr}="${value}"]`);
   }
 
-  it('renders og:type "website"', () => {
+  it('renders og:type "article"', () => {
     render(
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
-    expect(getMeta('property', 'og:type')).toHaveAttribute('content', 'website');
+    expect(getMeta('property', 'og:type')).toHaveAttribute('content', 'article');
   });
 
   it('renders og:site_name "London List"', () => {
@@ -372,11 +372,11 @@ describe('PublicListPage — OG / Twitter meta tags', () => {
     expect(getMeta('property', 'og:url')?.getAttribute('content')).toContain('/list/alice/list-abc');
   });
 
-  it('renders twitter:card "summary"', () => {
+  it('renders twitter:card "summary_large_image"', () => {
     render(
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
-    expect(getMeta('name', 'twitter:card')).toHaveAttribute('content', 'summary');
+    expect(getMeta('name', 'twitter:card')).toHaveAttribute('content', 'summary_large_image');
   });
 
   it('renders twitter:title including the list name', () => {
