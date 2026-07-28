@@ -74,6 +74,8 @@ Use this decision tree:
 
 4. **If coverage already looks solid for a given area** → pick the other type, or report that no improvement is clearly justifiable.
 
+**If no candidate across unit or e2e clears a genuine bar** — every remaining gap is trivial, already covered indirectly, or not worth the maintenance cost of a new test — stop here. Do not write a low-value or redundant test just to have something to ship. Skip Steps 4–6 (no test, no PR) and report directly that no change-worthy gap was found this round. A "coverage looks fine, nothing added" report is a legitimate, useful outcome, not a failure.
+
 ---
 
 ## Step 4 — Write the incremental improvement

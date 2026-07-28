@@ -47,6 +47,8 @@ Propose a **single, high-impact feature**. Constraints:
 - Can introduce a new GraphQL mutation/query or new Strapi field, but keep scope realistic for one sprint
 - One feature only — not a roadmap
 
+**If nothing in this lens clears a genuine bar** — every gap you find is minor, speculative, or not clearly worth a sprint of effort — stop here. Do not manufacture a pitch just to have something to ship. Skip Step 5 (no issue) and report that no strong opportunity was found this round. A "nothing compelling this round" report is a legitimate, useful outcome, not a failure.
+
 ### Step 4 — Report
 
 Output exactly this structure:
@@ -61,6 +63,16 @@ Output exactly this structure:
 **Implementation Sketch:** <How would we use existing Apollo/Strapi/AppContext to build this?>
 **Impact vs. Effort:** Impact: <Low/Medium/High> · Effort: <Low/Medium/High>
 **Success Metric:** <How would we measure if this worked?>
+```
+
+If no pitch was made, report instead:
+
+```
+## Product opportunity
+
+**Lens:** <chosen lens>
+**Outcome:** No strong opportunity found in this lens this round.
+**Why:** <one sentence on why nothing cleared the bar>
 ```
 
 ### Step 5 — Create a GitHub issue

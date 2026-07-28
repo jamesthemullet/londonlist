@@ -52,7 +52,7 @@ Classify each finding as **Major** or **Minor**:
 - **Major** — measurable user-facing impact: slow initial load, janky interactions, unnecessary network waterfalls, large bundle size contributions. Warrants its own issue.
 - **Minor** — small wins, low risk, unlikely to be user-noticeable in isolation. Bundle together into one "minor performance improvements" issue.
 
-**If you find nothing worth improving, stop here and report:** "No significant performance issues found. The current implementation is appropriate for the app's scale."
+**If you find nothing worth improving, stop here and report:** "No significant performance issues found. The current implementation is appropriate for the app's scale." Do not manufacture a minor finding just to have something to report — a clean audit is a legitimate, useful outcome, not a failure.
 
 ### Step 4 — Report findings
 

@@ -46,6 +46,8 @@ Identify the **single clearest, most impactful** instance of the chosen category
 - Have an unambiguous fix
 - Are in components used across multiple pages
 
+**If nothing in this category clears that bar** — everything you find is trivial, debatable, or the category is already reasonably clean — stop here. Do not manufacture a fix just to have something to ship. Skip to Step 4 and report that no change-worthy issue was found this round. A "nothing worth changing" report is a legitimate, useful outcome, not a failure.
+
 ### Step 3 — Fix it
 
 Make the fix. Keep scope tight — one issue, one or two files. Do not refactor beyond what is needed to address the specific accessibility finding.
@@ -108,6 +110,16 @@ Output exactly this structure:
 **Issue:** <one sentence describing the problem>
 **Fix:** <what was changed and why>
 **Next suggestion:** <the next accessibility candidate worth tackling, with file path>
+```
+
+If no fix was made, report instead:
+
+```
+## Accessibility improvement
+
+**Category:** <chosen category name>
+**Outcome:** No change-worthy issue found in this category this round.
+**Why:** <one sentence on why nothing cleared the bar>
 ```
 
 ---

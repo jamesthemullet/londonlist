@@ -63,7 +63,7 @@ Classify each finding as **Major** or **Minor**:
 - **Major** — direct, exploitable vulnerability or serious data exposure risk. Examples: exposed secrets, missing auth on sensitive routes, XSS via `dangerouslySetInnerHTML`, unauthenticated access to user data, high-severity CVEs. Each warrants its own issue.
 - **Minor** — defence-in-depth improvement, hardening, or low-exploitability concern. Examples: missing security headers, verbose error messages, overly broad CORS on a public endpoint, low-severity CVEs. Bundle all minor findings into one issue.
 
-**If you find nothing worth improving, stop here and report:** "No significant security issues found. The current implementation is appropriate for the app's scale."
+**If you find nothing worth improving, stop here and report:** "No significant security issues found. The current implementation is appropriate for the app's scale." Do not manufacture a minor finding just to have something to report — a clean audit is a legitimate, useful outcome, not a failure.
 
 ### Step 4 — Report findings
 
