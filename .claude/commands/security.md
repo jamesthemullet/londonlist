@@ -24,62 +24,37 @@ You are a security engineer auditing the **London List** app for real-world vuln
 
 ## What to do each invocation
 
-### Step 1 — Read the codebase
+### Step 1 — Pick a category
 
-Read these files thoroughly before drawing any conclusions:
+Use the current second of the clock (or any arbitrary signal) to pick **one** of these seven categories. Vary the selection — do not always pick the same one:
 
-- `frontend/pages/` — all page components (auth flows, forms, data rendering)
-- `frontend/components/` — all component files
-- `frontend/context/AppContext.tsx` — auth state management
-- `frontend/hooks/` — custom hooks
-- `backend/src/index.ts` — server bootstrap, middleware, CORS config
-- `backend/src/api/` — all controllers, services, and routes
-- `backend/.env` / `.env.example` / `frontend/.env` / `.env.example` — environment variable patterns
-- `backend/config/` — Strapi config files (middlewares, plugins, server)
-- Root-level config files: `next.config.js`, `package.json`, `backend/package.json`
+1. **Authentication & authorisation** — Strapi routes without a policy (e.g. `auth: false` with no further restriction) that should be protected; JWT tokens stored in `localStorage` instead of `httpOnly` cookies (XSS-accessible); missing or overly permissive CORS configuration in `backend/src/index.ts` or Strapi config; auth checks done client-side only (trusting the frontend to gate access); password reset flows that leak whether an email is registered (user enumeration); missing rate limiting on login, register, or password-reset endpoints
 
-Build a complete picture before drawing conclusions.
+2. **Injection & output encoding** — GraphQL queries or REST calls where user input is interpolated into the query string rather than passed as a variable; `dangerouslySetInnerHTML` used without sanitisation; dynamic `href` or `src` built from user-controlled values without validation (`javascript:` injection); template literals constructing SQL or Strapi filter strings from unvalidated input
 
-### Step 2 — Identify security issues
+3. **Secrets & environment variables** — secrets, API keys, or tokens committed directly in source files (not in `.env`); `.env` files tracked by git (check `.gitignore`); `NEXT_PUBLIC_` prefixed variables that expose secrets to the browser bundle; `console.log` statements that print sensitive values (tokens, passwords, full user objects)
 
-Audit across these categories:
+4. **HTTP security headers** — missing `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, or `Permissions-Policy` headers in Next.js config or Strapi middleware; `next.config.js` not setting security headers via the `headers()` export
 
-**Authentication & authorisation:**
-- Strapi routes without a policy (e.g. `auth: false` with no further restriction) that should be protected
-- JWT tokens stored in `localStorage` instead of `httpOnly` cookies (XSS-accessible)
-- Missing or overly permissive CORS configuration in `backend/src/index.ts` or Strapi config
-- Auth checks done client-side only (trusting the frontend to gate access)
-- Password reset flows that leak whether an email is registered (user enumeration)
-- Missing rate limiting on login, register, or password-reset endpoints
+5. **Dependency & supply-chain** — run `yarn audit --level high` in both `frontend/` and `backend/` and report critical/high CVEs; packages with known vulnerabilities that have a patched version available
 
-**Injection & output encoding:**
-- GraphQL queries or REST calls where user input is interpolated into the query string rather than passed as a variable
-- `dangerouslySetInnerHTML` used without sanitisation
-- Dynamic `href` or `src` built from user-controlled values without validation (`javascript:` injection)
-- Template literals constructing SQL or Strapi filter strings from unvalidated input
+6. **Data exposure** — Strapi endpoints returning more fields than the client needs (over-fetching sensitive data); user objects in Apollo cache or context that include fields like `password`, `resetPasswordToken`, or other internal fields; error messages that leak stack traces or internal details to the client
 
-**Secrets & environment variables:**
-- Secrets, API keys, or tokens committed directly in source files (not in `.env`)
-- `.env` files tracked by git (check `.gitignore`)
-- `NEXT_PUBLIC_` prefixed variables that expose secrets to the browser bundle
-- `console.log` statements that print sensitive values (tokens, passwords, full user objects)
+7. **Input validation** — form inputs (login, register, search) with no length limits or type constraints — potential for oversized payloads; file upload endpoints (if any) without MIME type or size validation
 
-**HTTP security headers:**
-- Missing `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, or `Permissions-Policy` headers in Next.js config or Strapi middleware
-- `next.config.js` not setting security headers via the `headers()` export
+### Step 2 — Read only what's relevant to that category
 
-**Dependency & supply-chain:**
-- Run `yarn audit --level high` in both `frontend/` and `backend/` and report critical/high CVEs
-- Packages with known vulnerabilities that have a patched version available
+Don't read the whole codebase — read the files that matter for the chosen category:
 
-**Data exposure:**
-- Strapi endpoints returning more fields than the client needs (over-fetching sensitive data)
-- User objects in Apollo cache or context that include fields like `password`, `resetPasswordToken`, or other internal fields
-- Error messages that leak stack traces or internal details to the client
+- **Auth & authorisation:** `backend/src/api/*/routes/`, `backend/src/index.ts`, `frontend/context/AppContext.tsx`, `frontend/pages/login.tsx`, `register.tsx`, `reset-password.tsx`
+- **Injection & output encoding:** `frontend/components/` (search for `dangerouslySetInnerHTML`, template literals, GraphQL call sites), `frontend/pages/`
+- **Secrets & environment variables:** `.env.example` files, `.gitignore`, `next.config.js`, grep for `NEXT_PUBLIC_`, `console.log` across `frontend/` and `backend/`
+- **HTTP security headers:** `next.config.js`, `backend/config/middlewares.ts`
+- **Dependency & supply-chain:** `frontend/package.json`, `backend/package.json`, then run `yarn audit --level high` in each
+- **Data exposure:** `backend/src/api/*/controllers/`, `backend/src/api/*/services/`, `frontend/context/AppContext.tsx`
+- **Input validation:** `frontend/pages/login.tsx`, `register.tsx`, `frontend/components/search/`, any file upload routes in `backend/src/api/`
 
-**Input validation:**
-- Form inputs (login, register, search) with no length limits or type constraints — potential for oversized payloads
-- File upload endpoints (if any) without MIME type or size validation
+Only pull in adjacent files if the category genuinely requires it. A focused audit of one category beats a shallow pass over everything.
 
 ### Step 3 — Classify findings
 
@@ -96,6 +71,8 @@ Output exactly this structure:
 
 ```
 ## Security audit
+
+**Category audited:** <chosen category name>
 
 ### Major findings
 <for each: **[Category]** — file:line — description of the vulnerability and its risk>

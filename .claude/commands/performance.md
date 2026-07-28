@@ -19,47 +19,31 @@ You are a performance engineer auditing the **London List** app for real-world p
 
 ## What to do each invocation
 
-### Step 1 — Read the codebase
+### Step 1 — Pick a category
 
-Read the key source files across:
-- `frontend/pages/` — all page components
-- `frontend/components/` — all component files
-- `frontend/context/AppContext.tsx`
-- `frontend/hooks/`
-- `backend/src/index.ts`
-- `backend/src/api/` — controllers and services
+Use the current second of the clock (or any arbitrary signal) to pick **one** of these five categories. Vary the selection — do not always pick the same one:
 
-Build a complete picture before drawing conclusions.
+1. **Frontend rendering** — components re-rendering unnecessarily (missing `React.memo`, `useMemo`, or `useCallback` where referential equality matters); `useEffect` dependencies that are too broad, causing cascading re-renders; large components that could be split so only part of the tree re-renders
 
-### Step 2 — Identify performance issues
+2. **Data fetching** — Apollo queries that over-fetch (requesting fields the component doesn't use); missing `fetchPolicy` configuration (queries that should be `cache-first` defaulting to `network-only`); N+1 patterns (multiple separate queries that could be a single joined query); data fetched on every render that could be fetched once (e.g. static reference data)
 
-Look across these categories:
+3. **Bundle / load time** — large imports from heavy libraries that could use named imports or dynamic `import()`; components loaded eagerly that are only visible on interaction (e.g. modals, drawers) — candidates for `next/dynamic`; images without `next/image` (missing lazy loading and automatic optimisation); fonts or stylesheets blocking render
 
-**Frontend rendering:**
-- Components re-rendering unnecessarily — missing `React.memo`, `useMemo`, or `useCallback` where referential equality matters
-- `useEffect` dependencies that are too broad, causing cascading re-renders
-- Large components that could be split so only part of the tree re-renders
+4. **Network** — API calls that fire without debouncing on user input (search, autocomplete); redundant refetch calls after mutations (refetching more than needed); missing HTTP caching headers on Strapi endpoints that serve static or slow-changing data
 
-**Data fetching:**
-- Apollo queries that over-fetch — requesting fields the component doesn't use
-- Missing `fetchPolicy` configuration — queries that should be `cache-first` defaulting to `network-only`
-- N+1 patterns — multiple separate queries that could be a single joined query
-- Data fetched on every render that could be fetched once (e.g. static reference data)
+5. **Backend** — Strapi controller or service code doing work on every request that could be memoised or cached; missing population limits (Strapi queries that populate deeply nested relations unnecessarily)
 
-**Bundle / load time:**
-- Large imports from heavy libraries that could use named imports or dynamic `import()`
-- Components loaded eagerly that are only visible on interaction (e.g. modals, drawers) — candidates for `next/dynamic`
-- Images without `next/image` — missing lazy loading and automatic optimisation
-- Fonts or stylesheets blocking render
+### Step 2 — Read only what's relevant to that category
 
-**Network:**
-- API calls that fire without debouncing on user input (search, autocomplete)
-- Redundant refetch calls after mutations — refetching more than needed
-- Missing HTTP caching headers on Strapi endpoints that serve static or slow-changing data
+Don't read the whole codebase — read the files that matter for the chosen category:
 
-**Backend:**
-- Strapi controller or service code doing work on every request that could be memoised or cached
-- Missing population limits — Strapi queries that populate deeply nested relations unnecessarily
+- **Frontend rendering:** `frontend/components/`, `frontend/pages/` — focus on components with hooks and props, not static presentational ones
+- **Data fetching:** grep for `useQuery` / `useMutation` call sites across `frontend/components/` and `frontend/pages/`, then read the matching files
+- **Bundle / load time:** `frontend/pages/_app.tsx`, `frontend/pages/_document.tsx`, imports at the top of page files, `next.config.js`
+- **Network:** `frontend/components/search/`, `frontend/hooks/use-debounce.ts`, mutation call sites in `frontend/components/`
+- **Backend:** `backend/src/api/*/controllers/`, `backend/src/api/*/services/`, `backend/src/index.ts`
+
+Only pull in adjacent files if the category genuinely requires it. A focused audit of one category beats a shallow pass over everything.
 
 ### Step 3 — Classify findings
 
@@ -76,6 +60,8 @@ Output exactly this structure:
 
 ```
 ## Performance audit
+
+**Category audited:** <chosen category name>
 
 ### Major findings
 <for each: **[Area]** — file:line — description of the problem and expected impact>
