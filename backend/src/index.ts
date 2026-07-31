@@ -284,6 +284,7 @@ async function grantPermissions(strapi) {
     'api::list.list.delete',
     'api::stripe.stripe.createCheckoutSession',
     'api::stripe.stripe.confirmCheckoutSession',
+    'api::stripe.stripe.createCustomerPortalSession',
   ];
 
   for (const action of actions) {
