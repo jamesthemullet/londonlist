@@ -22,10 +22,11 @@ function Navigation() {
     router.push('/');
   }
   return (
-    <header className={crimsonText.className}>
-      <nav className={styles.nav}>
+    <header>
+      <nav className={`${styles.nav} ${crimsonText.className}`}>
         <div>
-          <Link href="/">London List</Link>
+          <Link href="/" aria-label="London List — home">London List</Link>
+          <Link href="/explore">Explore</Link>
         </div>
 
         <div>
@@ -49,7 +50,6 @@ function Navigation() {
           )}
         </div>
       </nav>
-      <h1>London List</h1>
     </header>
   );
 }

@@ -177,9 +177,19 @@ export default {
             async resolve(_parent, args, context) {
               const user = requireUser(context);
 
+              const fullUser = await strapi.db
+                .query('plugin::users-permissions.user')
+                .findOne({ where: { id: user.id } });
+
               const existingLists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
               });
+
+              if (!fullUser?.isPro && existingLists.length >= 3) {
+                throw new Error(
+                  'Free plan is limited to 3 lists. Upgrade to Pro for unlimited lists.',
+                );
+              }
 
               const newList = await strapi.documents('api::list.list').create({
                 data: { name: args.name, isPublic: false, user: user.id },
