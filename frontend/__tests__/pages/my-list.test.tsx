@@ -584,7 +584,7 @@ describe('MyListPage — view counts', () => {
   it('shows the view count for Pro users with a public list', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
-    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
@@ -595,7 +595,7 @@ describe('MyListPage — view counts', () => {
   it('uses singular "view" when the count is 1', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST_ONE_VIEW } });
-    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
@@ -628,7 +628,7 @@ describe('MyListPage — view counts', () => {
   it('does not show view count or upgrade prompt for private lists', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PRIVATE_LIST } });
-    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
