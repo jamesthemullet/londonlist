@@ -183,6 +183,12 @@
   text-align: center;
 }
 
+.proCta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 /* ── FAQ ── */
 
 .faq {
