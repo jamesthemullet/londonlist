@@ -18,6 +18,7 @@ export default {
           documentId: ID!
           name: String!
           isPublic: Boolean!
+          viewCount: Int
         }
         extend type UsersPermissionsMe {
           isPro: Boolean
