@@ -105,7 +105,16 @@ export default function PlaceSearch({ listId }: Props) {
     });
     fetch(`https://photon.komoot.io/api/?${params}`, { signal: controller.signal })
       .then((r) => r.json())
-      .then((data: PhotonResponse) => setResults(data.features ?? []))
+      .then((data: PhotonResponse) => {
+        const seen = new Set<string>();
+        const deduped = (data.features ?? []).filter((f) => {
+          const key = `${osmTypeExpanded(f.properties.osm_type)}/${f.properties.osm_id}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setResults(deduped);
+      })
       .catch((err) => {
         if (err?.name === 'AbortError') {
           setSearchError('Search timed out. Please try again.');

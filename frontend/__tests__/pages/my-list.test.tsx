@@ -52,8 +52,8 @@ const mockUseRouter = useRouter as jest.Mock;
 
 const MOCK_ROUTER = { push: jest.fn() };
 
-const MOCK_USER = { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice' };
-const MOCK_PRO_USER = { ...MOCK_USER, isPro: true };
+const MOCK_USER = { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false };
+const PRO_USER = { ...MOCK_USER, isPro: true };
 
 const TWO_LISTS = [
   { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 },
@@ -61,6 +61,11 @@ const TWO_LISTS = [
 ];
 
 const ONE_LIST = [{ documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 }];
+const THREE_LISTS = [
+  { documentId: 'list-1', name: 'My List', isPublic: false },
+  { documentId: 'list-2', name: 'Weekend Plans', isPublic: true },
+  { documentId: 'list-3', name: 'Hidden Gems', isPublic: false },
+];
 
 function setupMutations({
   createResult = { data: { createMyList: { documentId: 'list-new', name: 'New', isPublic: false } } },
@@ -138,6 +143,74 @@ describe('MyListPage — list tabs', () => {
     render(<MyListPage />);
 
     expect(screen.getByRole('button', { name: '+ New list' })).toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — free tier list limit', () => {
+  it('hides "+ New list" and shows upgrade link when free user has 3 lists', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByRole('button', { name: '+ New list' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Upgrade for unlimited lists →' })).toBeInTheDocument();
+  });
+
+  it('upgrade link points to /pricing', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('link', { name: 'Upgrade for unlimited lists →' })).toHaveAttribute(
+      'href',
+      '/pricing',
+    );
+  });
+
+  it('shows "+ New list" for a Pro user with 3 lists', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('button', { name: '+ New list' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Upgrade for unlimited lists →' })).not.toBeInTheDocument();
+  });
+
+  it('shows "+ New list" for a free user with fewer than 3 lists', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: TWO_LISTS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('button', { name: '+ New list' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Upgrade for unlimited lists →' })).not.toBeInTheDocument();
+  });
+
+  it('does not show the upgrade banner for a Pro user at 3 lists', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByText(/Unlock unlimited lists/)).not.toBeInTheDocument();
+  });
+
+  it('shows the upgrade banner for a free user at 3 lists', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText(/Unlock unlimited lists/)).toBeInTheDocument();
   });
 });
 
