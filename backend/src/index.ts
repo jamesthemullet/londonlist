@@ -3,7 +3,7 @@ function isOwnedBy(doc: unknown, userId: number): boolean {
 }
 
 function requireUser(context: { state?: { user?: unknown } }) {
-  const user = context.state?.user as { id: number; isPro?: boolean } | undefined;
+  const user = context.state?.user as { id: number } | undefined;
   if (!user) throw new Error('Forbidden access');
   return user;
 }

@@ -56,17 +56,18 @@ const MOCK_USER = { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alic
 const MOCK_PRO_USER = { ...MOCK_USER, isPro: true };
 const PRO_USER = MOCK_PRO_USER;
 
+const THREE_LISTS = [
+  { documentId: 'list-1', name: 'My List', isPublic: false },
+  { documentId: 'list-2', name: 'Weekend Plans', isPublic: true },
+  { documentId: 'list-3', name: 'Museum Trail', isPublic: false },
+];
+
 const TWO_LISTS = [
   { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 },
   { documentId: 'list-2', name: 'Weekend Plans', isPublic: true, viewCount: 12 },
 ];
 
 const ONE_LIST = [{ documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 }];
-const THREE_LISTS = [
-  { documentId: 'list-1', name: 'My List', isPublic: false },
-  { documentId: 'list-2', name: 'Weekend Plans', isPublic: true },
-  { documentId: 'list-3', name: 'Hidden Gems', isPublic: false },
-];
 
 function setupMutations({
   createResult = { data: { createMyList: { documentId: 'list-new', name: 'New', isPublic: false } } },
@@ -734,7 +735,7 @@ describe('MyListPage — view counts', () => {
   it('shows the view count for Pro users with a public list', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
-    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
@@ -745,7 +746,7 @@ describe('MyListPage — view counts', () => {
   it('uses singular "view" when the count is 1', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST_ONE_VIEW } });
-    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
@@ -778,7 +779,7 @@ describe('MyListPage — view counts', () => {
   it('does not show view count or upgrade prompt for private lists', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PRIVATE_LIST } });
-    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
