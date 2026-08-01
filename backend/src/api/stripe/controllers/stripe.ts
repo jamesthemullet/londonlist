@@ -30,7 +30,13 @@ export default {
       return ctx.unauthorized('Authentication required');
     }
 
-    const priceId = process.env.STRIPE_PRO_PRICE_ID;
+    const { billingPeriod } = (ctx.request.body as { billingPeriod?: string }) ?? {};
+    const isAnnual = billingPeriod === 'annual';
+
+    const priceId = isAnnual
+      ? process.env.STRIPE_PRO_ANNUAL_PRICE_ID
+      : process.env.STRIPE_PRO_PRICE_ID;
+
     if (!priceId) {
       return ctx.internalServerError('Stripe is not configured');
     }

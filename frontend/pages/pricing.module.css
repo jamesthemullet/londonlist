@@ -27,6 +27,62 @@
   margin: 0;
 }
 
+/* ── Billing toggle ── */
+
+.billingToggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f9f9f9;
+  padding: 0;
+}
+
+.billingLegend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.toggleOption {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #666;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggleActive {
+  background: #333;
+  color: #fff;
+}
+
+.savingsBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #2a7a2a;
+  color: #fff;
+  padding: 0.15rem 0.45rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
 /* ── Cards ── */
 
 .cards {
@@ -97,9 +153,24 @@
   font-weight: 700;
 }
 
+.amountStrike {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #aaa;
+  text-decoration: line-through;
+  align-self: flex-end;
+  padding-bottom: 0.2rem;
+}
+
 .period {
   font-size: 0.9rem;
   color: #888;
+}
+
+.annualNote {
+  font-size: 0.82rem;
+  color: #888;
+  margin: 0;
 }
 
 /* ── Features ── */
