@@ -8,6 +8,8 @@ function requireUser(context: { state?: { user?: unknown } }) {
   return user;
 }
 
+const FREE_LIST_LIMIT = 3;
+
 export default {
   register({ strapi }) {
     const extensionService = strapi.plugin('graphql').service('extension');
@@ -186,10 +188,12 @@ export default {
                 filters: { user: { id: { $eq: user.id } } },
               });
 
-              if (!fullUser?.isPro && existingLists.length >= 3) {
-                throw new Error(
-                  'Free plan is limited to 3 lists. Upgrade to Pro for unlimited lists.',
-                );
+              if (!fullUser?.isPro && existingLists.length >= FREE_LIST_LIMIT) {
+                const err = new Error('Free plan limit reached') as Error & {
+                  extensions?: Record<string, unknown>;
+                };
+                err.extensions = { code: 'FREE_LIST_LIMIT_REACHED' };
+                throw err;
               }
 
               const newList = await strapi.documents('api::list.list').create({

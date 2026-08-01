@@ -53,7 +53,14 @@ const mockUseRouter = useRouter as jest.Mock;
 const MOCK_ROUTER = { push: jest.fn() };
 
 const MOCK_USER = { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false };
-const PRO_USER = { ...MOCK_USER, isPro: true };
+const MOCK_PRO_USER = { ...MOCK_USER, isPro: true };
+const PRO_USER = MOCK_PRO_USER;
+
+const THREE_LISTS = [
+  { documentId: 'list-1', name: 'My List', isPublic: false },
+  { documentId: 'list-2', name: 'Weekend Plans', isPublic: true },
+  { documentId: 'list-3', name: 'Museum Trail', isPublic: false },
+];
 
 const TWO_LISTS = [
   { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 },
@@ -61,11 +68,6 @@ const TWO_LISTS = [
 ];
 
 const ONE_LIST = [{ documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 }];
-const THREE_LISTS = [
-  { documentId: 'list-1', name: 'My List', isPublic: false },
-  { documentId: 'list-2', name: 'Weekend Plans', isPublic: true },
-  { documentId: 'list-3', name: 'Hidden Gems', isPublic: false },
-];
 
 function setupMutations({
   createResult = { data: { createMyList: { documentId: 'list-new', name: 'New', isPublic: false } } },
@@ -147,7 +149,7 @@ describe('MyListPage — list tabs', () => {
 });
 
 describe('MyListPage — free tier list limit', () => {
-  it('hides "+ New list" and shows upgrade link when free user has 3 lists', () => {
+  it('hides "+ New list" and shows upgrade button when free user has 3 lists', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
     mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
@@ -155,20 +157,21 @@ describe('MyListPage — free tier list limit', () => {
     render(<MyListPage />);
 
     expect(screen.queryByRole('button', { name: '+ New list' })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Upgrade for unlimited lists →' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }),
+    ).toBeInTheDocument();
   });
 
-  it('upgrade link points to /pricing', () => {
+  it('upgrade button redirects to /pricing', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
     mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
 
     render(<MyListPage />);
 
-    expect(screen.getByRole('link', { name: 'Upgrade for unlimited lists →' })).toHaveAttribute(
-      'href',
-      '/pricing',
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }));
+
+    expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
   });
 
   it('shows "+ New list" for a Pro user with 3 lists', () => {
@@ -179,7 +182,9 @@ describe('MyListPage — free tier list limit', () => {
     render(<MyListPage />);
 
     expect(screen.getByRole('button', { name: '+ New list' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Upgrade for unlimited lists →' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Upgrade to Pro to create more lists' }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows "+ New list" for a free user with fewer than 3 lists', () => {
@@ -190,7 +195,9 @@ describe('MyListPage — free tier list limit', () => {
     render(<MyListPage />);
 
     expect(screen.getByRole('button', { name: '+ New list' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Upgrade for unlimited lists →' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Upgrade to Pro to create more lists' }),
+    ).not.toBeInTheDocument();
   });
 
   it('does not show the upgrade banner for a Pro user at 3 lists', () => {
@@ -576,6 +583,150 @@ describe('MyListPage — share section', () => {
   });
 });
 
+describe('MyListPage — upgrade banner (list count indicator)', () => {
+  it('shows the list count banner for free users', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByLabelText('List usage')).toBeInTheDocument();
+    expect(screen.getByText(/1\/3 lists used/)).toBeInTheDocument();
+  });
+
+  it('shows remaining count for free user below limit', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: TWO_LISTS } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText(/2\/3 lists used/)).toBeInTheDocument();
+    expect(screen.getByText(/1 remaining on the free plan/)).toBeInTheDocument();
+  });
+
+  it('shows "Upgrade now" call to action when free user is at the 3-list limit', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText(/3\/3 lists used/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Upgrade now' })).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not show the list usage banner for Pro users', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByLabelText('List usage')).not.toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — upgrade gate when free user is at list limit', () => {
+  it('shows the upgrade button instead of "+ New list" when free user has 3 lists', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByRole('button', { name: '+ New list' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows "+ New list" normally when free user is below the limit', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('button', { name: '+ New list' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Upgrade to Pro to create more lists' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('redirects to /pricing when the upgrade button is clicked', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }),
+    );
+
+    expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
+  });
+
+  it('shows "+ New list" for Pro users even at 3 lists', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('button', { name: '+ New list' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Upgrade to Pro to create more lists' }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — create list error handling', () => {
+  it('redirects to /pricing when backend returns FREE_LIST_LIMIT_REACHED', async () => {
+    const limitError = {
+      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    };
+    const mockCreate = jest.fn().mockRejectedValue(limitError);
+    mockUseMutation.mockImplementation((query: unknown) => {
+      const str = Array.isArray(query) ? String(query[0]) : '';
+      if (str.includes('CreateMyList')) return [mockCreate, {}];
+      return [jest.fn().mockResolvedValue({ data: {} }), {}];
+    });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: TWO_LISTS } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: '+ New list' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'New list name' }), {
+      target: { value: 'Fourth List' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => {
+      expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
+    });
+  });
+
+  it('shows an error message when list creation fails for other reasons', async () => {
+    const genericError = { graphQLErrors: [{ extensions: { code: 'INTERNAL_SERVER_ERROR' } }] };
+    const mockCreate = jest.fn().mockRejectedValue(genericError);
+    mockUseMutation.mockImplementation((query: unknown) => {
+      const str = Array.isArray(query) ? String(query[0]) : '';
+      if (str.includes('CreateMyList')) return [mockCreate, {}];
+      return [jest.fn().mockResolvedValue({ data: {} }), {}];
+    });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: '+ New list' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'New list name' }), {
+      target: { value: 'New List' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/Could not create list/);
+    });
+  });
+});
+
 describe('MyListPage — view counts', () => {
   const PUBLIC_LIST = [{ documentId: 'list-pub', name: 'My Public List', isPublic: true, viewCount: 42 }];
   const PUBLIC_LIST_ONE_VIEW = [{ documentId: 'list-pub', name: 'My Public List', isPublic: true, viewCount: 1 }];
@@ -584,7 +735,7 @@ describe('MyListPage — view counts', () => {
   it('shows the view count for Pro users with a public list', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
-    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
@@ -595,7 +746,7 @@ describe('MyListPage — view counts', () => {
   it('uses singular "view" when the count is 1', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST_ONE_VIEW } });
-    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
@@ -628,7 +779,7 @@ describe('MyListPage — view counts', () => {
   it('does not show view count or upgrade prompt for private lists', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PRIVATE_LIST } });
-    mockUseAppContext.mockReturnValue({ user: PRO_USER, initialized: true });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
 
     render(<MyListPage />);
 
