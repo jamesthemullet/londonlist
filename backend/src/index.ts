@@ -20,6 +20,7 @@ export default {
           documentId: ID!
           name: String!
           isPublic: Boolean!
+          viewCount: Int
         }
         extend type UsersPermissionsMe {
           isPro: Boolean
@@ -179,11 +180,15 @@ export default {
             async resolve(_parent, args, context) {
               const user = requireUser(context);
 
+              const fullUser = await strapi.db
+                .query('plugin::users-permissions.user')
+                .findOne({ where: { id: user.id } });
+
               const existingLists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
               });
 
-              if (!user.isPro && existingLists.length >= FREE_LIST_LIMIT) {
+              if (!fullUser?.isPro && existingLists.length >= FREE_LIST_LIMIT) {
                 const err = new Error('Free plan limit reached') as Error & {
                   extensions?: Record<string, unknown>;
                 };
@@ -284,6 +289,7 @@ async function grantPermissions(strapi) {
     'api::list.list.delete',
     'api::stripe.stripe.createCheckoutSession',
     'api::stripe.stripe.confirmCheckoutSession',
+    'api::stripe.stripe.createCustomerPortalSession',
   ];
 
   for (const action of actions) {

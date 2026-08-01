@@ -25,11 +25,16 @@ const PRO_FEATURES = [
   'Priority support',
 ];
 
+type BillingPeriod = 'monthly' | 'annual';
+
 export default function PricingPage() {
   const { user, setUser } = useAppContext();
   const router = useRouter();
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
   const checkoutStatus = router.query.checkout;
   const sessionId = router.query.session_id;
 
@@ -53,6 +58,30 @@ export default function PricingPage() {
       .catch(() => {});
   }, [checkoutStatus, sessionId, user, setUser]);
 
+  const handleManageSubscription = async () => {
+    const token = Cookie.get('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    setPortalError(null);
+    setIsOpeningPortal(true);
+    try {
+      const response = await fetch(`${API_URL}/api/stripe/customer-portal`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to open billing portal');
+      const { url } = await response.json();
+      if (!url) throw new Error('Failed to open billing portal');
+      window.location.href = url;
+    } catch {
+      setPortalError('Something went wrong opening the billing portal. Please try again.');
+      setIsOpeningPortal(false);
+    }
+  };
+
   const handleUpgrade = async () => {
     const token = Cookie.get('token');
     if (!token) {
@@ -65,7 +94,8 @@ export default function PricingPage() {
     try {
       const response = await fetch(`${API_URL}/api/stripe/create-checkout-session`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ billingPeriod }),
       });
       if (!response.ok) throw new Error('Failed to start checkout');
       const { url } = await response.json();
@@ -76,6 +106,9 @@ export default function PricingPage() {
       setIsRedirecting(false);
     }
   };
+
+  const monthlyEquivalent = billingPeriod === 'annual' ? '£3.33' : '£3.99';
+  const annualTotal = '£39.99';
 
   return (
     <>
@@ -99,6 +132,27 @@ export default function PricingPage() {
             </p>
           )}
         </div>
+
+        <fieldset className={styles.billingToggle}>
+          <legend className={styles.billingLegend}>Billing period</legend>
+          <button
+            type="button"
+            className={`${styles.toggleOption} ${billingPeriod === 'monthly' ? styles.toggleActive : ''}`}
+            onClick={() => setBillingPeriod('monthly')}
+            aria-pressed={billingPeriod === 'monthly'}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            className={`${styles.toggleOption} ${billingPeriod === 'annual' ? styles.toggleActive : ''}`}
+            onClick={() => setBillingPeriod('annual')}
+            aria-pressed={billingPeriod === 'annual'}
+          >
+            Annual
+            <span className={styles.savingsBadge}>Save 2 months</span>
+          </button>
+        </fieldset>
 
         <div className={styles.cards}>
           <div className={styles.card}>
@@ -135,9 +189,22 @@ export default function PricingPage() {
             <div className={styles.cardHeader}>
               <h2 className={styles.tierName}>Pro</h2>
               <div className={styles.price}>
-                <span className={styles.amount}>£3.99</span>
-                <span className={styles.period}>/month</span>
+                {billingPeriod === 'annual' ? (
+                  <>
+                    <span className={styles.amountStrike}>£3.99</span>
+                    <span className={styles.amount}>{monthlyEquivalent}</span>
+                    <span className={styles.period}>/month</span>
+                  </>
+                ) : (
+                  <>
+                    <span className={styles.amount}>{monthlyEquivalent}</span>
+                    <span className={styles.period}>/month</span>
+                  </>
+                )}
               </div>
+              {billingPeriod === 'annual' && (
+                <p className={styles.annualNote}>Billed as {annualTotal}/year</p>
+              )}
             </div>
             <ul className={styles.featureList}>
               {PRO_FEATURES.map((feature) => (
@@ -149,7 +216,18 @@ export default function PricingPage() {
             </ul>
             <div className={styles.cardCta}>
               {user?.isPro ? (
-                <p className={styles.ctaNote}>You&rsquo;re already on Pro. Thank you!</p>
+                <div className={styles.proCta}>
+                  <p className={styles.ctaNote}>You&rsquo;re on Pro. Thank you!</p>
+                  <button
+                    type="button"
+                    className={styles.ctaSecondary}
+                    onClick={handleManageSubscription}
+                    disabled={isOpeningPortal}
+                  >
+                    {isOpeningPortal ? 'Opening…' : 'Manage subscription'}
+                  </button>
+                  {portalError && <p className={styles.ctaNote}>{portalError}</p>}
+                </div>
               ) : (
                 <>
                   <button
@@ -196,6 +274,14 @@ export default function PricingPage() {
                 Each named collection of places is one list — for example
                 &ldquo;Weekend Museums&rdquo; or &ldquo;Hidden Pubs&rdquo;. You can add as many places
                 as you like to each list.
+              </dd>
+            </div>
+            <div className={styles.faqItem}>
+              <dt className={styles.faqQuestion}>What is the difference between monthly and annual billing?</dt>
+              <dd className={styles.faqAnswer}>
+                Monthly billing is charged at £3.99/month. Annual billing is charged as a
+                single payment of £39.99/year — equivalent to £3.33/month, saving you the
+                cost of 2 months compared to paying monthly.
               </dd>
             </div>
           </dl>
