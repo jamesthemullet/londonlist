@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
+import { useState } from 'react';
 import Loader from '../Loader';
 import ProgressBar from '../progress-bar/progress-bar';
 import StreakBadge from '../streak-badge/streak-badge';
@@ -14,6 +15,7 @@ type ListItem = {
   completed: boolean;
   osm_id: string;
   visitedAt: string | null;
+  notes: string | null;
 };
 
 type ListItemsData = {
@@ -32,6 +34,7 @@ const GET_MY_LIST = gql`
       completed
       osm_id
       visitedAt
+      notes
     }
   }
 `;
@@ -50,6 +53,15 @@ const DELETE_LIST_ITEM = gql`
   mutation DeleteListItem($documentId: ID!) {
     deleteListItem(documentId: $documentId) {
       documentId
+    }
+  }
+`;
+
+const UPDATE_NOTES = gql`
+  mutation UpdateItemNotes($documentId: ID!, $notes: String) {
+    updateListItem(documentId: $documentId, data: { notes: $notes }) {
+      documentId
+      notes
     }
   }
 `;
@@ -79,6 +91,17 @@ export default function MyList({ listId }: Props) {
   });
 
   const [deleteItem] = useMutation(DELETE_LIST_ITEM, {
+    context: { headers: authHeader },
+    refetchQueries: [
+      {
+        query: GET_MY_LIST,
+        variables: { listDocumentId: listId },
+        context: { headers: authHeader },
+      },
+    ],
+  });
+
+  const [updateNotes] = useMutation(UPDATE_NOTES, {
     context: { headers: authHeader },
     refetchQueries: [
       {
@@ -135,6 +158,9 @@ export default function MyList({ listId }: Props) {
                   })
                 }
                 onDelete={() => deleteItem({ variables: { documentId: item.documentId } })}
+                onSaveNotes={(notes) =>
+                  updateNotes({ variables: { documentId: item.documentId, notes } })
+                }
               />
             ))}
           </ul>
@@ -164,6 +190,9 @@ export default function MyList({ listId }: Props) {
                   })
                 }
                 onDelete={() => deleteItem({ variables: { documentId: item.documentId } })}
+                onSaveNotes={(notes) =>
+                  updateNotes({ variables: { documentId: item.documentId, notes } })
+                }
               />
             ))}
           </ul>
@@ -173,38 +202,105 @@ export default function MyList({ listId }: Props) {
   );
 }
 
-type ListItemRowProps = {
+export type ListItemRowProps = {
   item: ListItem;
   onToggle: () => void;
   onDelete: () => void;
+  onSaveNotes: (notes: string | null) => void;
 };
 
-function ListItemRow({ item, onToggle, onDelete }: ListItemRowProps) {
+export function ListItemRow({ item, onToggle, onDelete, onSaveNotes }: ListItemRowProps) {
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [draftNotes, setDraftNotes] = useState(item.notes ?? '');
+
   const visitedLabel =
     item.completed && item.visitedAt
       ? `Visited ${new Date(item.visitedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`
       : null;
 
+  const handleSave = () => {
+    const trimmed = draftNotes.trim();
+    onSaveNotes(trimmed || null);
+    setEditingNotes(false);
+  };
+
+  const handleCancel = () => {
+    setDraftNotes(item.notes ?? '');
+    setEditingNotes(false);
+  };
+
   return (
     <li className={styles.item}>
-      <label className={styles.checkLabel}>
-        <input
-          type="checkbox"
-          className={styles.checkbox}
-          checked={item.completed}
-          onChange={onToggle}
-        />
-        <span className={item.completed ? styles.nameDone : styles.name}>{item.name}</span>
-        {item.category && <span className={styles.category}>{item.category}</span>}
-      </label>
-      {visitedLabel && (
-        <time className={styles.visitedAt} dateTime={item.visitedAt ?? ''}>
-          {visitedLabel}
-        </time>
+      <div className={styles.itemMain}>
+        <label className={styles.checkLabel}>
+          <input
+            type="checkbox"
+            className={styles.checkbox}
+            checked={item.completed}
+            onChange={onToggle}
+          />
+          <span className={item.completed ? styles.nameDone : styles.name}>{item.name}</span>
+          {item.category && <span className={styles.category}>{item.category}</span>}
+        </label>
+        {visitedLabel && (
+          <time className={styles.visitedAt} dateTime={item.visitedAt ?? ''}>
+            {visitedLabel}
+          </time>
+        )}
+        <button
+          type="button"
+          className={styles.deleteButton}
+          onClick={onDelete}
+          aria-label={`Remove ${item.name}`}>
+          ✕
+        </button>
+      </div>
+      {editingNotes ? (
+        <div className={styles.notesEdit}>
+          <textarea
+            className={styles.notesTextarea}
+            value={draftNotes}
+            onChange={(e) => setDraftNotes(e.target.value)}
+            placeholder="Add a tip or note…"
+            rows={2}
+            maxLength={500}
+            aria-label={`Notes for ${item.name}`}
+          />
+          <div className={styles.notesActions}>
+            <button type="button" className={styles.notesSave} onClick={handleSave}>
+              Save
+            </button>
+            <button type="button" className={styles.notesCancel} onClick={handleCancel}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={styles.notesRow}>
+          {item.notes ? (
+            <button
+              type="button"
+              className={styles.notesText}
+              onClick={() => {
+                setDraftNotes(item.notes ?? '');
+                setEditingNotes(true);
+              }}
+              aria-label={`Edit note for ${item.name}`}>
+              {item.notes}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={styles.notesAdd}
+              onClick={() => {
+                setDraftNotes('');
+                setEditingNotes(true);
+              }}>
+              + Add note
+            </button>
+          )}
+        </div>
       )}
-      <button type="button" className={styles.deleteButton} onClick={onDelete} aria-label={`Remove ${item.name}`}>
-        ✕
-      </button>
     </li>
   );
 }

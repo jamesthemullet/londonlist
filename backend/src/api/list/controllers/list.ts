@@ -22,6 +22,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         documentId: list.documentId,
         name: list.name,
         username: (list as { user?: { username?: string } | null }).user?.username ?? null,
+        viewCount: (list as { viewCount?: number }).viewCount ?? 0,
       })),
     };
   },
@@ -88,10 +89,23 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       return { error: 'This list is private' };
     }
 
+    const typedList = list as typeof list & { viewCount?: number };
+    await strapi.documents('api::list.list').update({
+      documentId: listId,
+      // viewCount is declared in schema.json but Strapi's build-time type
+      // generation can lag behind on CI, so the generated Input type omits it.
+      data: { viewCount: (typedList.viewCount ?? 0) + 1 } as unknown as never,
+    });
+
     const items = await strapi.documents('api::list-item.list-item').findMany({
       filters: { list: { documentId: { $eq: listId } } },
       sort: 'createdAt:desc',
     });
+
+    strapi.documents('api::list.list').update({
+      documentId: listId,
+      data: { viewCount: ((list as { viewCount?: number }).viewCount ?? 0) + 1 },
+    }).catch(() => {});
 
     return {
       data: items.map((item) => ({
@@ -101,9 +115,13 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         completed: item.completed,
         osm_id: item.osm_id,
         visitedAt: item.visitedAt ?? null,
+        notes: (item as { notes?: string | null }).notes ?? null,
+        lat: item.lat ?? null,
+        lng: item.lng ?? null,
       })),
       username: user.username,
       listName: list.name,
+      viewCount: (typedList.viewCount ?? 0) + 1,
     };
   },
 }));

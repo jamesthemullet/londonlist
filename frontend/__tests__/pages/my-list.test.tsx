@@ -62,11 +62,11 @@ const THREE_LISTS = [
 ];
 
 const TWO_LISTS = [
-  { documentId: 'list-1', name: 'My List', isPublic: false },
-  { documentId: 'list-2', name: 'Weekend Plans', isPublic: true },
+  { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 },
+  { documentId: 'list-2', name: 'Weekend Plans', isPublic: true, viewCount: 12 },
 ];
 
-const ONE_LIST = [{ documentId: 'list-1', name: 'My List', isPublic: false }];
+const ONE_LIST = [{ documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 }];
 
 function setupMutations({
   createResult = { data: { createMyList: { documentId: 'list-new', name: 'New', isPublic: false } } },
@@ -406,8 +406,8 @@ describe('MyListPage — inline delete confirmation', () => {
 });
 
 describe('MyListPage — share section', () => {
-  const PUBLIC_LIST = [{ documentId: 'list-pub', name: 'My Public List', isPublic: true }];
-  const PRIVATE_LIST = [{ documentId: 'list-prv', name: 'My Private List', isPublic: false }];
+  const PUBLIC_LIST = [{ documentId: 'list-pub', name: 'My Public List', isPublic: true, viewCount: 42 }];
+  const PRIVATE_LIST = [{ documentId: 'list-prv', name: 'My Private List', isPublic: false, viewCount: 0 }];
 
   beforeEach(() => {
     Object.assign(navigator, {
@@ -650,5 +650,76 @@ describe('MyListPage — create list error handling', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(/Could not create list/);
     });
+  });
+});
+
+describe('MyListPage — view counts', () => {
+  const PUBLIC_LIST = [{ documentId: 'list-pub', name: 'My Public List', isPublic: true, viewCount: 42 }];
+  const PUBLIC_LIST_ONE_VIEW = [{ documentId: 'list-pub', name: 'My Public List', isPublic: true, viewCount: 1 }];
+  const PRIVATE_LIST = [{ documentId: 'list-prv', name: 'My Private List', isPublic: false, viewCount: 0 }];
+
+  it('shows the view count for Pro users with a public list', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText('42')).toBeInTheDocument();
+    expect(screen.getByText(/views/)).toBeInTheDocument();
+  });
+
+  it('uses singular "view" when the count is 1', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST_ONE_VIEW } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText(/\bview\b/)).toBeInTheDocument();
+    expect(screen.queryByText(/\bviews\b/)).not.toBeInTheDocument();
+  });
+
+  it('shows an upgrade prompt instead of view count for free users with a public list', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('link', { name: 'Upgrade to Pro' })).toBeInTheDocument();
+    expect(screen.getByText(/to see how many times your list has been viewed/)).toBeInTheDocument();
+  });
+
+  it('upgrade prompt links to /pricing', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('link', { name: 'Upgrade to Pro' })).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not show view count or upgrade prompt for private lists', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PRIVATE_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByText(/views?/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Upgrade to Pro' })).not.toBeInTheDocument();
+  });
+
+  it('does not show the raw view count number for free users', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByText('42')).not.toBeInTheDocument();
   });
 });
