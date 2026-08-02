@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import ProfilePage from '../../../pages/profile/[username]';
+import ProfilePage, { buildProfileJsonLd } from '../../../pages/profile/[username]';
 
 jest.mock('../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -212,5 +212,51 @@ describe('ProfilePage — OG meta description', () => {
   it('renders the username in the page heading to verify OG content is accurate', () => {
     render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('alice');
+  });
+});
+
+describe('buildProfileJsonLd', () => {
+  const SITE = 'https://londonlist.co.uk';
+  const lists = [
+    { documentId: 'l1', name: 'Weekend Wanders', itemCount: 5, completedCount: 2 },
+    { documentId: 'l2', name: 'Museum Trail', itemCount: 3, completedCount: 0 },
+  ];
+
+  it('returns a ProfilePage schema type', () => {
+    const result = buildProfileJsonLd('alice', lists, SITE) as Record<string, unknown>;
+    expect(result['@type']).toBe('ProfilePage');
+  });
+
+  it('sets the canonical URL from the site URL and username', () => {
+    const result = buildProfileJsonLd('alice', lists, SITE) as Record<string, unknown>;
+    expect(result.url).toBe('https://londonlist.co.uk/profile/alice');
+  });
+
+  it('includes the username as the Person entity name', () => {
+    const result = buildProfileJsonLd('alice', lists, SITE) as Record<string, unknown>;
+    const entity = result.mainEntity as Record<string, unknown>;
+    expect(entity['@type']).toBe('Person');
+    expect(entity.name).toBe('alice');
+  });
+
+  it('lists each list as an ItemList in hasPart', () => {
+    const result = buildProfileJsonLd('alice', lists, SITE) as Record<string, unknown>;
+    const parts = result.hasPart as Array<Record<string, unknown>>;
+    expect(parts).toHaveLength(2);
+    expect(parts[0]['@type']).toBe('ItemList');
+    expect(parts[0].name).toBe('Weekend Wanders');
+    expect(parts[0].numberOfItems).toBe(5);
+  });
+
+  it('builds the correct list URL for each hasPart entry', () => {
+    const result = buildProfileJsonLd('alice', lists, SITE) as Record<string, unknown>;
+    const parts = result.hasPart as Array<Record<string, unknown>>;
+    expect(parts[0].url).toBe('https://londonlist.co.uk/list/alice/l1');
+    expect(parts[1].url).toBe('https://londonlist.co.uk/list/alice/l2');
+  });
+
+  it('returns an empty hasPart array when the user has no lists', () => {
+    const result = buildProfileJsonLd('alice', [], SITE) as Record<string, unknown>;
+    expect(result.hasPart).toEqual([]);
   });
 });

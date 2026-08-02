@@ -37,4 +37,11 @@ describe('ProgressBar', () => {
     const fill = container.querySelector('[style]');
     expect(fill).toHaveStyle({ width: '50%' });
   });
+
+  it('renders 0% width and starting message when total is zero', () => {
+    const { container } = render(<ProgressBar total={0} done={0} />);
+    expect(screen.getByText('Your London exploration begins…')).toBeInTheDocument();
+    const fill = container.querySelector('[style]');
+    expect(fill).toHaveStyle({ width: '0%' });
+  });
 });

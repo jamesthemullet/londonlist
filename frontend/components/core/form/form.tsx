@@ -24,7 +24,7 @@ export default function Form({
           <div>
             <h3>{title}</h3>
           </div>
-          <form onSubmit={callback}>
+          <form onSubmit={(e) => { e.preventDefault(); callback(); }}>
             <div>
               <label htmlFor="email">Email</label>
               <input
