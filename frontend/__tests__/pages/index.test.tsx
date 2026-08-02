@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import Home from '../../pages/index';
+import Home, { buildWebSiteJsonLd } from '../../pages/index';
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -193,5 +193,41 @@ describe('Home page — logged-in hero', () => {
   it('does not show feature highlights for logged-in users', () => {
     render(<Home />);
     expect(screen.queryByText('Discover London')).not.toBeInTheDocument();
+  });
+});
+
+describe('buildWebSiteJsonLd', () => {
+  const SITE = 'https://londonlist.co.uk';
+
+  it('returns a schema with @context of https://schema.org', () => {
+    const result = buildWebSiteJsonLd(SITE) as Record<string, unknown>;
+    expect(result['@context']).toBe('https://schema.org');
+  });
+
+  it('includes a WebSite node with the provided siteUrl', () => {
+    const result = buildWebSiteJsonLd(SITE) as Record<string, unknown>;
+    const graph = result['@graph'] as Array<Record<string, unknown>>;
+    const website = graph.find((n) => n['@type'] === 'WebSite');
+    expect(website).toBeDefined();
+    expect(website?.url).toBe(SITE);
+    expect(website?.name).toBe('London List');
+  });
+
+  it('includes a SearchAction pointing to the explore page', () => {
+    const result = buildWebSiteJsonLd(SITE) as Record<string, unknown>;
+    const graph = result['@graph'] as Array<Record<string, unknown>>;
+    const website = graph.find((n) => n['@type'] === 'WebSite') as Record<string, unknown>;
+    const action = website?.potentialAction as Record<string, unknown>;
+    expect(action?.['@type']).toBe('SearchAction');
+    expect(action?.target).toContain('/explore?q=');
+  });
+
+  it('includes an Organization node', () => {
+    const result = buildWebSiteJsonLd(SITE) as Record<string, unknown>;
+    const graph = result['@graph'] as Array<Record<string, unknown>>;
+    const org = graph.find((n) => n['@type'] === 'Organization');
+    expect(org).toBeDefined();
+    expect(org?.name).toBe('London List');
+    expect(org?.url).toBe(SITE);
   });
 });
