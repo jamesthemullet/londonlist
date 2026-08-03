@@ -13,7 +13,7 @@ import type { MapItem } from '../../../components/map/list-map';
 
 const ListMap = dynamic(() => import('../../../components/map/list-map'), { ssr: false });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/images/temp-seo-image.jpg`;
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -222,9 +222,6 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
-  const ogTitle = listData ? `${listData.listName} — ${username}'s London List` : `${username}'s London List`;
-  const ogDescription = listData ? buildOgDescription(listData) : `${username}'s London list`;
-  const ogUrl = `${SITE_URL}/list/${username}/${listId}`;
 
   const mapItems: MapItem[] = items
     .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)

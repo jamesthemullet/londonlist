@@ -5,7 +5,7 @@ import { useAppContext } from '../../context/AppContext';
 import styles from './[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = 'https://londonlist.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
 
 type PublicList = {
   documentId: string;
