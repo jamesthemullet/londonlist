@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useQuery, useMutation } from '@apollo/client/react';
 import MyList from './my-list';
 
@@ -37,10 +38,12 @@ const DONE_ITEMS = [
 function setupMutations() {
   const mockToggle = jest.fn().mockResolvedValue({});
   const mockDelete = jest.fn().mockResolvedValue({});
+  const mockUpdateNotes = jest.fn().mockResolvedValue({});
   mockUseMutation
     .mockReturnValueOnce([mockToggle, {}])
-    .mockReturnValueOnce([mockDelete, {}]);
-  return { mockToggle, mockDelete };
+    .mockReturnValueOnce([mockDelete, {}])
+    .mockReturnValueOnce([mockUpdateNotes, {}]);
+  return { mockToggle, mockDelete, mockUpdateNotes };
 }
 
 beforeEach(() => {
@@ -222,6 +225,63 @@ describe('MyList — interactions', () => {
 
     expect(mockDelete).toHaveBeenCalledWith({
       variables: { documentId: 'item-1' },
+    });
+  });
+});
+
+describe('MyList — interactions (done items)', () => {
+  it('calls deleteItem with the correct documentId when Remove is clicked on a done item', () => {
+    const { mockDelete } = setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    const deleteButton = screen.getByRole('button', { name: /^Remove / });
+    fireEvent.click(deleteButton);
+
+    expect(mockDelete).toHaveBeenCalledWith({
+      variables: { documentId: 'item-3' },
+    });
+  });
+});
+
+describe('MyList — notes integration', () => {
+  const TODO_WITH_NOTES = [
+    { documentId: 'item-notes-1', name: 'Tate Modern', category: 'gallery', completed: false, osm_id: 'n1', visitedAt: null, notes: null },
+  ];
+  const DONE_WITH_NOTES = [
+    { documentId: 'item-notes-2', name: 'Borough Market', category: 'market', completed: true, osm_id: 'n2', visitedAt: new Date().toISOString(), notes: null },
+  ];
+
+  it('calls updateNotes with the correct documentId and text when saving notes on a todo item', async () => {
+    const user = userEvent.setup();
+    const { mockUpdateNotes } = setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_WITH_NOTES }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.type(screen.getByRole('textbox', { name: 'Notes for Tate Modern' }), 'Must see Turbine Hall');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(mockUpdateNotes).toHaveBeenCalledWith({
+      variables: { documentId: 'item-notes-1', notes: 'Must see Turbine Hall' },
+    });
+  });
+
+  it('calls updateNotes with the correct documentId and text when saving notes on a done item', async () => {
+    const user = userEvent.setup();
+    const { mockUpdateNotes } = setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_WITH_NOTES }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.type(screen.getByRole('textbox', { name: 'Notes for Borough Market' }), 'Go early on Saturday');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(mockUpdateNotes).toHaveBeenCalledWith({
+      variables: { documentId: 'item-notes-2', notes: 'Go early on Saturday' },
     });
   });
 });
