@@ -8,6 +8,8 @@ function requireUser(context: { state?: { user?: unknown } }) {
   return user;
 }
 
+const FREE_LIST_LIMIT = 3;
+
 export default {
   register({ strapi }) {
     const extensionService = strapi.plugin('graphql').service('extension');
@@ -18,6 +20,7 @@ export default {
           documentId: ID!
           name: String!
           isPublic: Boolean!
+          viewCount: Int
         }
         extend type UsersPermissionsMe {
           isPro: Boolean
@@ -177,9 +180,21 @@ export default {
             async resolve(_parent, args, context) {
               const user = requireUser(context);
 
+              const fullUser = await strapi.db
+                .query('plugin::users-permissions.user')
+                .findOne({ where: { id: user.id } });
+
               const existingLists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
               });
+
+              if (!fullUser?.isPro && existingLists.length >= FREE_LIST_LIMIT) {
+                const err = new Error('Free plan limit reached') as Error & {
+                  extensions?: Record<string, unknown>;
+                };
+                err.extensions = { code: 'FREE_LIST_LIMIT_REACHED' };
+                throw err;
+              }
 
               const newList = await strapi.documents('api::list.list').create({
                 data: { name: args.name, isPublic: false, user: user.id },
@@ -274,6 +289,7 @@ async function grantPermissions(strapi) {
     'api::list.list.delete',
     'api::stripe.stripe.createCheckoutSession',
     'api::stripe.stripe.confirmCheckoutSession',
+    'api::stripe.stripe.createCustomerPortalSession',
   ];
 
   for (const action of actions) {

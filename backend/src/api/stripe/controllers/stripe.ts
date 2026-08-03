@@ -30,7 +30,13 @@ export default {
       return ctx.unauthorized('Authentication required');
     }
 
-    const priceId = process.env.STRIPE_PRO_PRICE_ID;
+    const { billingPeriod } = (ctx.request.body as { billingPeriod?: string }) ?? {};
+    const isAnnual = billingPeriod === 'annual';
+
+    const priceId = isAnnual
+      ? process.env.STRIPE_PRO_ANNUAL_PRICE_ID
+      : process.env.STRIPE_PRO_PRICE_ID;
+
     if (!priceId) {
       return ctx.internalServerError('Stripe is not configured');
     }
@@ -85,6 +91,32 @@ export default {
 
     await activateProFromSession(session);
     return { isPro: true };
+  },
+
+  async createCustomerPortalSession(ctx) {
+    const user = ctx.state.user as { id: number } | undefined;
+    if (!user) {
+      return ctx.unauthorized('Authentication required');
+    }
+
+    const dbUser = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: user.id },
+      select: ['stripeCustomerId'],
+    });
+
+    if (!dbUser?.stripeCustomerId) {
+      return ctx.badRequest('No active subscription found');
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const stripe = getStripeClient();
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: dbUser.stripeCustomerId as string,
+      return_url: `${frontendUrl}/pricing`,
+    });
+
+    return { url: portalSession.url };
   },
 
   async webhook(ctx) {

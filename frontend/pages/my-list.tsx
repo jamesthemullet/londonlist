@@ -15,6 +15,7 @@ type List = {
   documentId: string;
   name: string;
   isPublic: boolean;
+  viewCount: number;
 };
 
 type MyListsData = {
@@ -27,6 +28,7 @@ const GET_MY_LISTS = gql`
       documentId
       name
       isPublic
+      viewCount
     }
   }
 `;
@@ -37,6 +39,7 @@ const CREATE_MY_LIST = gql`
       documentId
       name
       isPublic
+      viewCount
     }
   }
 `;
@@ -47,6 +50,7 @@ const UPDATE_MY_LIST = gql`
       documentId
       name
       isPublic
+      viewCount
     }
   }
 `;
@@ -56,6 +60,8 @@ const DELETE_MY_LIST = gql`
     deleteMyList(documentId: $documentId)
   }
 `;
+
+const FREE_LIST_LIMIT = 3;
 
 export default function MyListPage() {
   const { user, initialized } = useAppContext();
@@ -70,6 +76,7 @@ export default function MyListPage() {
   const [renameValue, setRenameValue] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [createListError, setCreateListError] = useState<string | null>(null);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -132,12 +139,18 @@ export default function MyListPage() {
   }, [isRenaming]);
 
   const activeList = lists.find((l) => l.documentId === activeListId) ?? null;
+  const isAtListLimit = !user?.isPro && lists.length >= FREE_LIST_LIMIT;
 
   const handleOpenNewList = () => {
+    if (isAtListLimit) {
+      router.push('/pricing');
+      return;
+    }
     setNewListName('');
     setIsCreatingNew(true);
     setIsRenaming(false);
     setIsConfirmingDelete(false);
+    setCreateListError(null);
   };
 
   const handleCreateNewList = async () => {
@@ -145,9 +158,20 @@ export default function MyListPage() {
     if (!name) return;
     setIsCreatingNew(false);
     setNewListName('');
-    const result = await createList({ variables: { name } });
-    const newList = result.data?.createMyList;
-    if (newList) setActiveListId(newList.documentId);
+    setCreateListError(null);
+    try {
+      const result = await createList({ variables: { name } });
+      const newList = result.data?.createMyList;
+      if (newList) setActiveListId(newList.documentId);
+    } catch (err) {
+      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
+      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
+      if (code === 'FREE_LIST_LIMIT_REACHED') {
+        router.push('/pricing');
+      } else {
+        setCreateListError('Could not create list. Please try again.');
+      }
+    }
   };
 
   const handleCancelNewList = () => {
@@ -225,14 +249,31 @@ export default function MyListPage() {
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
 
-        {lists.length >= 3 && !user?.isPro && (
-          <aside className={styles.upgradeBanner}>
+        {!user?.isPro && (
+          <aside
+            className={styles.upgradeBanner}
+            aria-label="List usage"
+          >
             <p className={styles.upgradeBannerText}>
-              You have {lists.length} lists. Unlock unlimited lists with{' '}
-              <strong>London List Pro</strong>.{' '}
-              <Link href="/pricing" className={styles.upgradeBannerLink}>
-                See pricing
-              </Link>
+              <span className={styles.listCount}>
+                {lists.length}/{FREE_LIST_LIMIT} lists used
+              </span>
+              {lists.length >= FREE_LIST_LIMIT ? (
+                <>
+                  {' '}— Unlock unlimited lists with <strong>London List Pro</strong>.{' '}
+                  <Link href="/pricing" className={styles.upgradeBannerLink}>
+                    Upgrade now
+                  </Link>
+                </>
+              ) : (
+                <>
+                  {' '}({FREE_LIST_LIMIT - lists.length} remaining on the free plan —{' '}
+                  <Link href="/pricing" className={styles.upgradeBannerLink}>
+                    upgrade for unlimited
+                  </Link>
+                  )
+                </>
+              )}
             </p>
           </aside>
         )}
@@ -290,12 +331,27 @@ export default function MyListPage() {
                 Cancel
               </button>
             </form>
+          ) : isAtListLimit ? (
+            <button
+              type="button"
+              className={styles.tabUpgrade}
+              onClick={handleOpenNewList}
+              aria-label="Upgrade to Pro to create more lists"
+            >
+              + New list (Pro)
+            </button>
           ) : (
             <button type="button" className={styles.tabNew} onClick={handleOpenNewList}>
               + New list
             </button>
           )}
         </div>
+
+        {createListError && (
+          <p className={styles.createListError} role="alert">
+            {createListError}
+          </p>
+        )}
 
         {activeList && (
           <>
@@ -357,22 +413,37 @@ export default function MyListPage() {
             <section className={styles.section}>
               <h2 className={styles.subheading}>Share</h2>
               {activeList.isPublic ? (
-                <div className={styles.shareRow}>
-                  <input
-                    className={styles.shareUrl}
-                    readOnly
-                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
-                    aria-label="Public list URL"
-                    onFocus={(e) => e.currentTarget.select()}
-                  />
-                  <button
-                    type="button"
-                    className={styles.copyButton}
-                    onClick={handleCopyLink}
-                    aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
-                    {copied ? 'Copied!' : 'Copy link'}
-                  </button>
-                </div>
+                <>
+                  <div className={styles.shareRow}>
+                    <input
+                      className={styles.shareUrl}
+                      readOnly
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
+                      aria-label="Public list URL"
+                      onFocus={(e) => e.currentTarget.select()}
+                    />
+                    <button
+                      type="button"
+                      className={styles.copyButton}
+                      onClick={handleCopyLink}
+                      aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
+                      {copied ? 'Copied!' : 'Copy link'}
+                    </button>
+                  </div>
+                  {user?.isPro ? (
+                    <p className={styles.viewCountStat}>
+                      <span className={styles.viewCountNumber}>{activeList.viewCount ?? 0}</span>{' '}
+                      {activeList.viewCount === 1 ? 'view' : 'views'}
+                    </p>
+                  ) : (
+                    <p className={styles.viewCountLocked}>
+                      <Link href="/pricing" className={styles.viewCountUpgradeLink}>
+                        Upgrade to Pro
+                      </Link>{' '}
+                      to see how many times your list has been viewed.
+                    </p>
+                  )}
+                </>
               ) : (
                 <p className={styles.sharePrivate}>
                   Make this list public to share it with others.
