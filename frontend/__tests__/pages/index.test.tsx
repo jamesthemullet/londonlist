@@ -162,7 +162,7 @@ describe('Home page — logged-in hero', () => {
   beforeEach(() => {
     mockFetch({ data: [] });
     mockUseAppContext.mockReturnValue({
-      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice' },
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
       setUser: jest.fn(),
       initialized: true,
     });
@@ -193,5 +193,61 @@ describe('Home page — logged-in hero', () => {
   it('does not show feature highlights for logged-in users', () => {
     render(<Home />);
     expect(screen.queryByText('Discover London')).not.toBeInTheDocument();
+  });
+});
+
+describe('Home page — Pro upgrade nudge', () => {
+  beforeEach(() => {
+    mockFetch({ data: [] });
+  });
+
+  it('shows the upgrade nudge for free users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+
+    render(<Home />);
+
+    expect(screen.getByRole('complementary', { name: /upgrade to pro/i })).toBeInTheDocument();
+    expect(screen.getByText(/free plan/i)).toBeInTheDocument();
+  });
+
+  it('upgrade nudge links to the pricing page', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+
+    render(<Home />);
+
+    const link = screen.getByRole('link', { name: /upgrade to pro for unlimited lists/i });
+    expect(link).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not show the upgrade nudge for Pro users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '2', documentId: 'u2', email: 'b@b.com', username: 'bob', isPro: true },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+
+    render(<Home />);
+
+    expect(screen.queryByRole('complementary', { name: /upgrade to pro/i })).not.toBeInTheDocument();
+  });
+
+  it('does not show the upgrade nudge for logged-out users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: null,
+      setUser: jest.fn(),
+      initialized: true,
+    });
+
+    render(<Home />);
+
+    expect(screen.queryByRole('complementary', { name: /upgrade to pro/i })).not.toBeInTheDocument();
   });
 });

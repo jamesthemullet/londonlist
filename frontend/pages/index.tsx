@@ -6,7 +6,7 @@ import { useAppContext } from '../context/AppContext';
 import styles from './index.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = 'https://londonlist.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
 
 type PublicList = {
   documentId: string;
@@ -69,7 +69,7 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         {user ? (
-          <LoggedInHero />
+          <LoggedInHero isPro={user.isPro} />
         ) : (
           <LoggedOutHero />
         )}
@@ -135,7 +135,7 @@ function LoggedOutHero() {
   );
 }
 
-function LoggedInHero() {
+function LoggedInHero({ isPro }: { isPro: boolean }) {
   return (
     <>
       <div className={styles.hero}>
@@ -146,6 +146,16 @@ function LoggedInHero() {
       <p className={styles.loginPrompt}>
         <Link href="/my-list">View your list &rarr;</Link>
       </p>
+      {!isPro && (
+        <aside className={styles.proNudge} aria-label="Upgrade to Pro">
+          <p className={styles.proNudgeText}>
+            <strong>Free plan:</strong> up to 3 lists.{' '}
+            <Link href="/pricing" className={styles.proNudgeLink}>
+              Upgrade to Pro for unlimited lists &rarr;
+            </Link>
+          </p>
+        </aside>
+      )}
     </>
   );
 }
