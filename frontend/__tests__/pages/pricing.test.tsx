@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import PricingPage from '../../pages/pricing';
 
 jest.mock('../../context/AppContext', () => ({
@@ -31,14 +31,21 @@ jest.mock('next/router', () => ({
   useRouter: jest.fn(),
 }));
 
+jest.mock('js-cookie', () => ({
+  get: jest.fn(),
+}));
+
+import Cookie from 'js-cookie';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../context/AppContext';
 const mockUseAppContext = useAppContext as jest.Mock;
 const mockUseRouter = useRouter as jest.Mock;
+const mockCookieGet = Cookie.get as jest.Mock;
 
 beforeEach(() => {
   mockUseAppContext.mockReturnValue({ user: null, setUser: jest.fn(), initialized: true });
   mockUseRouter.mockReturnValue({ query: {}, push: jest.fn() });
+  mockCookieGet.mockReturnValue('mock-token');
 });
 
 afterEach(() => {
@@ -62,11 +69,61 @@ describe('PricingPage — layout', () => {
     expect(screen.getByText('£0')).toBeInTheDocument();
   });
 
-  it('renders the Pro tier price as £3.99', () => {
+  it('renders the Pro tier price as £3.99 by default (monthly)', () => {
     render(<PricingPage />);
     expect(screen.getByText('£3.99')).toBeInTheDocument();
   });
+});
 
+describe('PricingPage — billing toggle', () => {
+  it('renders Monthly and Annual toggle buttons', () => {
+    render(<PricingPage />);
+    expect(screen.getByRole('button', { name: /^monthly$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /annual/i })).toBeInTheDocument();
+  });
+
+  it('Monthly toggle is active by default', () => {
+    render(<PricingPage />);
+    expect(screen.getByRole('button', { name: /^monthly$/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /annual/i })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('switching to Annual shows the discounted monthly-equivalent price', () => {
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /annual/i }));
+    expect(screen.getByText('£3.33')).toBeInTheDocument();
+  });
+
+  it('switching to Annual shows the annual billing total', () => {
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /annual/i }));
+    expect(screen.getByText(/billed as £39\.99\/year/i)).toBeInTheDocument();
+  });
+
+  it('switching to Annual shows the struck-through monthly price', () => {
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /annual/i }));
+    expect(screen.getByText('£3.99')).toBeInTheDocument();
+  });
+
+  it('Annual toggle becomes active after clicking', () => {
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /annual/i }));
+    expect(screen.getByRole('button', { name: /annual/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /^monthly$/i })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('switching back to Monthly removes the annual billing note', () => {
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /annual/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^monthly$/i }));
+    expect(screen.queryByText(/billed as £39\.99\/year/i)).not.toBeInTheDocument();
+  });
+
+  it('renders "Save 2 months" badge on the Annual toggle option', () => {
+    render(<PricingPage />);
+    expect(screen.getByText(/save 2 months/i)).toBeInTheDocument();
+  });
 });
 
 describe('PricingPage — features', () => {
@@ -91,10 +148,15 @@ describe('PricingPage — CTAs for unauthenticated users', () => {
     expect(link).toHaveAttribute('href', '/register');
   });
 
-  it('shows the "Upgrade to Pro" button and a sign-in note', () => {
+  it('shows the "Start 14-day free trial" button and a sign-in note', () => {
     render(<PricingPage />);
-    expect(screen.getByRole('button', { name: /upgrade to pro/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /start 14-day free trial/i })).toBeEnabled();
     expect(screen.getByText(/you.ll need to sign in first/i)).toBeInTheDocument();
+  });
+
+  it('shows the trial pricing note', () => {
+    render(<PricingPage />);
+    expect(screen.getByText(/14 days free.*£3\.99\/month/i)).toBeInTheDocument();
   });
 });
 
@@ -110,15 +172,53 @@ describe('PricingPage — CTAs for authenticated users', () => {
     expect(link).toHaveAttribute('href', '/my-list');
   });
 
-  it('shows a Pro confirmation message instead of the upgrade button for Pro users', () => {
+  it('shows a Pro confirmation message and manage subscription button instead of the upgrade button for Pro users', () => {
     mockUseAppContext.mockReturnValue({
       user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: true },
       setUser: jest.fn(),
       initialized: true,
     });
     render(<PricingPage />);
-    expect(screen.queryByRole('button', { name: /upgrade to pro/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/you.re already on pro/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /start 14-day free trial/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/you.re on pro/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /manage subscription/i })).toBeInTheDocument();
+  });
+
+  it('calls the customer portal API when Pro user clicks "Manage subscription"', async () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: true },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ url: 'https://billing.stripe.com/session/test' }),
+    });
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /manage subscription/i }));
+
+    await screen.findByRole('button', { name: /opening/i });
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/stripe/customer-portal'),
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('shows an error message if billing portal fails to open', async () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: true },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+
+    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /manage subscription/i }));
+
+    expect(await screen.findByText(/something went wrong opening the billing portal/i)).toBeInTheDocument();
   });
 });
 
@@ -132,5 +232,17 @@ describe('PricingPage — FAQ', () => {
     render(<PricingPage />);
     expect(screen.getByText(/can i try london list for free/i)).toBeInTheDocument();
     expect(screen.getByText(/can i cancel anytime/i)).toBeInTheDocument();
+  });
+
+  it('renders a FAQ item explaining the 14-day free trial', () => {
+    render(<PricingPage />);
+    expect(screen.getByText(/how does the 14-day free trial work/i)).toBeInTheDocument();
+  });
+
+  it('renders the billing comparison FAQ item', () => {
+    render(<PricingPage />);
+    expect(
+      screen.getByText(/what is the difference between monthly and annual billing/i),
+    ).toBeInTheDocument();
   });
 });

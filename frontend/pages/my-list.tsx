@@ -14,7 +14,9 @@ import styles from './my-list.module.css';
 type List = {
   documentId: string;
   name: string;
+  description?: string | null;
   isPublic: boolean;
+  viewCount: number;
 };
 
 type MyListsData = {
@@ -26,7 +28,9 @@ const GET_MY_LISTS = gql`
     myLists {
       documentId
       name
+      description
       isPublic
+      viewCount
     }
   }
 `;
@@ -36,17 +40,21 @@ const CREATE_MY_LIST = gql`
     createMyList(name: $name) {
       documentId
       name
+      description
       isPublic
+      viewCount
     }
   }
 `;
 
 const UPDATE_MY_LIST = gql`
-  mutation UpdateMyList($documentId: ID!, $name: String, $isPublic: Boolean) {
-    updateMyList(documentId: $documentId, name: $name, isPublic: $isPublic) {
+  mutation UpdateMyList($documentId: ID!, $name: String, $isPublic: Boolean, $description: String) {
+    updateMyList(documentId: $documentId, name: $name, isPublic: $isPublic, description: $description) {
       documentId
       name
+      description
       isPublic
+      viewCount
     }
   }
 `;
@@ -56,6 +64,8 @@ const DELETE_MY_LIST = gql`
     deleteMyList(documentId: $documentId)
   }
 `;
+
+const FREE_LIST_LIMIT = 3;
 
 export default function MyListPage() {
   const { user, initialized } = useAppContext();
@@ -68,8 +78,11 @@ export default function MyListPage() {
   const [newListName, setNewListName] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [createListError, setCreateListError] = useState<string | null>(null);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -132,12 +145,18 @@ export default function MyListPage() {
   }, [isRenaming]);
 
   const activeList = lists.find((l) => l.documentId === activeListId) ?? null;
+  const isAtListLimit = !user?.isPro && lists.length >= FREE_LIST_LIMIT;
 
   const handleOpenNewList = () => {
+    if (isAtListLimit) {
+      router.push('/pricing');
+      return;
+    }
     setNewListName('');
     setIsCreatingNew(true);
     setIsRenaming(false);
     setIsConfirmingDelete(false);
+    setCreateListError(null);
   };
 
   const handleCreateNewList = async () => {
@@ -145,9 +164,20 @@ export default function MyListPage() {
     if (!name) return;
     setIsCreatingNew(false);
     setNewListName('');
-    const result = await createList({ variables: { name } });
-    const newList = result.data?.createMyList;
-    if (newList) setActiveListId(newList.documentId);
+    setCreateListError(null);
+    try {
+      const result = await createList({ variables: { name } });
+      const newList = result.data?.createMyList;
+      if (newList) setActiveListId(newList.documentId);
+    } catch (err) {
+      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
+      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
+      if (code === 'FREE_LIST_LIMIT_REACHED') {
+        router.push('/pricing');
+      } else {
+        setCreateListError('Could not create list. Please try again.');
+      }
+    }
   };
 
   const handleCancelNewList = () => {
@@ -176,6 +206,25 @@ export default function MyListPage() {
   const handleCancelRename = () => {
     setIsRenaming(false);
     setRenameValue('');
+  };
+
+  const handleOpenDescription = () => {
+    if (!activeList) return;
+    setDescriptionValue(activeList.description ?? '');
+    setIsEditingDescription(true);
+    setIsRenaming(false);
+    setIsConfirmingDelete(false);
+  };
+
+  const handleSaveDescription = async () => {
+    const description = descriptionValue.trim() || null;
+    setIsEditingDescription(false);
+    await updateList({ variables: { documentId: activeList?.documentId, description } });
+  };
+
+  const handleCancelDescription = () => {
+    setIsEditingDescription(false);
+    setDescriptionValue('');
   };
 
   const handleOpenDeleteConfirm = () => {
@@ -225,14 +274,31 @@ export default function MyListPage() {
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
 
-        {lists.length >= 3 && !user?.isPro && (
-          <aside className={styles.upgradeBanner}>
+        {!user?.isPro && (
+          <aside
+            className={styles.upgradeBanner}
+            aria-label="List usage"
+          >
             <p className={styles.upgradeBannerText}>
-              You have {lists.length} lists. Unlock unlimited lists with{' '}
-              <strong>London List Pro</strong>.{' '}
-              <Link href="/pricing" className={styles.upgradeBannerLink}>
-                See pricing
-              </Link>
+              <span className={styles.listCount}>
+                {lists.length}/{FREE_LIST_LIMIT} lists used
+              </span>
+              {lists.length >= FREE_LIST_LIMIT ? (
+                <>
+                  {' '}— Unlock unlimited lists with <strong>London List Pro</strong>.{' '}
+                  <Link href="/pricing" className={styles.upgradeBannerLink}>
+                    Upgrade now
+                  </Link>
+                </>
+              ) : (
+                <>
+                  {' '}({FREE_LIST_LIMIT - lists.length} remaining on the free plan —{' '}
+                  <Link href="/pricing" className={styles.upgradeBannerLink}>
+                    upgrade for unlimited
+                  </Link>
+                  )
+                </>
+              )}
             </p>
           </aside>
         )}
@@ -248,6 +314,7 @@ export default function MyListPage() {
               onClick={() => {
                 setActiveListId(list.documentId);
                 setIsRenaming(false);
+                setIsEditingDescription(false);
                 setIsConfirmingDelete(false);
               }}>
               {list.name}
@@ -290,12 +357,27 @@ export default function MyListPage() {
                 Cancel
               </button>
             </form>
+          ) : isAtListLimit ? (
+            <button
+              type="button"
+              className={styles.tabUpgrade}
+              onClick={handleOpenNewList}
+              aria-label="Upgrade to Pro to create more lists"
+            >
+              + New list (Pro)
+            </button>
           ) : (
             <button type="button" className={styles.tabNew} onClick={handleOpenNewList}>
               + New list
             </button>
           )}
         </div>
+
+        {createListError && (
+          <p className={styles.createListError} role="alert">
+            {createListError}
+          </p>
+        )}
 
         {activeList && (
           <>
@@ -352,27 +434,95 @@ export default function MyListPage() {
                 onToggle={handleToggleVisibility}
                 listName={activeList.name}
               />
+              {isEditingDescription ? (
+                <form
+                  className={styles.descriptionForm}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSaveDescription();
+                  }}
+                  aria-label="Edit list description"
+                >
+                  <label htmlFor="list-description" className={styles.descriptionLabel}>
+                    Description{' '}
+                    <span className={styles.descriptionHint}>
+                      ({300 - descriptionValue.length} characters remaining)
+                    </span>
+                  </label>
+                  <textarea
+                    id="list-description"
+                    value={descriptionValue}
+                    onChange={(e) => setDescriptionValue(e.target.value)}
+                    className={styles.descriptionTextarea}
+                    placeholder="Tell visitors what this list is about…"
+                    maxLength={300}
+                    rows={3}
+                  />
+                  <div className={styles.descriptionActions}>
+                    <button type="submit" className={styles.renameSave}>
+                      Save description
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.renameCancel}
+                      onClick={handleCancelDescription}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className={styles.descriptionRow}>
+                  {activeList.description ? (
+                    <p className={styles.descriptionPreview}>{activeList.description}</p>
+                  ) : (
+                    <p className={styles.descriptionEmpty}>No description yet.</p>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={handleOpenDescription}
+                  >
+                    {activeList.description ? 'Edit description' : 'Add description'}
+                  </button>
+                </div>
+              )}
             </section>
 
             <section className={styles.section}>
               <h2 className={styles.subheading}>Share</h2>
               {activeList.isPublic ? (
-                <div className={styles.shareRow}>
-                  <input
-                    className={styles.shareUrl}
-                    readOnly
-                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
-                    aria-label="Public list URL"
-                    onFocus={(e) => e.currentTarget.select()}
-                  />
-                  <button
-                    type="button"
-                    className={styles.copyButton}
-                    onClick={handleCopyLink}
-                    aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
-                    {copied ? 'Copied!' : 'Copy link'}
-                  </button>
-                </div>
+                <>
+                  <div className={styles.shareRow}>
+                    <input
+                      className={styles.shareUrl}
+                      readOnly
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
+                      aria-label="Public list URL"
+                      onFocus={(e) => e.currentTarget.select()}
+                    />
+                    <button
+                      type="button"
+                      className={styles.copyButton}
+                      onClick={handleCopyLink}
+                      aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
+                      {copied ? 'Copied!' : 'Copy link'}
+                    </button>
+                  </div>
+                  {user?.isPro ? (
+                    <p className={styles.viewCountStat}>
+                      <span className={styles.viewCountNumber}>{activeList.viewCount ?? 0}</span>{' '}
+                      {activeList.viewCount === 1 ? 'view' : 'views'}
+                    </p>
+                  ) : (
+                    <p className={styles.viewCountLocked}>
+                      <Link href="/pricing" className={styles.viewCountUpgradeLink}>
+                        Upgrade to Pro
+                      </Link>{' '}
+                      to see how many times your list has been viewed.
+                    </p>
+                  )}
+                </>
               ) : (
                 <p className={styles.sharePrivate}>
                   Make this list public to share it with others.

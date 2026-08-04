@@ -30,7 +30,13 @@ export default {
       return ctx.unauthorized('Authentication required');
     }
 
-    const priceId = process.env.STRIPE_PRO_PRICE_ID;
+    const { billingPeriod } = (ctx.request.body as { billingPeriod?: string }) ?? {};
+    const isAnnual = billingPeriod === 'annual';
+
+    const priceId = isAnnual
+      ? process.env.STRIPE_PRO_ANNUAL_PRICE_ID
+      : process.env.STRIPE_PRO_PRICE_ID;
+
     if (!priceId) {
       return ctx.internalServerError('Stripe is not configured');
     }
@@ -44,6 +50,7 @@ export default {
       customer_email: user.email,
       client_reference_id: String(user.id),
       metadata: { userId: String(user.id) },
+      subscription_data: { trial_period_days: 14 },
       success_url: `${frontendUrl}/pricing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/pricing?checkout=cancelled`,
     });
@@ -63,19 +70,53 @@ export default {
     }
 
     const stripe = getStripeClient();
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['subscription'],
+    });
 
     const ownerId = session.client_reference_id ?? session.metadata?.userId;
     if (String(ownerId) !== String(user.id)) {
       return ctx.forbidden('This checkout session does not belong to you');
     }
 
-    if (session.payment_status !== 'paid') {
+    const subscription = session.subscription as { status?: string } | null;
+    const isActive =
+      session.payment_status === 'paid' ||
+      subscription?.status === 'trialing' ||
+      subscription?.status === 'active';
+
+    if (!isActive) {
       return { isPro: false };
     }
 
     await activateProFromSession(session);
     return { isPro: true };
+  },
+
+  async createCustomerPortalSession(ctx) {
+    const user = ctx.state.user as { id: number } | undefined;
+    if (!user) {
+      return ctx.unauthorized('Authentication required');
+    }
+
+    const dbUser = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: user.id },
+      select: ['stripeCustomerId'],
+    });
+
+    if (!dbUser?.stripeCustomerId) {
+      return ctx.badRequest('No active subscription found');
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const stripe = getStripeClient();
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: dbUser.stripeCustomerId as string,
+      return_url: `${frontendUrl}/pricing`,
+    });
+
+    return { url: portalSession.url };
   },
 
   async webhook(ctx) {
@@ -109,6 +150,23 @@ export default {
           where: { stripeCustomerId: subscription.customer as string },
           data: { isPro: false },
         });
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const inactiveStatuses = ['past_due', 'unpaid', 'canceled', 'paused'];
+        if (inactiveStatuses.includes(subscription.status)) {
+          await strapi.db.query('plugin::users-permissions.user').updateMany({
+            where: { stripeCustomerId: subscription.customer as string },
+            data: { isPro: false },
+          });
+        } else if (subscription.status === 'active') {
+          await strapi.db.query('plugin::users-permissions.user').updateMany({
+            where: { stripeCustomerId: subscription.customer as string },
+            data: { isPro: true },
+          });
+        }
         break;
       }
 

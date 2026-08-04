@@ -2,12 +2,16 @@ import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
 import styles from '../[username].module.css';
+import type { MapItem } from '../../../components/map/list-map';
+
+const ListMap = dynamic(() => import('../../../components/map/list-map'), { ssr: false });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/images/temp-seo-image.jpg`;
@@ -21,12 +25,17 @@ type ListItem = {
   completed: boolean;
   osm_id: string;
   visitedAt: string | null;
+  notes?: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type PublicListData = {
   data: ListItem[];
   username: string;
   listName: string;
+  description?: string | null;
+  viewCount?: number;
 };
 
 type PageState = 'found' | 'private' | 'not_found';
@@ -141,6 +150,17 @@ function schemaTypeForCategory(category: string | null): string {
   return SCHEMA_TYPE_MAP[category.toLowerCase()] ?? 'TouristAttraction';
 }
 
+export function buildOgDescription(listData: PublicListData): string {
+  const { data: items, username, listName, description } = listData;
+  if (description) return description;
+  const total = items.length;
+  const todo = items.filter((i) => !i.completed).length;
+  const done = items.filter((i) => i.completed).length;
+  const placeWord = total === 1 ? 'place' : 'places';
+  if (total === 0) return `${username}'s London list: ${listName}`;
+  return `${username}'s London list: ${total} ${placeWord} to explore — ${todo} to visit, ${done} done.`;
+}
+
 export function buildItemListJsonLd(
   listData: PublicListData,
   username: string,
@@ -205,17 +225,32 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
 
+  const mapItems: MapItem[] = items
+    .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)
+    .map((i) => ({
+      documentId: i.documentId,
+      name: i.name,
+      lat: i.lat,
+      lng: i.lng,
+      completed: i.completed,
+      category: i.category,
+    }));
+
   const canonicalUrl = `${SITE_URL}/list/${username}/${listId}`;
   const pageTitle = `${listData?.listName} — ${username}'s London List`;
+  const listDescription = listData?.description ?? null;
   const pageDescription =
-    items.length > 0
+    listDescription ??
+    (items.length > 0
       ? `${username} is exploring London. ${items.length} place${items.length === 1 ? '' : 's'} on their "${listData?.listName}" list — ${todo.length} to do, ${done.length} done.`
-      : `${username}'s London list: ${listData?.listName}`;
+      : `${username}'s London list: ${listData?.listName}`);
 
   return (
     <>
       <Head>
-        <title>{pageTitle}</title>
+        <title>
+          {listData?.listName} — {username}&apos;s London List
+        </title>
         <meta name="description" content={pageDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={canonicalUrl} />
@@ -237,9 +272,37 @@ export default function PublicListPage({ pageState, listData, username, listId }
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{listData?.listName}</h1>
-        <p className={styles.subtitle}>
-          <Link href={`/profile/${username}`}>{username}&apos;s lists</Link>
-        </p>
+        <div className={styles.metaRow}>
+          <p className={styles.subtitle}>
+            <Link href={`/profile/${username}`}>{username}&apos;s lists</Link>
+          </p>
+          {listData?.viewCount !== undefined && listData.viewCount > 0 && (
+            <span className={styles.viewCount}>
+              <span aria-hidden="true">👁</span>{' '}
+              {listData.viewCount.toLocaleString()} {listData.viewCount === 1 ? 'view' : 'views'}
+            </span>
+          )}
+        </div>
+        {listDescription && (
+          <p className={styles.listDescription}>{listDescription}</p>
+        )}
+        {mapItems.length > 0 && (
+          <>
+            <div className={styles.mapContainer}>
+              <ListMap items={mapItems} />
+            </div>
+            <p className={styles.mapLegend}>
+              <span className={styles.mapLegendItem}>
+                <span className={styles.mapLegendDot} style={{ background: '#c724b1' }} aria-hidden="true" />
+                To do
+              </span>
+              <span className={styles.mapLegendItem}>
+                <span className={styles.mapLegendDot} style={{ background: '#22c55e' }} aria-hidden="true" />
+                Done
+              </span>
+            </p>
+          </>
+        )}
         <ShareButtons url={canonicalUrl} title={pageTitle} />
         {initialized && user && items.length > 0 && (
           <CopyListButton items={items} listName={listData?.listName ?? 'Copied list'} />
@@ -254,8 +317,13 @@ export default function PublicListPage({ pageState, listData, username, listId }
                 <ul className={styles.list}>
                   {todo.map((item) => (
                     <li key={item.documentId} className={styles.item}>
-                      <span className={styles.name}>{item.name}</span>
-                      {item.category && <span className={styles.category}>{item.category}</span>}
+                      <div className={styles.itemMain}>
+                        <span className={styles.name}>{item.name}</span>
+                        {item.category && (
+                          <span className={styles.category}>{item.category}</span>
+                        )}
+                      </div>
+                      {item.notes && <p className={styles.itemNotes}>{item.notes}</p>}
                     </li>
                   ))}
                 </ul>
@@ -267,18 +335,23 @@ export default function PublicListPage({ pageState, listData, username, listId }
                 <ul className={styles.list}>
                   {done.map((item) => (
                     <li key={item.documentId} className={styles.item}>
-                      <span className={styles.nameDone}>{item.name}</span>
-                      {item.category && <span className={styles.category}>{item.category}</span>}
-                      {item.visitedAt && (
-                        <time className={styles.visitedAt} dateTime={item.visitedAt}>
-                          Visited{' '}
-                          {new Date(item.visitedAt).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })}
-                        </time>
-                      )}
+                      <div className={styles.itemMain}>
+                        <span className={styles.nameDone}>{item.name}</span>
+                        {item.category && (
+                          <span className={styles.category}>{item.category}</span>
+                        )}
+                        {item.visitedAt && (
+                          <time className={styles.visitedAt} dateTime={item.visitedAt}>
+                            Visited{' '}
+                            {new Date(item.visitedAt).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })}
+                          </time>
+                        )}
+                      </div>
+                      {item.notes && <p className={styles.itemNotes}>{item.notes}</p>}
                     </li>
                   ))}
                 </ul>

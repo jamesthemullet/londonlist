@@ -117,3 +117,14 @@
   font-size: 0.8rem;
   color: #888;
 }
+
+.listDescription {
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
