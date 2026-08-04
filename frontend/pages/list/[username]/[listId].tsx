@@ -224,9 +224,6 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
-  const ogTitle = listData ? `${listData.listName} — ${username}'s London List` : `${username}'s London List`;
-  const ogDescription = listData ? buildOgDescription(listData) : `${username}'s London list`;
-  const ogUrl = `${SITE_URL}/list/${username}/${listId}`;
 
   const mapItems: MapItem[] = items
     .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)
