@@ -34,6 +34,7 @@ type PublicListData = {
   data: ListItem[];
   username: string;
   listName: string;
+  description?: string | null;
   viewCount?: number;
 };
 
@@ -150,7 +151,8 @@ function schemaTypeForCategory(category: string | null): string {
 }
 
 export function buildOgDescription(listData: PublicListData): string {
-  const { data: items, username, listName } = listData;
+  const { data: items, username, listName, description } = listData;
+  if (description) return description;
   const total = items.length;
   const todo = items.filter((i) => !i.completed).length;
   const done = items.filter((i) => i.completed).length;
@@ -239,10 +241,12 @@ export default function PublicListPage({ pageState, listData, username, listId }
 
   const canonicalUrl = `${SITE_URL}/list/${username}/${listId}`;
   const pageTitle = `${listData?.listName} — ${username}'s London List`;
+  const listDescription = listData?.description ?? null;
   const pageDescription =
-    items.length > 0
+    listDescription ??
+    (items.length > 0
       ? `${username} is exploring London. ${items.length} place${items.length === 1 ? '' : 's'} on their "${listData?.listName}" list — ${todo.length} to do, ${done.length} done.`
-      : `${username}'s London list: ${listData?.listName}`;
+      : `${username}'s London list: ${listData?.listName}`);
 
   return (
     <>
@@ -282,6 +286,9 @@ export default function PublicListPage({ pageState, listData, username, listId }
             </span>
           )}
         </div>
+        {listDescription && (
+          <p className={styles.listDescription}>{listDescription}</p>
+        )}
         {mapItems.length > 0 && (
           <>
             <div className={styles.mapContainer}>

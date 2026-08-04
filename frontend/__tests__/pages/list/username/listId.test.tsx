@@ -321,6 +321,26 @@ describe('buildOgDescription — unit tests', () => {
     };
     expect(buildOgDescription(listData)).toContain('bob');
   });
+
+  it('prefers the list description when set', () => {
+    const listData = {
+      data: [TODO_ITEM, DONE_ITEM],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+      description: 'My favourite spots in East London',
+    };
+    expect(buildOgDescription(listData)).toBe('My favourite spots in East London');
+  });
+
+  it('falls back to generated text when description is null', () => {
+    const listData = {
+      data: [TODO_ITEM],
+      username: 'alice',
+      listName: 'Solo',
+      description: null,
+    };
+    expect(buildOgDescription(listData)).toContain('1 place');
+  });
 });
 
 describe('PublicListPage — OG / Twitter meta tags', () => {
@@ -391,6 +411,42 @@ describe('PublicListPage — OG / Twitter meta tags', () => {
       <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
     );
     expect(getMeta('name', 'twitter:description')?.getAttribute('content')).toContain('2 places');
+  });
+
+  it('uses the list description in meta when set', () => {
+    const withDescription = { ...listData, description: 'Hidden gems of Shoreditch' };
+    render(
+      <PublicListPage pageState="found" listData={withDescription} username="alice" listId="list-abc" />,
+    );
+    expect(getMeta('name', 'description')?.getAttribute('content')).toBe('Hidden gems of Shoreditch');
+  });
+});
+
+describe('PublicListPage — list description display', () => {
+  it('renders the list description when provided', () => {
+    const listData = {
+      data: [],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+      description: 'A guide to East London markets',
+    };
+    const { getByText } = render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(getByText('A guide to East London markets')).toBeInTheDocument();
+  });
+
+  it('does not render a description element when description is null', () => {
+    const listData = {
+      data: [],
+      username: 'alice',
+      listName: 'Weekend Wanders',
+      description: null,
+    };
+    const { queryByText } = render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(queryByText(/A guide/)).not.toBeInTheDocument();
   });
 });
 

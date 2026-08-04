@@ -21,6 +21,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       data: lists.map((list) => ({
         documentId: list.documentId,
         name: list.name,
+        description: (list as { description?: string | null }).description ?? null,
         username: (list as { user?: { username?: string } | null }).user?.username ?? null,
         viewCount: (list as { viewCount?: number }).viewCount ?? 0,
       })),
@@ -52,6 +53,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         return {
           documentId: list.documentId,
           name: list.name,
+          description: (list as { description?: string | null }).description ?? null,
           itemCount: items.length,
           completedCount,
         };
@@ -121,6 +123,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       })),
       username: user.username,
       listName: list.name,
+      description: (list as { description?: string | null }).description ?? null,
       viewCount: (typedList.viewCount ?? 0) + 1,
     };
   },

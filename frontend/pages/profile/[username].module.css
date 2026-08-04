@@ -123,3 +123,16 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+.listDescription {
+  display: block;
+  font-size: 0.82rem;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 0.2rem;
+  margin-bottom: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
