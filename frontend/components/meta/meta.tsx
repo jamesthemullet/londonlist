@@ -24,7 +24,7 @@ import Head from 'next/head';
 // };
 
 export default function Meta({ currentUrl }: { currentUrl: string }) {
-  const siteAddress = 'https://londonlist.co.uk';
+  const siteAddress = 'https://londonlist.vercel.app';
   const defaultImageUrl = `${siteAddress}/images/temp-seo-image.jpg`;
   const description = 'Your to-do list for London — find curated lists of things to do in London';
   return (

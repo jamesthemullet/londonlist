@@ -43,7 +43,7 @@ describe('Meta component', () => {
     const ogUrl =
       q('meta[property="og:url"]') ?? document.head.querySelector('meta[property="og:url"]');
     const content = ogUrl?.getAttribute('content') ?? '';
-    expect(content).toBe('https://londonlist.co.uk/');
+    expect(content).toBe('https://londonlist.vercel.app/');
   });
 
   it('uses an absolute URL for the OG image', () => {
