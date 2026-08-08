@@ -51,7 +51,7 @@ export default function Form({
                 />
               </div>
             )}
-            {error && <p className={styles.error}>Error: {error.message}</p>}
+            {error && <p className={styles.error} role="alert">Error: {error.message}</p>}
             <Button type="submit" disabled={isEmailInvalid}>
               {buttonText}
             </Button>
