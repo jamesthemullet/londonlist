@@ -67,6 +67,56 @@ const DELETE_MY_LIST = gql`
 
 const FREE_LIST_LIMIT = 3;
 
+function ProStatsCard({ lists, isPro }: { lists: List[]; isPro: boolean }) {
+  const publicLists = lists.filter((l) => l.isPublic);
+  if (publicLists.length === 0) return null;
+
+  if (!isPro) {
+    return (
+      <aside className={styles.statsCard} aria-label="List analytics">
+        <p className={styles.statsLockedText}>
+          <Link href="/pricing" className={styles.statsUpgradeLink}>
+            Upgrade to Pro to unlock list analytics
+          </Link>
+          {' '}and see how many times your lists have been viewed.
+        </p>
+      </aside>
+    );
+  }
+
+  const totalViews = publicLists.reduce((sum, l) => sum + (l.viewCount ?? 0), 0);
+  const topList =
+    publicLists.length > 1
+      ? publicLists.reduce((best, l) =>
+          (l.viewCount ?? 0) > (best.viewCount ?? 0) ? l : best,
+        )
+      : null;
+
+  return (
+    <aside className={styles.statsCard} aria-label="List analytics">
+      <h2 className={styles.statsHeading}>Your stats</h2>
+      <dl className={styles.statsList}>
+        <div className={styles.statItem}>
+          <dt className={styles.statLabel}>Total views</dt>
+          <dd className={styles.statValue}>{totalViews.toLocaleString()}</dd>
+        </div>
+        {topList && (topList.viewCount ?? 0) > 0 && (
+          <div className={styles.statItem}>
+            <dt className={styles.statLabel}>Most viewed</dt>
+            <dd className={styles.statValue}>
+              {topList.name}
+              {' '}
+              <span className={styles.statCount}>
+                ({topList.viewCount?.toLocaleString()} views)
+              </span>
+            </dd>
+          </div>
+        )}
+      </dl>
+    </aside>
+  );
+}
+
 export default function MyListPage() {
   const { user, initialized } = useAppContext();
   const router = useRouter();
@@ -273,6 +323,8 @@ export default function MyListPage() {
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
+
+        <ProStatsCard lists={lists} isPro={user?.isPro ?? false} />
 
         {!user?.isPro && (
           <aside
@@ -489,7 +541,7 @@ export default function MyListPage() {
               )}
             </section>
 
-            <section className={styles.section}>
+            <section className={styles.section} aria-label="Share">
               <h2 className={styles.subheading}>Share</h2>
               {activeList.isPublic ? (
                 <>
