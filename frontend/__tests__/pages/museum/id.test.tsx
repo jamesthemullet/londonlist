@@ -16,8 +16,8 @@ jest.mock('next/router', () => ({
 import { useQuery } from '@apollo/client/react';
 import { useRouter } from 'next/router';
 
-const mockUseQuery = useQuery as jest.Mock;
-const mockUseRouter = useRouter as jest.Mock;
+const mockUseQuery = useQuery as unknown as jest.Mock;
+const mockUseRouter = useRouter as unknown as jest.Mock;
 
 const EXHIBITION_1 = {
   id: 'ex-1',
