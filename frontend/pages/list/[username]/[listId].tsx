@@ -8,13 +8,13 @@ import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
+import { buildOgImageUrl } from '../../../lib/og-image';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
 
 const ListMap = dynamic(() => import('../../../components/map/list-map'), { ssr: false });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
-const DEFAULT_OG_IMAGE = `${SITE_URL}/images/temp-seo-image.jpg`;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
@@ -224,6 +224,10 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
+  const ogImage = buildOgImageUrl(
+    { title: listData?.listName ?? '', username, itemCount: items.length, doneCount: done.length },
+    SITE_URL,
+  );
 
   const mapItems: MapItem[] = items
     .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)
@@ -259,12 +263,12 @@ export default function PublicListPage({ pageState, listData, username, listId }
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={DEFAULT_OG_IMAGE} />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:locale" content="en_GB" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
+        <meta name="twitter:image" content={ogImage} />
         {jsonLd && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />

@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /my-list
+Disallow: /api/
 
 Sitemap: https://londonlist.co.uk/sitemap.xml

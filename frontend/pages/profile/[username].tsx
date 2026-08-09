@@ -2,10 +2,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../context/AppContext';
+import { buildOgImageUrl } from '../../lib/og-image';
 import styles from './[username].module.css';
 
-const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = 'https://londonlist.vercel.app';
+const API_URL = process.env.STRAPI_API_URL || process.env.STRAPI_URL || 'http://127.0.0.1:1337';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
 
 type PublicList = {
   documentId: string;
@@ -48,6 +49,10 @@ export default function ProfilePage({ pageState, profileData, username }: Props)
   const ogTitle = `${username}'s London Lists`;
   const ogDescription = `${username} has ${lists.length} public ${listWord} on London List — ${totalPlaces} ${placeWord}, ${totalVisited} visited.`;
   const ogUrl = `${SITE_URL}/profile/${username}`;
+  const ogImage = buildOgImageUrl(
+    { title: ogTitle, username, itemCount: totalPlaces, doneCount: totalVisited },
+    SITE_URL,
+  );
 
   return (
     <>
@@ -60,9 +65,11 @@ export default function ProfilePage({ pageState, profileData, username }: Props)
         <meta property="og:description" content={ogDescription} />
         <meta property="og:url" content={ogUrl} />
         <meta property="og:type" content="profile" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" content={ogImage} />
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{username}&apos;s London Lists</h1>
