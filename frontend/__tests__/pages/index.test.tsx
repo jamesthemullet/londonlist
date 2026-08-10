@@ -1,6 +1,22 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import Home from '../../pages/index';
 
+jest.mock('@apollo/client/react', () => ({
+  useQuery: jest.fn(),
+}));
+
+jest.mock('@apollo/client', () => ({
+  gql: (strings: TemplateStringsArray) => strings,
+}));
+
+jest.mock('../../hooks/use-auth-header', () => ({
+  useAuthHeader: () => ({}),
+}));
+
+jest.mock('../../hooks/use-streak', () => ({
+  useStreak: jest.fn(),
+}));
+
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
 }));
@@ -22,8 +38,13 @@ jest.mock('next/link', () => ({
   ),
 }));
 
+import { useQuery } from '@apollo/client/react';
 import { useAppContext } from '../../context/AppContext';
+import { useStreak } from '../../hooks/use-streak';
+
+const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseAppContext = useAppContext as jest.Mock;
+const mockUseStreak = useStreak as unknown as jest.Mock;
 
 const PUBLIC_LISTS = [
   { documentId: 'doc-1', name: 'Weekend Wanders', username: 'alice' },
@@ -39,6 +60,8 @@ function mockFetch(data: object, ok = true) {
 
 beforeEach(() => {
   mockUseAppContext.mockReturnValue({ user: null, setUser: jest.fn(), initialized: true });
+  mockUseQuery.mockReturnValue({ data: { listItems: [] }, loading: false });
+  mockUseStreak.mockReturnValue({ streak: 0, atRisk: false });
 });
 
 afterEach(() => {
@@ -193,5 +216,129 @@ describe('Home page — logged-in hero', () => {
   it('does not show feature highlights for logged-in users', () => {
     render(<Home />);
     expect(screen.queryByText('Discover London')).not.toBeInTheDocument();
+  });
+});
+
+describe('Home page — welcome back banner', () => {
+  beforeEach(() => {
+    mockFetch({ data: [] });
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice' },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+  });
+
+  it('does not show the banner when user has no list items', () => {
+    mockUseQuery.mockReturnValue({ data: { listItems: [] }, loading: false });
+    mockUseStreak.mockReturnValue({ streak: 0, atRisk: false });
+
+    render(<Home />);
+
+    expect(screen.queryByRole('region', { name: 'Your progress' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Continue exploring/)).not.toBeInTheDocument();
+  });
+
+  it('shows the banner when user has list items', () => {
+    mockUseQuery.mockReturnValue({
+      data: { listItems: [{ completed: false, visitedAt: null }] },
+      loading: false,
+    });
+    mockUseStreak.mockReturnValue({ streak: 0, atRisk: false });
+
+    render(<Home />);
+
+    expect(screen.getByRole('region', { name: 'Your progress' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /continue exploring/i })).toHaveAttribute('href', '/my-list');
+  });
+
+  it('shows the streak badge when user has an active streak', () => {
+    mockUseQuery.mockReturnValue({
+      data: { listItems: [{ completed: true, visitedAt: '2026-07-15T00:00:00.000Z' }] },
+      loading: false,
+    });
+    mockUseStreak.mockReturnValue({ streak: 3, atRisk: false });
+
+    render(<Home />);
+
+    expect(screen.getByText('3-month streak')).toBeInTheDocument();
+  });
+
+  it('shows the at-risk warning when the streak is at risk', () => {
+    mockUseQuery.mockReturnValue({
+      data: { listItems: [{ completed: true, visitedAt: '2026-06-20T00:00:00.000Z' }] },
+      loading: false,
+    });
+    mockUseStreak.mockReturnValue({ streak: 2, atRisk: true });
+
+    render(<Home />);
+
+    expect(screen.getByText(/Your 2-month streak is at risk/)).toBeInTheDocument();
+  });
+
+  it('shows a milestone message when user is approaching a progress milestone', () => {
+    const items = [
+      { completed: true, visitedAt: '2026-07-01T00:00:00.000Z' },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+    ];
+    mockUseQuery.mockReturnValue({ data: { listItems: items }, loading: false });
+    mockUseStreak.mockReturnValue({ streak: 0, atRisk: false });
+
+    render(<Home />);
+
+    expect(screen.getByText("You're 1 place from 50% of your list")).toBeInTheDocument();
+  });
+
+  it('shows a plural milestone message when multiple places are needed', () => {
+    const items = [
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+      { completed: false, visitedAt: null },
+    ];
+    mockUseQuery.mockReturnValue({ data: { listItems: items }, loading: false });
+    mockUseStreak.mockReturnValue({ streak: 0, atRisk: false });
+
+    render(<Home />);
+
+    expect(screen.getByText("You're 3 places from 25% of your list")).toBeInTheDocument();
+  });
+
+  it('shows a "conquered" message when user has completed all items', () => {
+    const items = [
+      { completed: true, visitedAt: '2026-07-01T00:00:00.000Z' },
+      { completed: true, visitedAt: '2026-07-02T00:00:00.000Z' },
+    ];
+    mockUseQuery.mockReturnValue({ data: { listItems: items }, loading: false });
+    mockUseStreak.mockReturnValue({ streak: 0, atRisk: false });
+
+    render(<Home />);
+
+    expect(screen.getByText('London conquered — every place ticked off!')).toBeInTheDocument();
+  });
+
+  it('shows the banner when atRisk is true even if there are no items loaded yet', () => {
+    mockUseQuery.mockReturnValue({ data: { listItems: [] }, loading: false });
+    mockUseStreak.mockReturnValue({ streak: 1, atRisk: true });
+
+    render(<Home />);
+
+    expect(screen.getByRole('region', { name: 'Your progress' })).toBeInTheDocument();
+  });
+
+  it('does not show the banner for logged-out users', () => {
+    mockUseAppContext.mockReturnValue({ user: null, setUser: jest.fn(), initialized: true });
+
+    render(<Home />);
+
+    expect(screen.queryByRole('region', { name: 'Your progress' })).not.toBeInTheDocument();
   });
 });

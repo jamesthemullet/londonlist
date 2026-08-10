@@ -1,8 +1,13 @@
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import StreakBadge from '../components/streak-badge/streak-badge';
 import PlaceSearch from '../components/search/place-search';
 import { useAppContext } from '../context/AppContext';
+import { useAuthHeader } from '../hooks/use-auth-header';
+import { useStreak } from '../hooks/use-streak';
 import styles from './index.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -31,6 +36,34 @@ const FEATURES = [
     text: 'Make your list public and inspire others to explore the city.',
   },
 ];
+
+const GET_ALL_MY_ITEMS = gql`
+  query GetAllMyItems {
+    listItems {
+      completed
+      visitedAt
+    }
+  }
+`;
+
+type BannerItem = { completed: boolean; visitedAt: string | null };
+
+function nextMilestoneMessage(total: number, done: number): string | null {
+  if (total === 0) return null;
+  const pct = (done / total) * 100;
+  if (pct >= 100) return 'London conquered — every place ticked off!';
+  const milestones = [25, 50, 75, 100];
+  for (const m of milestones) {
+    if (pct < m) {
+      const needed = Math.ceil((m / 100) * total) - done;
+      if (needed <= 0) continue;
+      return needed === 1
+        ? `You're 1 place from ${m}% of your list`
+        : `You're ${needed} places from ${m}% of your list`;
+    }
+  }
+  return null;
+}
 
 export default function Home() {
   const { user } = useAppContext();
@@ -136,12 +169,35 @@ function LoggedOutHero() {
 }
 
 function LoggedInHero() {
+  const authHeader = useAuthHeader();
+  const { data } = useQuery<{ listItems: BannerItem[] }>(GET_ALL_MY_ITEMS, {
+    context: { headers: authHeader },
+    fetchPolicy: 'cache-and-network',
+  });
+  const items = data?.listItems ?? [];
+  const { streak, atRisk } = useStreak(items);
+  const done = items.filter((i) => i.completed).length;
+  const total = items.length;
+  const milestoneMsg = nextMilestoneMessage(total, done);
+  const showBanner = total > 0 || atRisk;
+
   return (
     <>
       <div className={styles.hero}>
         <h1 className={styles.heading}>What do you want to do in London?</h1>
         <p className={styles.subheading}>Search for a place and add it to your list.</p>
       </div>
+      {showBanner && (
+        <section className={styles.welcomeBanner} aria-label="Your progress">
+          <StreakBadge streak={streak} atRisk={atRisk} />
+          {milestoneMsg && (
+            <p className={styles.welcomeBannerMilestone}>{milestoneMsg}</p>
+          )}
+          <Link href="/my-list" className={styles.welcomeBannerLink}>
+            Continue exploring &rarr;
+          </Link>
+        </section>
+      )}
       <PlaceSearch />
       <p className={styles.loginPrompt}>
         <Link href="/my-list">View your list &rarr;</Link>
