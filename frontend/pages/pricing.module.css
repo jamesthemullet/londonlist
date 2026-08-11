@@ -254,6 +254,13 @@
   text-align: center;
 }
 
+.trialNote {
+  font-size: 0.8rem;
+  color: #555;
+  margin: 0;
+  text-align: center;
+}
+
 .proCta {
   display: flex;
   flex-direction: column;

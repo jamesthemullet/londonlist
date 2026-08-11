@@ -243,3 +243,11 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+.listDescription {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0.25rem 0 1.25rem;
+  max-width: 600px;
+}

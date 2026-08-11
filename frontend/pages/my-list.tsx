@@ -14,6 +14,7 @@ import styles from './my-list.module.css';
 type List = {
   documentId: string;
   name: string;
+  description?: string | null;
   isPublic: boolean;
   viewCount: number;
 };
@@ -27,6 +28,7 @@ const GET_MY_LISTS = gql`
     myLists {
       documentId
       name
+      description
       isPublic
       viewCount
     }
@@ -38,6 +40,7 @@ const CREATE_MY_LIST = gql`
     createMyList(name: $name) {
       documentId
       name
+      description
       isPublic
       viewCount
     }
@@ -45,10 +48,11 @@ const CREATE_MY_LIST = gql`
 `;
 
 const UPDATE_MY_LIST = gql`
-  mutation UpdateMyList($documentId: ID!, $name: String, $isPublic: Boolean) {
-    updateMyList(documentId: $documentId, name: $name, isPublic: $isPublic) {
+  mutation UpdateMyList($documentId: ID!, $name: String, $isPublic: Boolean, $description: String) {
+    updateMyList(documentId: $documentId, name: $name, isPublic: $isPublic, description: $description) {
       documentId
       name
+      description
       isPublic
       viewCount
     }
@@ -74,6 +78,8 @@ export default function MyListPage() {
   const [newListName, setNewListName] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [createListError, setCreateListError] = useState<string | null>(null);
@@ -202,6 +208,25 @@ export default function MyListPage() {
     setRenameValue('');
   };
 
+  const handleOpenDescription = () => {
+    if (!activeList) return;
+    setDescriptionValue(activeList.description ?? '');
+    setIsEditingDescription(true);
+    setIsRenaming(false);
+    setIsConfirmingDelete(false);
+  };
+
+  const handleSaveDescription = async () => {
+    const description = descriptionValue.trim() || null;
+    setIsEditingDescription(false);
+    await updateList({ variables: { documentId: activeList?.documentId, description } });
+  };
+
+  const handleCancelDescription = () => {
+    setIsEditingDescription(false);
+    setDescriptionValue('');
+  };
+
   const handleOpenDeleteConfirm = () => {
     setIsConfirmingDelete(true);
     setIsRenaming(false);
@@ -289,6 +314,7 @@ export default function MyListPage() {
               onClick={() => {
                 setActiveListId(list.documentId);
                 setIsRenaming(false);
+                setIsEditingDescription(false);
                 setIsConfirmingDelete(false);
               }}>
               {list.name}
@@ -408,6 +434,59 @@ export default function MyListPage() {
                 onToggle={handleToggleVisibility}
                 listName={activeList.name}
               />
+              {isEditingDescription ? (
+                <form
+                  className={styles.descriptionForm}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSaveDescription();
+                  }}
+                  aria-label="Edit list description"
+                >
+                  <label htmlFor="list-description" className={styles.descriptionLabel}>
+                    Description{' '}
+                    <span className={styles.descriptionHint}>
+                      ({300 - descriptionValue.length} characters remaining)
+                    </span>
+                  </label>
+                  <textarea
+                    id="list-description"
+                    value={descriptionValue}
+                    onChange={(e) => setDescriptionValue(e.target.value)}
+                    className={styles.descriptionTextarea}
+                    placeholder="Tell visitors what this list is about…"
+                    maxLength={300}
+                    rows={3}
+                  />
+                  <div className={styles.descriptionActions}>
+                    <button type="submit" className={styles.renameSave}>
+                      Save description
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.renameCancel}
+                      onClick={handleCancelDescription}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className={styles.descriptionRow}>
+                  {activeList.description ? (
+                    <p className={styles.descriptionPreview}>{activeList.description}</p>
+                  ) : (
+                    <p className={styles.descriptionEmpty}>No description yet.</p>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={handleOpenDescription}
+                  >
+                    {activeList.description ? 'Edit description' : 'Add description'}
+                  </button>
+                </div>
+              )}
             </section>
 
             <section className={styles.section}>

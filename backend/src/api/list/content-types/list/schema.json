@@ -33,6 +33,9 @@
     "viewCount": {
       "type": "integer",
       "default": 0
+    },
+    "description": {
+      "type": "text"
     }
   }
 }

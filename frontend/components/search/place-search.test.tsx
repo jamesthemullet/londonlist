@@ -197,4 +197,122 @@ describe('PlaceSearch — adding items', () => {
       expect(screen.getByText(/could not add to list/i)).toBeInTheDocument();
     });
   });
+
+  it('shows an error when the mutation returns null data', async () => {
+    mockCookieGet.mockReturnValue('test-token');
+    mockUseMutation.mockReturnValue([
+      jest.fn().mockResolvedValue({ data: { createListItem: null } }),
+      {},
+    ]);
+    mockFetch(PHOTON_RESPONSE);
+
+    render(<PlaceSearch listId="list-1" />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), {
+      target: { value: 'British Museum' },
+    });
+    await waitFor(() => screen.getByText('British Museum'));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/could not add to list/i)).toBeInTheDocument();
+    });
+  });
+});
+
+describe('PlaceSearch — search edge cases', () => {
+  it('uses "relation" osm type prefix when osm_type is R', async () => {
+    mockCookieGet.mockReturnValue('test-token');
+    const mockCreate = jest.fn().mockResolvedValue({
+      data: { createListItem: { documentId: 'r-1', name: 'River Thames' } },
+    });
+    mockUseMutation.mockReturnValue([mockCreate, {}]);
+    mockFetch({
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [-0.11, 51.5] },
+          properties: {
+            osm_id: 99001,
+            osm_type: 'R',
+            name: 'River Thames',
+            city: 'London',
+            country: 'United Kingdom',
+            osm_key: 'waterway',
+            osm_value: 'river',
+          },
+        },
+      ],
+    });
+
+    render(<PlaceSearch listId="list-1" />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Thames' } });
+    await waitFor(() => screen.getByText('River Thames'));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({ osm_id: 'relation/99001' }),
+        }),
+      );
+    });
+  });
+
+  it('shows a subtitle derived from district and city when the feature has no name', async () => {
+    mockFetch({
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [-0.12, 51.51] },
+          properties: {
+            osm_id: 99002,
+            osm_type: 'N',
+            street: '221B Baker Street',
+            district: 'Westminster',
+            city: 'London',
+            country: 'United Kingdom',
+            osm_key: 'place',
+            osm_value: 'house',
+          },
+        },
+      ],
+    });
+
+    render(<PlaceSearch />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Baker' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Westminster, London')).toBeInTheDocument();
+    });
+  });
+
+  it('shows a timeout error message when the fetch is aborted', async () => {
+    const abortError = new Error('aborted');
+    abortError.name = 'AbortError';
+    global.fetch = jest.fn().mockRejectedValue(abortError);
+
+    render(<PlaceSearch />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'museum' } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/search timed out/i)).toBeInTheDocument();
+    });
+  });
+
+  it('clears results without a timeout message on a generic fetch error', async () => {
+    mockFetch(PHOTON_RESPONSE);
+    render(<PlaceSearch />);
+    const input = screen.getByLabelText(/search for a place/i);
+    fireEvent.change(input, { target: { value: 'British Museum' } });
+    await waitFor(() => screen.getByText('British Museum'));
+
+    const networkError = new Error('Network failure');
+    global.fetch = jest.fn().mockRejectedValue(networkError);
+    fireEvent.change(input, { target: { value: 'British Museumx' } });
+
+    await waitFor(() => {
+      expect(screen.queryByText('British Museum')).not.toBeInTheDocument();
+      expect(screen.queryByText(/search timed out/i)).not.toBeInTheDocument();
+    });
+  });
 });

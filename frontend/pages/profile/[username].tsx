@@ -34,6 +34,7 @@ export function buildProfileJsonLd(
 type PublicList = {
   documentId: string;
   name: string;
+  description?: string | null;
   itemCount: number;
   completedCount: number;
 };
@@ -112,6 +113,9 @@ export default function ProfilePage({ pageState, profileData, username }: Props)
                     aria-label={`${list.name} — ${list.itemCount} places`}
                   >
                     <span className={styles.listName}>{list.name}</span>
+                    {list.description && (
+                      <span className={styles.listDescription}>{list.description}</span>
+                    )}
                     <span className={styles.listMeta}>
                       {todoCount > 0 && (
                         <span className={styles.todoCount}>{todoCount} to do</span>
