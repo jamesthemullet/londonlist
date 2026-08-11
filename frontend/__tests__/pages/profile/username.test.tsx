@@ -216,7 +216,7 @@ describe('ProfilePage — OG meta description', () => {
 });
 
 describe('buildProfileJsonLd', () => {
-  const SITE = 'https://londonlist.co.uk';
+  const SITE = 'https://londonlist.vercel.app';
   const lists = [
     { documentId: 'l1', name: 'Weekend Wanders', itemCount: 5, completedCount: 2 },
     { documentId: 'l2', name: 'Museum Trail', itemCount: 3, completedCount: 0 },
@@ -229,7 +229,7 @@ describe('buildProfileJsonLd', () => {
 
   it('sets the canonical URL from the site URL and username', () => {
     const result = buildProfileJsonLd('alice', lists, SITE) as Record<string, unknown>;
-    expect(result.url).toBe('https://londonlist.co.uk/profile/alice');
+    expect(result.url).toBe('https://londonlist.vercel.app/profile/alice');
   });
 
   it('includes the username as the Person entity name', () => {
@@ -251,8 +251,8 @@ describe('buildProfileJsonLd', () => {
   it('builds the correct list URL for each hasPart entry', () => {
     const result = buildProfileJsonLd('alice', lists, SITE) as Record<string, unknown>;
     const parts = result.hasPart as Array<Record<string, unknown>>;
-    expect(parts[0].url).toBe('https://londonlist.co.uk/list/alice/l1');
-    expect(parts[1].url).toBe('https://londonlist.co.uk/list/alice/l2');
+    expect(parts[0].url).toBe('https://londonlist.vercel.app/list/alice/l1');
+    expect(parts[1].url).toBe('https://londonlist.vercel.app/list/alice/l2');
   });
 
   it('returns an empty hasPart array when the user has no lists', () => {

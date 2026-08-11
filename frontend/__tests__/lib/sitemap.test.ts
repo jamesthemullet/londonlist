@@ -1,6 +1,6 @@
 import { buildSitemapEntries, generateSitemapXml } from '../../lib/sitemap';
 
-const SITE_URL = 'https://londonlist.co.uk';
+const SITE_URL = 'https://londonlist.vercel.app';
 
 describe('buildSitemapEntries', () => {
   it('includes the homepage entry', () => {
@@ -100,7 +100,7 @@ describe('generateSitemapXml', () => {
   it('includes the full absolute URL for each entry', () => {
     const entries = [{ loc: '/', changefreq: 'daily' as const, priority: '1.0' }];
     const xml = generateSitemapXml(entries, SITE_URL);
-    expect(xml).toContain('<loc>https://londonlist.co.uk/</loc>');
+    expect(xml).toContain('<loc>https://londonlist.vercel.app/</loc>');
   });
 
   it('includes changefreq and priority tags', () => {
@@ -144,13 +144,13 @@ describe('generateSitemapXml', () => {
     const entries = [{ loc: '/test', changefreq: 'monthly' as const, priority: '0.5' }];
     const xml = generateSitemapXml(entries, 'https://example.com');
     expect(xml).toContain('<loc>https://example.com/test</loc>');
-    expect(xml).not.toContain('londonlist.co.uk');
+    expect(xml).not.toContain('londonlist.vercel.app');
   });
 
   it('renders list page URLs correctly when built end-to-end', () => {
     const lists = [{ documentId: 'abc123', username: 'alice' }];
     const entries = buildSitemapEntries(lists);
     const xml = generateSitemapXml(entries, SITE_URL);
-    expect(xml).toContain('<loc>https://londonlist.co.uk/list/alice/abc123</loc>');
+    expect(xml).toContain('<loc>https://londonlist.vercel.app/list/alice/abc123</loc>');
   });
 });

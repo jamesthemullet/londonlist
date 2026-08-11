@@ -197,7 +197,7 @@ describe('Home page — logged-in hero', () => {
 });
 
 describe('buildWebSiteJsonLd', () => {
-  const SITE = 'https://londonlist.co.uk';
+  const SITE = 'https://londonlist.vercel.app';
 
   it('returns a schema with @context of https://schema.org', () => {
     const result = buildWebSiteJsonLd(SITE) as Record<string, unknown>;
