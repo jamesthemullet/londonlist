@@ -1,6 +1,6 @@
 import { buildSitemapEntries, generateSitemapXml } from '../../lib/sitemap';
 
-const SITE_URL = 'https://londonlist.co.uk';
+const SITE_URL = 'https://londonlist.vercel.app';
 
 describe('buildSitemapEntries', () => {
   it('includes the homepage entry', () => {
@@ -11,12 +11,21 @@ describe('buildSitemapEntries', () => {
     expect(home?.changefreq).toBe('daily');
   });
 
-  it('includes static pages (explore, register, login)', () => {
+  it('includes static pages (explore, pricing, register, login)', () => {
     const entries = buildSitemapEntries([]);
     const locs = entries.map((e) => e.loc);
     expect(locs).toContain('/explore');
+    expect(locs).toContain('/pricing');
     expect(locs).toContain('/register');
     expect(locs).toContain('/login');
+  });
+
+  it('includes the pricing page with monthly changefreq and priority 0.8', () => {
+    const entries = buildSitemapEntries([]);
+    const pricing = entries.find((e) => e.loc === '/pricing');
+    expect(pricing).toBeDefined();
+    expect(pricing?.changefreq).toBe('monthly');
+    expect(pricing?.priority).toBe('0.8');
   });
 
   it('includes a public list entry with the correct path', () => {
@@ -41,7 +50,7 @@ describe('buildSitemapEntries', () => {
 
   it('returns only static pages when the list is empty', () => {
     const entries = buildSitemapEntries([]);
-    expect(entries.length).toBe(4); // homepage, explore, register, login
+    expect(entries.length).toBe(5); // homepage, explore, pricing, register, login
   });
 
   it('returns static pages plus one profile entry and one list entry per valid list', () => {
@@ -50,7 +59,7 @@ describe('buildSitemapEntries', () => {
       { documentId: 'b', username: 'bob' },
     ];
     const entries = buildSitemapEntries(lists);
-    expect(entries.length).toBe(8); // 4 static + 2 profiles + 2 lists
+    expect(entries.length).toBe(9); // 5 static + 2 profiles + 2 lists
   });
 
   it('includes a profile entry for each unique username', () => {
@@ -91,7 +100,7 @@ describe('generateSitemapXml', () => {
   it('includes the full absolute URL for each entry', () => {
     const entries = [{ loc: '/', changefreq: 'daily' as const, priority: '1.0' }];
     const xml = generateSitemapXml(entries, SITE_URL);
-    expect(xml).toContain('<loc>https://londonlist.co.uk/</loc>');
+    expect(xml).toContain('<loc>https://londonlist.vercel.app/</loc>');
   });
 
   it('includes changefreq and priority tags', () => {
@@ -135,13 +144,13 @@ describe('generateSitemapXml', () => {
     const entries = [{ loc: '/test', changefreq: 'monthly' as const, priority: '0.5' }];
     const xml = generateSitemapXml(entries, 'https://example.com');
     expect(xml).toContain('<loc>https://example.com/test</loc>');
-    expect(xml).not.toContain('londonlist.co.uk');
+    expect(xml).not.toContain('londonlist.vercel.app');
   });
 
   it('renders list page URLs correctly when built end-to-end', () => {
     const lists = [{ documentId: 'abc123', username: 'alice' }];
     const entries = buildSitemapEntries(lists);
     const xml = generateSitemapXml(entries, SITE_URL);
-    expect(xml).toContain('<loc>https://londonlist.co.uk/list/alice/abc123</loc>');
+    expect(xml).toContain('<loc>https://londonlist.vercel.app/list/alice/abc123</loc>');
   });
 });
