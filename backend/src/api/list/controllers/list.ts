@@ -25,6 +25,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         const typedList = list as typeof list & {
           user?: { username?: string } | null;
           viewCount?: number;
+          description?: string | null;
           list_items?: { category?: string | null; completed?: boolean }[];
         };
         const items = typedList.list_items ?? [];
@@ -32,6 +33,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         return {
           documentId: list.documentId,
           name: list.name,
+          description: typedList.description ?? null,
           username: typedList.user?.username ?? null,
           viewCount: typedList.viewCount ?? 0,
           itemCount: items.length,
@@ -66,6 +68,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         return {
           documentId: list.documentId,
           name: list.name,
+          description: (list as { description?: string | null }).description ?? null,
           itemCount: items.length,
           completedCount,
         };
@@ -116,11 +119,6 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       sort: 'createdAt:desc',
     });
 
-    strapi.documents('api::list.list').update({
-      documentId: listId,
-      data: { viewCount: ((list as { viewCount?: number }).viewCount ?? 0) + 1 },
-    }).catch(() => {});
-
     return {
       data: items.map((item) => ({
         documentId: item.documentId,
@@ -135,6 +133,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       })),
       username: user.username,
       listName: list.name,
+      description: (list as { description?: string | null }).description ?? null,
       viewCount: (typedList.viewCount ?? 0) + 1,
     };
   },

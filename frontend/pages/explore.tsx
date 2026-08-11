@@ -10,6 +10,7 @@ const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 type PublicList = {
   documentId: string;
   name: string;
+  description?: string | null;
   username: string | null;
   itemCount: number;
   categories: string[];
@@ -136,6 +137,9 @@ export default function ExplorePage({ lists }: Props) {
                     className={styles.card}
                   >
                     <span className={styles.listName}>{list.name}</span>
+                    {list.description && (
+                      <span className={styles.listDescription}>{list.description}</span>
+                    )}
                     {list.username && (
                       <span className={styles.author}>by {list.username}</span>
                     )}

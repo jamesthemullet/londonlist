@@ -361,3 +361,61 @@
   color: #c724b1;
   text-decoration: underline;
 }
+
+.descriptionForm {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 480px;
+}
+
+.descriptionLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.descriptionHint {
+  font-weight: 400;
+  color: #888;
+  font-size: 0.82rem;
+}
+
+.descriptionTextarea {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #c724b1;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  line-height: 1.5;
+}
+
+.descriptionTextarea:focus {
+  box-shadow: 0 0 0 2px rgba(199, 36, 177, 0.25);
+}
+
+.descriptionActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.descriptionRow {
+  margin-top: 0.75rem;
+}
+
+.descriptionPreview {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0 0 0.5rem;
+  line-height: 1.5;
+}
+
+.descriptionEmpty {
+  font-size: 0.88rem;
+  color: #aaa;
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}

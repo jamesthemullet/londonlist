@@ -20,15 +20,15 @@
   },
   "dependencies": {
     "@strapi/plugin-graphql": "^5.0.0",
-    "@strapi/plugin-users-permissions": "5.51.0",
-    "@strapi/strapi": "5.51.0",
-    "better-sqlite3": "^12.9.0",
+    "@strapi/plugin-users-permissions": "5.51.2",
+    "@strapi/strapi": "5.51.2",
+    "better-sqlite3": "^13.0.0",
     "pg": "^8.11.2",
     "pg-connection-string": "^2.6.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.30.3",
-    "stripe": "^18.5.0",
+    "stripe": "^22.0.0",
     "styled-components": "^6.0.0"
   },
   "resolutions": {
@@ -62,7 +62,7 @@
     "uuid": "5fc86eda-9832-4cdc-9418-d20eb44bd4f5"
   },
   "engines": {
-    "node": ">=14.19.1 <=24.18.0",
+    "node": ">=14.19.1 <=24.19.0",
     "npm": ">=6.0.0"
   },
   "license": "MIT"
