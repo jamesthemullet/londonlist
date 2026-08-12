@@ -21,6 +21,7 @@ export default {
           name: String!
           isPublic: Boolean!
           viewCount: Int
+          description: String
         }
         extend type UsersPermissionsMe {
           isPro: Boolean
@@ -29,8 +30,8 @@ export default {
           myLists: [ListEntity]
         }
         extend type Mutation {
-          createMyList(name: String!): ListEntity
-          updateMyList(documentId: ID!, name: String, isPublic: Boolean): ListEntity
+          createMyList(name: String!, description: String): ListEntity
+          updateMyList(documentId: ID!, name: String, isPublic: Boolean, description: String): ListEntity
           deleteMyList(documentId: ID!): Boolean
         }
       `,
@@ -197,7 +198,7 @@ export default {
               }
 
               const newList = await strapi.documents('api::list.list').create({
-                data: { name: args.name, isPublic: false, user: user.id },
+                data: { name: args.name, description: args.description ?? null, isPublic: false, user: user.id },
               });
 
               // On first list creation, migrate any pre-existing unassigned items into it
@@ -227,6 +228,7 @@ export default {
               const updateData: Record<string, unknown> = {};
               if (args.name !== undefined) updateData.name = args.name;
               if (args.isPublic !== undefined) updateData.isPublic = args.isPublic;
+              if (args.description !== undefined) updateData.description = args.description;
 
               return strapi.documents('api::list.list').update({
                 documentId: args.documentId,

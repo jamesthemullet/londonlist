@@ -8,6 +8,31 @@ import styles from './index.module.css';
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
 
+export function buildWebSiteJsonLd(siteUrl: string): object {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        name: 'London List',
+        url: siteUrl,
+        description:
+          'Build your London bucket list. Add places to visit, track your adventures, and share curated lists with friends.',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${siteUrl}/explore?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      {
+        '@type': 'Organization',
+        name: 'London List',
+        url: siteUrl,
+      },
+    ],
+  };
+}
+
 type PublicList = {
   documentId: string;
   name: string;
@@ -66,6 +91,10 @@ export default function Home() {
           name="twitter:description"
           content="Add places, track visits, and share your London adventures. Free to use."
         />
+        {buildWebSiteJsonLd(SITE_URL) && (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebSiteJsonLd(SITE_URL)) }} />
+        )}
       </Head>
       <main className={styles.main}>
         {user ? (

@@ -11,19 +11,35 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
 
     const lists = await strapi.documents('api::list.list').findMany({
       filters: { isPublic: { $eq: true } },
-      populate: ['user'],
+      populate: {
+        user: true,
+        list_items: { fields: ['category', 'completed'] },
+      },
       sort: 'createdAt:desc',
       limit: safePageSize,
       offset: (Number(page) - 1) * safePageSize,
     });
 
     return {
-      data: lists.map((list) => ({
-        documentId: list.documentId,
-        name: list.name,
-        username: (list as { user?: { username?: string } | null }).user?.username ?? null,
-        viewCount: (list as { viewCount?: number }).viewCount ?? 0,
-      })),
+      data: lists.map((list) => {
+        const typedList = list as typeof list & {
+          user?: { username?: string } | null;
+          viewCount?: number;
+          description?: string | null;
+          list_items?: { category?: string | null; completed?: boolean }[];
+        };
+        const items = typedList.list_items ?? [];
+        const categories = [...new Set(items.map((i) => i.category).filter((c): c is string => Boolean(c)))];
+        return {
+          documentId: list.documentId,
+          name: list.name,
+          description: typedList.description ?? null,
+          username: typedList.user?.username ?? null,
+          viewCount: typedList.viewCount ?? 0,
+          itemCount: items.length,
+          categories,
+        };
+      }),
     };
   },
 
@@ -52,6 +68,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
         return {
           documentId: list.documentId,
           name: list.name,
+          description: (list as { description?: string | null }).description ?? null,
           itemCount: items.length,
           completedCount,
         };
@@ -102,11 +119,6 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       sort: 'createdAt:desc',
     });
 
-    strapi.documents('api::list.list').update({
-      documentId: listId,
-      data: { viewCount: ((list as { viewCount?: number }).viewCount ?? 0) + 1 },
-    }).catch(() => {});
-
     return {
       data: items.map((item) => ({
         documentId: item.documentId,
@@ -121,6 +133,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
       })),
       username: user.username,
       listName: list.name,
+      description: (list as { description?: string | null }).description ?? null,
       viewCount: (typedList.viewCount ?? 0) + 1,
     };
   },
