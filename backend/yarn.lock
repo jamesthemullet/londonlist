@@ -10352,9 +10352,9 @@ strip-json-comments@~2.0.1:
   integrity sha512-4gB8na07fecVVkOI6Rs4e7T6NOTki5EmL7TUduTs6bu3EdnSycntVJ4re8kgZA+wx9IueI2Y11bfbgwtzuE0KQ==
 
 stripe@^22.0.0:
-  version "22.4.0"
-  resolved "https://registry.yarnpkg.com/stripe/-/stripe-22.4.0.tgz#f82873c14743927f2b70fcc30f548a9eaacb843f"
-  integrity sha512-LVJ+tcSYeqOSnXr3i+Kz2tZ7y0crLLdP2uwD/4wccrmEVyn0g/Heo0pF7as7rxS/sOjJzrb1lxgZY0Y0Dx1pSA==
+  version "22.5.0"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-22.5.0.tgz#78efe2b9ebcb167da966c356138f2f5ceb3f443e"
+  integrity sha512-QVwMwriC0bbySx6R4dpsvJ0W//GojC1kwWVS6rPSoVqDUIZX4Hy3TaUrd2AZeXEAaKbfWIjQjvo3vKAReHZ0vQ==
 
 strtok3@^10.3.4:
   version "10.3.5"
