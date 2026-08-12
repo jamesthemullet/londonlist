@@ -13,7 +13,7 @@ import type { MapItem } from '../../../components/map/list-map';
 
 const ListMap = dynamic(() => import('../../../components/map/list-map'), { ssr: false });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/images/temp-seo-image.jpg`;
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
