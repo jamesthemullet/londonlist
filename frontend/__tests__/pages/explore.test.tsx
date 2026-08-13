@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ExplorePage from '../../pages/explore';
+import ExplorePage, { deriveAllCategories } from '../../pages/explore';
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -31,9 +31,27 @@ import { useAppContext } from '../../context/AppContext';
 const mockUseAppContext = useAppContext as jest.Mock;
 
 const LISTS = [
-  { documentId: 'doc-1', name: 'Weekend Wanders', username: 'alice' },
-  { documentId: 'doc-2', name: 'Museum Trail', username: 'bob' },
-  { documentId: 'doc-3', name: 'Hidden Gems', username: 'alice' },
+  {
+    documentId: 'doc-1',
+    name: 'Weekend Wanders',
+    username: 'alice',
+    itemCount: 5,
+    categories: ['park', 'museum'],
+  },
+  {
+    documentId: 'doc-2',
+    name: 'Museum Trail',
+    username: 'bob',
+    itemCount: 8,
+    categories: ['museum'],
+  },
+  {
+    documentId: 'doc-3',
+    name: 'Hidden Gems',
+    username: 'alice',
+    itemCount: 3,
+    categories: ['restaurant', 'cafe'],
+  },
 ];
 
 beforeEach(() => {
@@ -85,6 +103,118 @@ describe('ExplorePage — rendering', () => {
   });
 });
 
+describe('ExplorePage — item counts', () => {
+  it('shows item count on each card', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByText('5 places')).toBeInTheDocument();
+    expect(screen.getByText('8 places')).toBeInTheDocument();
+    expect(screen.getByText('3 places')).toBeInTheDocument();
+  });
+
+  it('shows singular "place" when item count is 1', () => {
+    const singleItem = [{ ...LISTS[0], itemCount: 1, categories: [] }];
+    render(<ExplorePage lists={singleItem} />);
+    expect(screen.getByText('1 place')).toBeInTheDocument();
+  });
+
+  it('does not show item count for lists with 0 items', () => {
+    const emptyList = [{ ...LISTS[0], itemCount: 0, categories: [] }];
+    render(<ExplorePage lists={emptyList} />);
+    expect(screen.queryByText(/place/)).not.toBeInTheDocument();
+  });
+
+  it('shows category list on each card', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByText('park · museum')).toBeInTheDocument();
+    // "museum" appears in both a chip button and the Museum Trail card; both should be present
+    expect(screen.getAllByText('museum').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('restaurant · cafe')).toBeInTheDocument();
+  });
+
+  it('caps displayed categories at 4', () => {
+    const manyCategories = [
+      {
+        ...LISTS[0],
+        categories: ['restaurant', 'cafe', 'park', 'museum', 'bar'],
+      },
+    ];
+    render(<ExplorePage lists={manyCategories} />);
+    expect(screen.getByText('restaurant · cafe · park · museum')).toBeInTheDocument();
+  });
+
+  it('does not show category line when categories array is empty', () => {
+    const noCategories = [{ ...LISTS[0], categories: [] }];
+    render(<ExplorePage lists={noCategories} />);
+    // No category text like "park · museum" should appear in a card
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument();
+  });
+});
+
+describe('ExplorePage — category filter', () => {
+  it('renders category filter chips', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'museum' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'park' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'restaurant' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'cafe' })).toBeInTheDocument();
+  });
+
+  it('does not render category filter when no lists have categories', () => {
+    const noCatLists = LISTS.map((l) => ({ ...l, categories: [] }));
+    render(<ExplorePage lists={noCatLists} />);
+    expect(screen.queryByRole('button', { name: 'All' })).not.toBeInTheDocument();
+  });
+
+  it('filters lists by category when a chip is clicked', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    expect(screen.getByText('Weekend Wanders')).toBeInTheDocument();
+    expect(screen.getByText('Museum Trail')).toBeInTheDocument();
+    expect(screen.queryByText('Hidden Gems')).not.toBeInTheDocument();
+  });
+
+  it('shows all lists when "All" chip is clicked', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    fireEvent.click(screen.getByRole('button', { name: 'All' }));
+    expect(screen.getByText('Weekend Wanders')).toBeInTheDocument();
+    expect(screen.getByText('Museum Trail')).toBeInTheDocument();
+    expect(screen.getByText('Hidden Gems')).toBeInTheDocument();
+  });
+
+  it('deselects a category chip when clicked again', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    expect(screen.queryByText('Hidden Gems')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    expect(screen.getByText('Hidden Gems')).toBeInTheDocument();
+  });
+
+  it('shows no-match message when category filter + search have no results', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'park' }));
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'museum' } });
+    expect(screen.getByText(/no lists match your filters/i)).toBeInTheDocument();
+  });
+
+  it('combines category filter and text search correctly', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'weekend' } });
+    expect(screen.getByText('Weekend Wanders')).toBeInTheDocument();
+    expect(screen.queryByText('Museum Trail')).not.toBeInTheDocument();
+  });
+
+  it('updates count correctly after category filter', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    expect(screen.getByText('2 lists')).toBeInTheDocument();
+  });
+});
+
 describe('ExplorePage — search', () => {
   it('filters list cards by name', () => {
     render(<ExplorePage lists={LISTS} />);
@@ -114,7 +244,7 @@ describe('ExplorePage — search', () => {
     render(<ExplorePage lists={LISTS} />);
     const input = screen.getByRole('searchbox');
     fireEvent.change(input, { target: { value: 'zzznomatch' } });
-    expect(screen.getByText(/no lists match/i)).toBeInTheDocument();
+    expect(screen.getByText(/no lists match your filters/i)).toBeInTheDocument();
     expect(screen.queryByText('Weekend Wanders')).not.toBeInTheDocument();
   });
 
@@ -153,5 +283,26 @@ describe('ExplorePage — conversion CTA', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: false });
     render(<ExplorePage lists={LISTS} />);
     expect(screen.queryByText(/build your own list/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('deriveAllCategories', () => {
+  it('returns sorted unique categories from all lists', () => {
+    const result = deriveAllCategories(LISTS);
+    expect(result).toEqual(['cafe', 'museum', 'park', 'restaurant']);
+  });
+
+  it('deduplicates categories that appear in multiple lists', () => {
+    const result = deriveAllCategories(LISTS);
+    expect(result.filter((c) => c === 'museum')).toHaveLength(1);
+  });
+
+  it('returns empty array when no lists have categories', () => {
+    const noCats = LISTS.map((l) => ({ ...l, categories: [] }));
+    expect(deriveAllCategories(noCats)).toEqual([]);
+  });
+
+  it('returns empty array for empty list', () => {
+    expect(deriveAllCategories([])).toEqual([]);
   });
 });
