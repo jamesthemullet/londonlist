@@ -161,3 +161,46 @@
   color: #888;
   white-space: nowrap;
 }
+
+.proNudge {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+}
+
+.proNudgeText {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #555;
+}
+
+.proNudgeLink {
+  color: #111;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.proNudgeLink:hover {
+  color: #333;
+}
+
+@media (prefers-color-scheme: dark) {
+  .proNudge {
+    background: #1a1a1a;
+    border-color: #333;
+  }
+
+  .proNudgeText {
+    color: #aaa;
+  }
+
+  .proNudgeLink {
+    color: #eee;
+  }
+
+  .proNudgeLink:hover {
+    color: #fff;
+  }
+}
