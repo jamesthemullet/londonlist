@@ -20,7 +20,7 @@ jobs:
       - run: yarn install
       - name: Get Chromium version 🌐
         run: |
-          CHROMIUM_VERSION=$(wget -qO- https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE | cut -d. -f1)
+          CHROMIUM_VERSION=$(wget -qO- https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE)
           echo "Chromium version: $CHROMIUM_VERSION"
           echo "CHROMIUM_VERSION=$CHROMIUM_VERSION" >> $GITHUB_ENV
       - name: Setup Chrome 🌐
@@ -29,9 +29,13 @@ jobs:
         with:
           chrome-version: ${{ env.CHROMIUM_VERSION }}
       - name: Install chromedriver 🚗
+        working-directory: /tmp
         run: |
-          echo "Installing chromedriver version: $CHROMIUM_VERSION"
-          yarn add chromedriver@$CHROMIUM_VERSION
+          echo "Downloading chromedriver for Chrome ${CHROMIUM_VERSION}"
+          wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROMIUM_VERSION}/linux64/chromedriver-linux64.zip"
+          unzip -o -q chromedriver-linux64.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
           echo "chromedriver version: $(chromedriver --version)"
       - run: yarn ts-check
       - run: yarn run build
@@ -39,6 +43,4 @@ jobs:
       - name: Run axe
         run: |
           yarn add @axe-core/cli
-          CHROMIUM_VERSION=$(google-chrome --version | cut -d' ' -f3 | cut -d'.' -f1)
-          yarn add chromedriver@$CHROMIUM_VERSION
-          npx axe --chromedriver-path $(yarn bin)/chromedriver http://localhost:3000/ --load-delay=1500 --exit
+          npx axe --chromedriver-path /usr/local/bin/chromedriver http://localhost:3000/ --load-delay=1500 --exit
