@@ -18,24 +18,18 @@ jobs:
         with:
           node-version: 24.x
       - run: yarn install
-      - name: Get installed Chrome version 🌐
+      - name: Install ChromeDriver matching system Chrome 🌐
         run: |
-          CHROMIUM_VERSION=$(google-chrome --version | awk '{print $3}')
-          echo "Chromium version: $CHROMIUM_VERSION"
-          echo "CHROMIUM_VERSION=$CHROMIUM_VERSION" >> $GITHUB_ENV
-      - name: Install matching chromedriver 🚗
-        working-directory: /tmp
-        run: |
-          echo "Downloading chromedriver for Chrome ${CHROMIUM_VERSION}"
-          wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROMIUM_VERSION}/linux64/chromedriver-linux64.zip"
-          unzip -o -q chromedriver-linux64.zip
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-          sudo chmod +x /usr/local/bin/chromedriver
-          echo "chromedriver version: $(chromedriver --version)"
+          CHROME_FULL_VERSION=$(google-chrome --version | sed 's/Google Chrome //' | xargs)
+          echo "System Chrome version: $CHROME_FULL_VERSION"
+          wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_FULL_VERSION}/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip
+          unzip -q /tmp/chromedriver.zip -d /tmp/
+          chmod +x /tmp/chromedriver-linux64/chromedriver
+          echo "CHROMEDRIVER_PATH=/tmp/chromedriver-linux64/chromedriver" >> $GITHUB_ENV
       - run: yarn ts-check
       - run: yarn run build
       - run: yarn dev & npx wait-on http://localhost:3000
       - name: Run axe
         run: |
           yarn add @axe-core/cli
-          npx axe --chromedriver-path /usr/local/bin/chromedriver http://localhost:3000/ --load-delay=1500 --exit
+          npx axe --chromedriver-path "$CHROMEDRIVER_PATH" http://localhost:3000/ --load-delay=1500 --exit

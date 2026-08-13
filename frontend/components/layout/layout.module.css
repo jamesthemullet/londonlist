@@ -22,9 +22,11 @@
   padding: 1rem 2rem;
   background-color: #333;
   color: white;
+  position: relative;
+  z-index: 100;
 }
 
-.nav > div:first-child {
+.navBrand {
   display: flex;
   align-items: center;
   gap: 1.25rem;
@@ -49,6 +51,36 @@
   gap: 1rem;
 }
 
+/* Hamburger button — hidden on desktop */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0;
+}
+
+.hamburgerLine {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: white;
+  border-radius: 2px;
+  transition: opacity 0.2s;
+}
+
+/* Desktop: show nav menu inline, hide hamburger */
+.navMenu {
+  display: block;
+}
+
 .wrapper {
   display: flex;
   flex-direction: column;
@@ -63,4 +95,49 @@
   max-width: 1200px;
   width: 100%;
   margin: 0 auto 2rem;
+}
+
+/* Mobile breakpoint */
+@media (max-width: 768px) {
+  .nav {
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+  }
+
+  .navBrand {
+    flex: 1;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .navMenu {
+    display: none;
+    width: 100%;
+    padding: 0.5rem 0 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    margin-top: 0.5rem;
+  }
+
+  .navMenuOpen {
+    display: block;
+  }
+
+  .navLinks {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .navLinks a,
+  .navLinks span,
+  .navLinks button {
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav button {
+    margin-left: 0;
+  }
 }
