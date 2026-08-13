@@ -40,6 +40,12 @@ const mockCookieSet = (Cookie as unknown as { set: jest.Mock }).set;
 const mockPush = jest.fn();
 const mockSetUser = jest.fn();
 
+async function fillForm(username: string, email: string, password: string) {
+  if (username) await userEvent.type(screen.getByLabelText('Username'), username);
+  if (email) await userEvent.type(screen.getByLabelText('Email'), email);
+  if (password) await userEvent.type(screen.getByLabelText('Password'), password);
+}
+
 beforeEach(() => {
   mockPush.mockReset();
   mockSetUser.mockReset();
@@ -59,6 +65,11 @@ describe('RegisterRoute — rendering', () => {
     expect(screen.getByRole('heading', { name: 'Sign Up' })).toBeInTheDocument();
   });
 
+  it('renders the username field', () => {
+    render(<RegisterRoute />);
+    expect(screen.getByLabelText('Username')).toBeInTheDocument();
+  });
+
   it('renders the email field', () => {
     render(<RegisterRoute />);
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
@@ -74,9 +85,64 @@ describe('RegisterRoute — rendering', () => {
     expect(screen.getByRole('button', { name: 'Sign Up' })).toBeInTheDocument();
   });
 
-  it('submit button is initially disabled when email is empty', () => {
+  it('shows a username format hint', () => {
+    render(<RegisterRoute />);
+    expect(screen.getByText(/3.20 characters/i)).toBeInTheDocument();
+  });
+});
+
+describe('RegisterRoute — form validation', () => {
+  it('submit button is initially disabled when all fields are empty', () => {
     render(<RegisterRoute />);
     expect(screen.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+  });
+
+  it('submit button is disabled when only username is filled', async () => {
+    render(<RegisterRoute />);
+    await userEvent.type(screen.getByLabelText('Username'), 'londonexplorer');
+    expect(screen.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+  });
+
+  it('submit button is disabled when username is too short', async () => {
+    render(<RegisterRoute />);
+    await fillForm('ab', 'user@example.com', 'password123');
+    expect(screen.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+  });
+
+  it('submit button is disabled when username has invalid characters', async () => {
+    render(<RegisterRoute />);
+    await fillForm('hello world', 'user@example.com', 'password123');
+    expect(screen.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+  });
+
+  it('submit button is disabled when username is too long', async () => {
+    render(<RegisterRoute />);
+    await fillForm('a'.repeat(21), 'user@example.com', 'password123');
+    expect(screen.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+  });
+
+  it('submit button is disabled when email is invalid', async () => {
+    render(<RegisterRoute />);
+    await fillForm('londonexplorer', 'notanemail', 'password123');
+    expect(screen.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+  });
+
+  it('submit button is disabled when password is too short', async () => {
+    render(<RegisterRoute />);
+    await fillForm('londonexplorer', 'user@example.com', 'short');
+    expect(screen.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+  });
+
+  it('submit button is enabled when all fields are valid', async () => {
+    render(<RegisterRoute />);
+    await fillForm('londonexplorer', 'user@example.com', 'password123');
+    expect(screen.getByRole('button', { name: 'Sign Up' })).toBeEnabled();
+  });
+
+  it('accepts usernames with underscores and hyphens', async () => {
+    render(<RegisterRoute />);
+    await fillForm('london_explorer-99', 'user@example.com', 'password123');
+    expect(screen.getByRole('button', { name: 'Sign Up' })).toBeEnabled();
   });
 });
 
@@ -107,7 +173,13 @@ describe('RegisterRoute — error state', () => {
 
 describe('RegisterRoute — successful registration', () => {
   it('calls setUser and redirects to / after successful registration', async () => {
-    const fakeUser = { id: '1', documentId: 'doc-1', username: 'bob@test.com', email: 'bob@test.com' };
+    const fakeUser = {
+      id: '1',
+      documentId: 'doc-1',
+      username: 'londonexplorer',
+      email: 'bob@test.com',
+      isPro: false,
+    };
     const mockRegister = jest.fn().mockResolvedValue({
       data: { register: { jwt: 'reg-jwt', user: fakeUser } },
     });
@@ -115,8 +187,7 @@ describe('RegisterRoute — successful registration', () => {
 
     render(<RegisterRoute />);
 
-    await userEvent.type(screen.getByLabelText('Email'), 'bob@test.com');
-    await userEvent.type(screen.getByLabelText('Password'), 'password123');
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
     await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
 
     await waitFor(() => {
@@ -125,8 +196,14 @@ describe('RegisterRoute — successful registration', () => {
     });
   });
 
-  it('stores the JWT in a cookie after successful registration', async () => {
-    const fakeUser = { id: '1', documentId: 'doc-1', username: 'bob@test.com', email: 'bob@test.com' };
+  it('calls the mutation with the chosen username, not the email address', async () => {
+    const fakeUser = {
+      id: '1',
+      documentId: 'doc-1',
+      username: 'londonexplorer',
+      email: 'bob@test.com',
+      isPro: false,
+    };
     const mockRegister = jest.fn().mockResolvedValue({
       data: { register: { jwt: 'reg-jwt', user: fakeUser } },
     });
@@ -134,8 +211,32 @@ describe('RegisterRoute — successful registration', () => {
 
     render(<RegisterRoute />);
 
-    await userEvent.type(screen.getByLabelText('Email'), 'bob@test.com');
-    await userEvent.type(screen.getByLabelText('Password'), 'password123');
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
+
+    await waitFor(() => {
+      expect(mockRegister).toHaveBeenCalledWith({
+        variables: { username: 'londonexplorer', email: 'bob@test.com', password: 'password123' },
+      });
+    });
+  });
+
+  it('stores the JWT in a cookie after successful registration', async () => {
+    const fakeUser = {
+      id: '1',
+      documentId: 'doc-1',
+      username: 'londonexplorer',
+      email: 'bob@test.com',
+      isPro: false,
+    };
+    const mockRegister = jest.fn().mockResolvedValue({
+      data: { register: { jwt: 'reg-jwt', user: fakeUser } },
+    });
+    mockUseMutation.mockReturnValue([mockRegister, { loading: false, error: null }]);
+
+    render(<RegisterRoute />);
+
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
     await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
 
     await waitFor(() => {
