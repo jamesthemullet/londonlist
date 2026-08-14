@@ -315,4 +315,146 @@ describe('PlaceSearch — search edge cases', () => {
       expect(screen.queryByText(/search timed out/i)).not.toBeInTheDocument();
     });
   });
+
+  it('handles a Photon response with no features array', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      json: () => Promise.resolve({}),
+    } as Response);
+    render(<PlaceSearch />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'xyz' } });
+    await waitFor(() => {
+      const matches = screen.getAllByText(/no places found/i);
+      expect(matches.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('renders an empty name when both name and street are absent', async () => {
+    mockFetch({
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [-0.12, 51.51] },
+          properties: {
+            osm_id: 99003,
+            osm_type: 'N',
+            district: 'Southwark',
+            city: 'London',
+            country: 'United Kingdom',
+            osm_key: 'place',
+            osm_value: 'neighbourhood',
+          },
+        },
+      ],
+    });
+    render(<PlaceSearch />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Sou' } });
+    await waitFor(() => {
+      expect(screen.getByText('neighbourhood')).toBeInTheDocument();
+    });
+  });
+
+  it('deduplicates features with the same osm_type and osm_id', async () => {
+    mockFetch({ features: [PHOTON_RESPONSE.features[0], { ...PHOTON_RESPONSE.features[0] }] });
+    render(<PlaceSearch />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Bri' } });
+    await waitFor(() => {
+      expect(screen.getAllByText('British Museum')).toHaveLength(1);
+    });
+  });
+
+  it('passes an empty string as category when osm_value and osm_key are both absent', async () => {
+    mockCookieGet.mockReturnValue('test-token');
+    const mockCreate = jest.fn().mockResolvedValue({
+      data: { createListItem: { documentId: 'nc-1', name: 'Unnamed Place' } },
+    });
+    mockUseMutation.mockReturnValue([mockCreate, {}]);
+    mockFetch({
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [-0.13, 51.5] },
+          properties: {
+            osm_id: 99004,
+            osm_type: 'W' as const,
+            name: 'Unnamed Place',
+            city: 'London',
+            country: 'United Kingdom',
+          },
+        },
+      ],
+    });
+    render(<PlaceSearch listId="list-1" />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Unna' } });
+    await waitFor(() => screen.getByText('Unnamed Place'));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({ category: '' }),
+        }),
+      );
+    });
+  });
+
+  it('announces plural result count in the aria-live region when there are multiple results', async () => {
+    const secondFeature = {
+      type: 'Feature' as const,
+      geometry: { type: 'Point' as const, coordinates: [-0.13, 51.51] as [number, number] },
+      properties: {
+        osm_id: 99005,
+        osm_type: 'W' as const,
+        name: 'Victoria and Albert Museum',
+        city: 'London',
+        country: 'United Kingdom',
+        osm_key: 'tourism',
+        osm_value: 'museum',
+      },
+    };
+    mockFetch({ features: [...PHOTON_RESPONSE.features, secondFeature] });
+    render(<PlaceSearch />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Mus' } });
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('2 results found');
+    });
+  });
+
+  it('falls back to lowercased osm_type as key prefix for unrecognised osm types', async () => {
+    mockCookieGet.mockReturnValue('test-token');
+    const mockCreate = jest.fn().mockResolvedValue({
+      data: { createListItem: { documentId: 'x-1', name: 'Mystery Place' } },
+    });
+    mockUseMutation.mockReturnValue([mockCreate, {}]);
+    mockFetch({
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [-0.12, 51.5] },
+          properties: {
+            osm_id: 55555,
+            osm_type: 'X' as 'N',
+            name: 'Mystery Place',
+            city: 'London',
+            country: 'United Kingdom',
+            osm_key: 'place',
+            osm_value: 'unknown',
+          },
+        },
+      ],
+    });
+
+    render(<PlaceSearch listId="list-1" />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), {
+      target: { value: 'Mystery' },
+    });
+    await waitFor(() => screen.getByText('Mystery Place'));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({ osm_id: 'x/55555' }),
+        }),
+      );
+    });
+  });
 });

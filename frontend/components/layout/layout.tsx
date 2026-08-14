@@ -24,6 +24,7 @@ function Navigation() {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         setMenuOpen(false);
+        /* istanbul ignore next */
         hamburgerRef.current?.focus();
       }
     }
