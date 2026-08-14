@@ -243,7 +243,7 @@ export function ListItemRow({ item, onToggle, onDelete, onSaveNotes }: ListItemR
           {item.category && <span className={styles.category}>{item.category}</span>}
         </label>
         {visitedLabel && (
-          <time className={styles.visitedAt} dateTime={item.visitedAt ?? ''}>
+          <time className={styles.visitedAt} dateTime={item.visitedAt as string}>
             {visitedLabel}
           </time>
         )}
@@ -282,7 +282,7 @@ export function ListItemRow({ item, onToggle, onDelete, onSaveNotes }: ListItemR
               type="button"
               className={styles.notesText}
               onClick={() => {
-                setDraftNotes(item.notes ?? '');
+                setDraftNotes(item.notes as string);
                 setEditingNotes(true);
               }}
               aria-label={`Edit note for ${item.name}`}>

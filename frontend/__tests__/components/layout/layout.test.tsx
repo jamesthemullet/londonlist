@@ -215,6 +215,16 @@ describe('Layout — Hamburger menu', () => {
     expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('does not close the menu when a non-Escape key is pressed', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+  });
+
   it('closes the menu when a nav link is clicked', () => {
     render(<Layout>x</Layout>);
     const hamburger = screen.getByRole('button', { name: /open menu/i });
@@ -251,6 +261,14 @@ describe('Layout — Hamburger menu', () => {
     fireEvent.click(hamburger);
     fireEvent.click(screen.getByRole('link', { name: /sign up/i }));
     expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
+describe('Layout — currentUrl fallback', () => {
+  it('renders without error when router.asPath is undefined', () => {
+    mockUseRouter.mockReturnValue({ asPath: undefined, push: mockPush });
+    render(<Layout><span>child</span></Layout>);
+    expect(screen.getByText('child')).toBeInTheDocument();
   });
 });
 
