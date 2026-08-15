@@ -1136,3 +1136,153 @@ describe('PublicListPage — item notes', () => {
     expect(screen.getByText('Second tip')).toBeInTheDocument();
   });
 });
+
+// ─── More by author section ───────────────────────────────────────────────
+
+describe('PublicListPage — more lists by author', () => {
+  const listData = {
+    data: [TODO_ITEM],
+    username: 'alice',
+    listName: 'Weekend Wanders',
+  };
+
+  const OTHER_LISTS = [
+    { documentId: 'list-2', name: 'Hidden Pubs', itemCount: 5 },
+    { documentId: 'list-3', name: 'Museum Trail', itemCount: 1 },
+  ];
+
+  it('renders the "More by" section heading when otherLists is non-empty', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        otherLists={OTHER_LISTS}
+      />,
+    );
+    expect(screen.getByRole('heading', { name: /More by alice/i })).toBeInTheDocument();
+  });
+
+  it('does not render the "More by" section when otherLists is empty', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        otherLists={[]}
+      />,
+    );
+    expect(screen.queryByRole('heading', { name: /More by/i })).not.toBeInTheDocument();
+  });
+
+  it('does not render the "More by" section when otherLists is not provided', () => {
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+    expect(screen.queryByRole('heading', { name: /More by/i })).not.toBeInTheDocument();
+  });
+
+  it('renders a link for each other list', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        otherLists={OTHER_LISTS}
+      />,
+    );
+    expect(screen.getByRole('link', { name: /Hidden Pubs/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Museum Trail/ })).toBeInTheDocument();
+  });
+
+  it('links each card to the correct list URL', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        otherLists={OTHER_LISTS}
+      />,
+    );
+    expect(screen.getByRole('link', { name: /Hidden Pubs/ })).toHaveAttribute(
+      'href',
+      '/list/alice/list-2',
+    );
+    expect(screen.getByRole('link', { name: /Museum Trail/ })).toHaveAttribute(
+      'href',
+      '/list/alice/list-3',
+    );
+  });
+
+  it('shows the place count for lists with items', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        otherLists={OTHER_LISTS}
+      />,
+    );
+    expect(screen.getByText('5 places')).toBeInTheDocument();
+    expect(screen.getByText('1 place')).toBeInTheDocument();
+  });
+
+  it('hides the place count for lists with 0 items', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        otherLists={[{ documentId: 'list-4', name: 'Empty List', itemCount: 0 }]}
+      />,
+    );
+    expect(screen.queryByText('0 places')).not.toBeInTheDocument();
+  });
+
+  it('uses singular "place" for a single-item list', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        otherLists={[{ documentId: 'list-5', name: 'Solo Pick', itemCount: 1 }]}
+      />,
+    );
+    expect(screen.getByText('1 place')).toBeInTheDocument();
+    expect(screen.queryByText('1 places')).not.toBeInTheDocument();
+  });
+
+  it('renders the section with aria-label for accessibility', () => {
+    const { container } = render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        otherLists={OTHER_LISTS}
+      />,
+    );
+    const section = container.querySelector('section[aria-label]');
+    expect(section).toHaveAttribute('aria-label', 'More lists by alice');
+  });
+
+  it('does not render the "More by" section when pageState is not_found', () => {
+    render(
+      <PublicListPage
+        pageState="not_found"
+        listData={null}
+        username="alice"
+        listId="list-abc"
+        otherLists={OTHER_LISTS}
+      />,
+    );
+    expect(screen.queryByRole('heading', { name: /More by/i })).not.toBeInTheDocument();
+  });
+});
