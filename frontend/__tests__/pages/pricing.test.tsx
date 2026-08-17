@@ -130,12 +130,18 @@ describe('PricingPage — features', () => {
   it('renders key free tier features', () => {
     render(<PricingPage />);
     expect(screen.getByText('Up to 3 lists')).toBeInTheDocument();
-    expect(screen.getByText('Public & private lists')).toBeInTheDocument();
+    expect(screen.getByText('Public lists')).toBeInTheDocument();
+  });
+
+  it('does not list private lists as a free feature', () => {
+    render(<PricingPage />);
+    expect(screen.queryByText('Public & private lists')).not.toBeInTheDocument();
   });
 
   it('renders key pro tier features', () => {
     render(<PricingPage />);
     expect(screen.getByText('Unlimited lists')).toBeInTheDocument();
+    expect(screen.getByText('Private lists')).toBeInTheDocument();
     expect(screen.getByText('View counts on your public lists')).toBeInTheDocument();
   });
 });

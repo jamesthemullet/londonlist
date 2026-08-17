@@ -5,6 +5,23 @@ jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
 }));
 
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  ),
+}));
+
 import { useAppContext } from '../../context/AppContext';
 const mockUseAppContext = useAppContext as jest.Mock;
 
@@ -13,7 +30,10 @@ const LOGGED_IN_USER = {
   documentId: 'u1',
   email: 'alice@example.com',
   username: 'alice',
+  isPro: false,
 };
+
+const PRO_USER = { ...LOGGED_IN_USER, isPro: true };
 
 // jsdom provides window.location.origin as "http://localhost"
 const EXPECTED_ORIGIN = 'http://localhost';
@@ -172,6 +192,99 @@ describe('ListVisibilityToggle — share URL', () => {
       />,
     );
 
-    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /alice\/list-abc/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('ListVisibilityToggle — Pro gating for private lists', () => {
+  it('shows an upgrade prompt when a free user tries to make a public list private', () => {
+    mockUseAppContext.mockReturnValue({ user: LOGGED_IN_USER, setUser: jest.fn(), initialized: true });
+    const onToggle = jest.fn();
+
+    render(
+      <ListVisibilityToggle
+        listDocumentId="list-1"
+        isPublic={true}
+        onToggle={onToggle}
+        listName="Weekend Wanders"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox'));
+
+    expect(screen.getByText(/private lists are a pro feature/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /upgrade to pro/i })).toHaveAttribute('href', '/pricing');
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
+  it('does not call onToggle when a free user tries to make a public list private', () => {
+    mockUseAppContext.mockReturnValue({ user: LOGGED_IN_USER, setUser: jest.fn(), initialized: true });
+    const onToggle = jest.fn();
+
+    render(
+      <ListVisibilityToggle
+        listDocumentId="list-1"
+        isPublic={true}
+        onToggle={onToggle}
+        listName="Weekend Wanders"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox'));
+
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
+  it('calls onToggle normally when a Pro user makes a public list private', () => {
+    mockUseAppContext.mockReturnValue({ user: PRO_USER, setUser: jest.fn(), initialized: true });
+    const onToggle = jest.fn();
+
+    render(
+      <ListVisibilityToggle
+        listDocumentId="list-1"
+        isPublic={true}
+        onToggle={onToggle}
+        listName="Weekend Wanders"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox'));
+
+    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/private lists are a pro feature/i)).not.toBeInTheDocument();
+  });
+
+  it('allows a free user to make a private list public without any gating', () => {
+    mockUseAppContext.mockReturnValue({ user: LOGGED_IN_USER, setUser: jest.fn(), initialized: true });
+    const onToggle = jest.fn();
+
+    render(
+      <ListVisibilityToggle
+        listDocumentId="list-1"
+        isPublic={false}
+        onToggle={onToggle}
+        listName="Weekend Wanders"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox'));
+
+    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/private lists are a pro feature/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show the upgrade prompt initially', () => {
+    mockUseAppContext.mockReturnValue({ user: LOGGED_IN_USER, setUser: jest.fn(), initialized: true });
+
+    render(
+      <ListVisibilityToggle
+        listDocumentId="list-1"
+        isPublic={true}
+        onToggle={jest.fn()}
+        listName="Weekend Wanders"
+      />,
+    );
+
+    expect(screen.queryByText(/private lists are a pro feature/i)).not.toBeInTheDocument();
   });
 });

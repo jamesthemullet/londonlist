@@ -225,6 +225,19 @@ export default {
                 throw new Error('Forbidden access');
               }
 
+              if (args.isPublic === false) {
+                const fullUser = await strapi.db
+                  .query('plugin::users-permissions.user')
+                  .findOne({ where: { id: user.id } });
+                if (!fullUser?.isPro) {
+                  const err = new Error('Private lists require Pro') as Error & {
+                    extensions?: Record<string, unknown>;
+                  };
+                  err.extensions = { code: 'PRIVATE_LIST_PRO_REQUIRED' };
+                  throw err;
+                }
+              }
+
               const updateData: Record<string, unknown> = {};
               if (args.name !== undefined) updateData.name = args.name;
               if (args.isPublic !== undefined) updateData.isPublic = args.isPublic;

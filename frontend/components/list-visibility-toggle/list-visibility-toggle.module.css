@@ -89,3 +89,15 @@
 .copyButton:hover {
   background: #f5f5f5;
 }
+
+.upgradePrompt {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+}
+
+.upgradeLink {
+  color: #333;
+  font-weight: 600;
+  text-decoration: underline;
+}
