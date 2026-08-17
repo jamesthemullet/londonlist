@@ -10,7 +10,7 @@ const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
 const FREE_FEATURES = [
   'Up to 3 lists',
-  'Public & private lists',
+  'Public lists',
   'Place search across London',
   'Progress tracking & completion',
   'Monthly explorer streak',
@@ -20,6 +20,7 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   'Everything in Free',
   'Unlimited lists',
+  'Private lists',
   'View counts on your public lists',
   'Early access to new features',
   'Priority support',

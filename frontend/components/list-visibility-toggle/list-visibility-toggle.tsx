@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useState } from "react";
 import { useAppContext } from "../../context/AppContext";
 import styles from "./list-visibility-toggle.module.css";
@@ -17,11 +18,21 @@ export default function ListVisibilityToggle({
 }: Props) {
   const { user } = useAppContext();
   const [copied, setCopied] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   const shareUrl =
     user && typeof window !== "undefined"
       ? `${window.location.origin}/list/${user.username}/${listDocumentId}`
       : "";
+
+  function handleToggle() {
+    if (isPublic && !user?.isPro) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+    setShowUpgradePrompt(false);
+    onToggle();
+  }
 
   return (
     <div className={styles.container}>
@@ -33,10 +44,19 @@ export default function ListVisibilityToggle({
           type="checkbox"
           className={styles.checkbox}
           checked={isPublic}
-          onChange={onToggle}
+          onChange={handleToggle}
         />
         <span className={styles.toggle} />
       </label>
+      {showUpgradePrompt && (
+        <p className={styles.upgradePrompt}>
+          Private lists are a Pro feature.{" "}
+          <Link href="/pricing" className={styles.upgradeLink}>
+            Upgrade to Pro
+          </Link>{" "}
+          to keep your lists private.
+        </p>
+      )}
       {isPublic && shareUrl && (
         <div className={styles.shareRow}>
           <p className={styles.shareText}>
