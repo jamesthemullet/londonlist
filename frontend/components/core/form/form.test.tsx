@@ -104,7 +104,7 @@ describe('Form — interactions', () => {
   });
 
   it('calls the callback when the form is submitted', () => {
-    const callback = jest.fn((e) => e.preventDefault());
+    const callback = jest.fn();
     render(
       <Form
         {...baseProps}
