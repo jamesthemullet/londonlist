@@ -2,7 +2,7 @@ import type { GetServerSideProps } from 'next';
 import { buildSitemapEntries, generateSitemapXml } from '../lib/sitemap';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 export default function SitemapPage() {
   return null;

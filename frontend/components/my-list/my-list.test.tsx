@@ -183,6 +183,19 @@ describe('MyList — visit diary', () => {
 
     expect(screen.queryByText(/visited this month/i)).not.toBeInTheDocument();
   });
+
+  it('uses plural "places" in the monthly summary when multiple items were visited this month', () => {
+    setupMutations();
+    const twoThisMonth = [
+      { ...DONE_ITEMS[0], documentId: 'a', visitedAt: THIS_MONTH_ISO },
+      { ...DONE_ITEMS[0], documentId: 'b', osm_id: '999', visitedAt: THIS_MONTH_ISO },
+    ];
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: twoThisMonth }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    expect(screen.getByText(/2 places visited this month/i)).toBeInTheDocument();
+  });
 });
 
 describe('MyList — interactions', () => {

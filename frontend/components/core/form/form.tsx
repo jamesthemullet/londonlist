@@ -24,7 +24,7 @@ export default function Form({
           <div>
             <h3>{title}</h3>
           </div>
-          <form onSubmit={callback}>
+          <form onSubmit={(e) => { e.preventDefault(); callback(); }}>
             <div>
               <label htmlFor="email">Email</label>
               <input
@@ -51,7 +51,7 @@ export default function Form({
                 />
               </div>
             )}
-            {error && <p className={styles.error}>Error: {error.message}</p>}
+            {error && <p className={styles.error} role="alert">Error: {error.message}</p>}
             <Button type="submit" disabled={isEmailInvalid}>
               {buttonText}
             </Button>
