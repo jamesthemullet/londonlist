@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { type FormEvent, useState } from 'react';
 import Loader from '../components/Loader';
@@ -76,16 +77,31 @@ export default function RegisterRoute() {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
       });
-      router.push('/');
+      router.push('/my-list');
     }
   };
 
   if (loading) return <Loader />;
 
   return (
-    <section className={styles.container}>
+    <>
+      <Head>
+        <title>Create your free account — London List</title>
+        <meta
+          name="description"
+          content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="Create your free account — London List" />
+        <meta
+          property="og:description"
+          content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
+        />
+        <meta property="og:type" content="website" />
+      </Head>
+      <section className={styles.container}>
       <div>
-        <h3>Sign Up</h3>
+        <h1>Sign Up</h1>
         <form onSubmit={handleRegister} className={styles.form}>
           <div className={styles.fieldGroup}>
             <label htmlFor="username">Username</label>
@@ -133,6 +149,7 @@ export default function RegisterRoute() {
           </Button>
         </form>
       </div>
-    </section>
+      </section>
+    </>
   );
 }

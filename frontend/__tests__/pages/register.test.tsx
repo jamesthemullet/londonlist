@@ -60,9 +60,9 @@ afterEach(() => {
 });
 
 describe('RegisterRoute — rendering', () => {
-  it('renders the Sign Up form heading', () => {
+  it('renders the Sign Up form heading as an h1', () => {
     render(<RegisterRoute />);
-    expect(screen.getByRole('heading', { name: 'Sign Up' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Sign Up', level: 1 })).toBeInTheDocument();
   });
 
   it('renders the username field', () => {
@@ -172,7 +172,7 @@ describe('RegisterRoute — error state', () => {
 });
 
 describe('RegisterRoute — successful registration', () => {
-  it('calls setUser and redirects to / after successful registration', async () => {
+  it('calls setUser and redirects to /my-list after successful registration', async () => {
     const fakeUser = {
       id: '1',
       documentId: 'doc-1',
@@ -192,7 +192,7 @@ describe('RegisterRoute — successful registration', () => {
 
     await waitFor(() => {
       expect(mockSetUser).toHaveBeenCalledWith(fakeUser);
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockPush).toHaveBeenCalledWith('/my-list');
     });
   });
 
