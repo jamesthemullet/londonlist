@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
 import MyList from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
+import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import styles from './my-list.module.css';
@@ -83,6 +84,7 @@ export default function MyListPage() {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [createListError, setCreateListError] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -149,7 +151,7 @@ export default function MyListPage() {
 
   const handleOpenNewList = () => {
     if (isAtListLimit) {
-      router.push('/pricing');
+      setShowUpgradeModal(true);
       return;
     }
     setNewListName('');
@@ -173,7 +175,7 @@ export default function MyListPage() {
       const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
       const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
       if (code === 'FREE_LIST_LIMIT_REACHED') {
-        router.push('/pricing');
+        setShowUpgradeModal(true);
       } else {
         setCreateListError('Could not create list. Please try again.');
       }
@@ -568,6 +570,7 @@ export default function MyListPage() {
           </>
         )}
       </main>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
   );
 }
