@@ -24,7 +24,7 @@ type MyListsData = {
   myLists: List[];
 };
 
-const GET_MY_LISTS = gql`
+export const GET_MY_LISTS = gql`
   query GetMyLists {
     myLists {
       documentId
