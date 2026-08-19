@@ -6,7 +6,32 @@ import { useAppContext } from '../context/AppContext';
 import styles from './index.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = 'https://londonlist.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+
+export function buildWebSiteJsonLd(siteUrl: string): object {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        name: 'London List',
+        url: siteUrl,
+        description:
+          'Build your London bucket list. Add places to visit, track your adventures, and share curated lists with friends.',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${siteUrl}/explore?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      {
+        '@type': 'Organization',
+        name: 'London List',
+        url: siteUrl,
+      },
+    ],
+  };
+}
 
 type PublicList = {
   documentId: string;
@@ -66,10 +91,14 @@ export default function Home() {
           name="twitter:description"
           content="Add places, track visits, and share your London adventures. Free to use."
         />
+        {buildWebSiteJsonLd(SITE_URL) && (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebSiteJsonLd(SITE_URL)) }} />
+        )}
       </Head>
       <main className={styles.main}>
         {user ? (
-          <LoggedInHero />
+          <LoggedInHero isPro={user.isPro} />
         ) : (
           <LoggedOutHero />
         )}
@@ -135,7 +164,7 @@ function LoggedOutHero() {
   );
 }
 
-function LoggedInHero() {
+function LoggedInHero({ isPro }: { isPro: boolean }) {
   return (
     <>
       <div className={styles.hero}>
@@ -146,6 +175,16 @@ function LoggedInHero() {
       <p className={styles.loginPrompt}>
         <Link href="/my-list">View your list &rarr;</Link>
       </p>
+      {!isPro && (
+        <aside className={styles.proNudge} aria-label="Upgrade to Pro">
+          <p className={styles.proNudgeText}>
+            <strong>Free plan:</strong> up to 3 lists.{' '}
+            <Link href="/pricing" className={styles.proNudgeLink}>
+              Upgrade to Pro for unlimited lists &rarr;
+            </Link>
+          </p>
+        </aside>
+      )}
     </>
   );
 }

@@ -12,25 +12,43 @@ type PublicList = {
   name: string;
   description?: string | null;
   username: string | null;
+  itemCount: number;
+  categories: string[];
 };
 
 type Props = {
   lists: PublicList[];
 };
 
+export function deriveAllCategories(lists: PublicList[]): string[] {
+  const seen = new Set<string>();
+  for (const list of lists) {
+    for (const cat of list.categories) {
+      seen.add(cat);
+    }
+  }
+  return [...seen].sort();
+}
+
 export default function ExplorePage({ lists }: Props) {
   const { user, initialized } = useAppContext();
   const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  const allCategories = useMemo(() => deriveAllCategories(lists), [lists]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return lists;
-    return lists.filter(
-      (l) =>
+    return lists.filter((l) => {
+      const matchesQuery =
+        !q ||
         l.name.toLowerCase().includes(q) ||
-        l.username?.toLowerCase().includes(q)
-    );
-  }, [lists, query]);
+        l.username?.toLowerCase().includes(q);
+      const matchesCategory =
+        !activeCategory || l.categories.includes(activeCategory);
+      return matchesQuery && matchesCategory;
+    });
+  }, [lists, query, activeCategory]);
 
   return (
     <>
@@ -77,9 +95,34 @@ export default function ExplorePage({ lists }: Props) {
           />
         </div>
 
+        {allCategories.length > 0 && (
+          <fieldset className={styles.categoryRow}>
+            <legend className={styles.categoryLegend}>Filter by category</legend>
+            <button
+              type="button"
+              className={activeCategory === null ? styles.categoryChipActive : styles.categoryChip}
+              onClick={() => setActiveCategory(null)}
+            >
+              All
+            </button>
+            {allCategories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className={activeCategory === cat ? styles.categoryChipActive : styles.categoryChip}
+                onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </fieldset>
+        )}
+
         {filtered.length === 0 ? (
           <p className={styles.empty}>
-            {query ? `No lists match "${query}".` : 'No public lists yet — be the first!'}
+            {query || activeCategory
+              ? 'No lists match your filters.'
+              : 'No public lists yet — be the first!'}
           </p>
         ) : (
           <>
@@ -99,6 +142,16 @@ export default function ExplorePage({ lists }: Props) {
                     )}
                     {list.username && (
                       <span className={styles.author}>by {list.username}</span>
+                    )}
+                    {list.itemCount > 0 && (
+                      <span className={styles.itemCount}>
+                        {list.itemCount} {list.itemCount === 1 ? 'place' : 'places'}
+                      </span>
+                    )}
+                    {list.categories.length > 0 && (
+                      <span className={styles.categoryList}>
+                        {list.categories.slice(0, 4).join(' · ')}
+                      </span>
                     )}
                   </Link>
                 </li>
