@@ -37,13 +37,14 @@ test.describe('Register page', () => {
     await expect(page.getByLabel('Username')).toBeVisible();
     await expect(page.getByLabel('Email')).toBeVisible();
     await expect(page.getByLabel('Password')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sign Up' })).toBeVisible();
+    // Scope to #main-content to avoid matching the nav's "Sign Up" button
+    await expect(page.locator('#main-content').getByRole('button', { name: 'Sign Up' })).toBeVisible();
   });
 
   test('submit button is disabled when all fields are empty', async ({ page }) => {
     await page.goto('/register');
 
-    await expect(page.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+    await expect(page.locator('#main-content').getByRole('button', { name: 'Sign Up' })).toBeDisabled();
   });
 
   test('submit button remains disabled with only a valid email', async ({ page }) => {
@@ -51,7 +52,7 @@ test.describe('Register page', () => {
 
     await page.getByLabel('Email').fill('user@example.com');
 
-    await expect(page.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+    await expect(page.locator('#main-content').getByRole('button', { name: 'Sign Up' })).toBeDisabled();
   });
 
   test('submit button remains disabled with a password shorter than 8 characters', async ({ page }) => {
@@ -61,7 +62,7 @@ test.describe('Register page', () => {
     await page.getByLabel('Email').fill('user@example.com');
     await page.getByLabel('Password').fill('short');
 
-    await expect(page.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+    await expect(page.locator('#main-content').getByRole('button', { name: 'Sign Up' })).toBeDisabled();
   });
 
   test('submit button enables when username, email, and password are all valid', async ({ page }) => {
@@ -71,7 +72,7 @@ test.describe('Register page', () => {
     await page.getByLabel('Email').fill('user@example.com');
     await page.getByLabel('Password').fill('securepassword123');
 
-    await expect(page.getByRole('button', { name: 'Sign Up' })).toBeEnabled();
+    await expect(page.locator('#main-content').getByRole('button', { name: 'Sign Up' })).toBeEnabled();
   });
 
   test('submit button remains disabled with an invalid username (too short)', async ({ page }) => {
@@ -81,7 +82,7 @@ test.describe('Register page', () => {
     await page.getByLabel('Email').fill('user@example.com');
     await page.getByLabel('Password').fill('securepassword123');
 
-    await expect(page.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+    await expect(page.locator('#main-content').getByRole('button', { name: 'Sign Up' })).toBeDisabled();
   });
 
   test('shows username hint about character rules', async ({ page }) => {
