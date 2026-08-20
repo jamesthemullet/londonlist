@@ -45,6 +45,18 @@ jest.mock('../../components/list-visibility-toggle/list-visibility-toggle', () =
   default: () => <div data-testid="visibility-toggle" />,
 }));
 
+jest.mock('../../components/upgrade-modal/upgrade-modal', () => ({
+  __esModule: true,
+  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
+    isOpen ? (
+      <div data-testid="upgrade-modal">
+        <button type="button" onClick={onClose}>
+          Close modal
+        </button>
+      </div>
+    ) : null,
+}));
+
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 const mockUseAppContext = useAppContext as jest.Mock;
@@ -162,7 +174,7 @@ describe('MyListPage — free tier list limit', () => {
     ).toBeInTheDocument();
   });
 
-  it('upgrade button redirects to /pricing', () => {
+  it('upgrade button opens the upgrade modal', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
     mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
@@ -171,7 +183,8 @@ describe('MyListPage — free tier list limit', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }));
 
-    expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
+    expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    expect(MOCK_ROUTER.push).not.toHaveBeenCalled();
   });
 
   it('shows "+ New list" for a Pro user with 3 lists', () => {
@@ -650,7 +663,7 @@ describe('MyListPage — upgrade gate when free user is at list limit', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('redirects to /pricing when the upgrade button is clicked', () => {
+  it('opens the upgrade modal when the upgrade button is clicked', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
 
@@ -660,7 +673,8 @@ describe('MyListPage — upgrade gate when free user is at list limit', () => {
       screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }),
     );
 
-    expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
+    expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    expect(MOCK_ROUTER.push).not.toHaveBeenCalled();
   });
 
   it('shows "+ New list" for Pro users even at 3 lists', () => {
@@ -678,7 +692,7 @@ describe('MyListPage — upgrade gate when free user is at list limit', () => {
 });
 
 describe('MyListPage — create list error handling', () => {
-  it('redirects to /pricing when backend returns FREE_LIST_LIMIT_REACHED', async () => {
+  it('opens the upgrade modal when backend returns FREE_LIST_LIMIT_REACHED', async () => {
     const limitError = {
       graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
     };
@@ -699,8 +713,9 @@ describe('MyListPage — create list error handling', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => {
-      expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
+      expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
     });
+    expect(MOCK_ROUTER.push).not.toHaveBeenCalled();
   });
 
   it('shows an error message when list creation fails for other reasons', async () => {

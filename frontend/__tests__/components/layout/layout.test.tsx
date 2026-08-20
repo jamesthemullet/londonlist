@@ -21,12 +21,14 @@ jest.mock('next/link', () => ({
     href,
     children,
     className,
+    onClick,
   }: {
     href: string;
     children: React.ReactNode;
     className?: string;
+    onClick?: () => void;
   }) => (
-    <a href={href} className={className}>
+    <a href={href} className={className} onClick={onClick}>
       {children}
     </a>
   ),
@@ -172,5 +174,134 @@ describe('Layout — Navigation (logged in)', () => {
     expect(mockSetUser).toHaveBeenCalledWith(null);
     expect(Cookie.remove).toHaveBeenCalledWith('token');
     expect(mockPush).toHaveBeenCalledWith('/');
+  });
+});
+
+describe('Layout — Hamburger menu', () => {
+  it('renders a hamburger button', () => {
+    render(<Layout>x</Layout>);
+    expect(screen.getByRole('button', { name: /open menu/i })).toBeInTheDocument();
+  });
+
+  it('hamburger button starts with aria-expanded false', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    expect(hamburger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('hamburger button controls the nav-menu element', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    expect(hamburger).toHaveAttribute('aria-controls', 'nav-menu');
+    expect(document.getElementById('nav-menu')).toBeInTheDocument();
+  });
+
+  it('toggles aria-expanded and label when clicked', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /close menu/i })).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('closes the menu when Escape is pressed', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.getByRole('button', { name: /open menu/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('does not close the menu when a non-Escape key is pressed', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+  });
+
+  it('closes the menu when a nav link is clicked', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('link', { name: /pricing/i }));
+    expect(screen.getByRole('button', { name: /open menu/i })).toBeInTheDocument();
+  });
+
+  it('closes the menu on route change', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+
+    mockUseRouter.mockReturnValue({ asPath: '/explore', push: mockPush });
+    render(<Layout>x</Layout>);
+    const newHamburger = screen.getAllByRole('button', { name: /open menu/i });
+    expect(newHamburger[newHamburger.length - 1]).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes the menu when Log In link is clicked (logged out)', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    fireEvent.click(screen.getByRole('link', { name: /log in/i }));
+    expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes the menu when Sign Up link is clicked (logged out)', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    fireEvent.click(screen.getByRole('link', { name: /sign up/i }));
+    expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
+describe('Layout — currentUrl fallback', () => {
+  it('renders without error when router.asPath is undefined', () => {
+    mockUseRouter.mockReturnValue({ asPath: undefined, push: mockPush });
+    render(<Layout><span>child</span></Layout>);
+    expect(screen.getByText('child')).toBeInTheDocument();
+  });
+});
+
+describe('Layout — Hamburger menu (logged in)', () => {
+  const mockUser = {
+    id: '1',
+    documentId: 'u1',
+    email: 'alice@example.com',
+    username: 'alice',
+    isPro: false,
+  };
+
+  beforeEach(() => {
+    mockUseAppContext.mockReturnValue({
+      user: mockUser,
+      setUser: jest.fn(),
+      initialized: true,
+    });
+  });
+
+  it('closes the menu when My List link is clicked', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    fireEvent.click(screen.getByRole('link', { name: /my list/i }));
+    expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes the menu when Pricing link is clicked while logged in', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    fireEvent.click(screen.getByRole('link', { name: /pricing/i }));
+    expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
   });
 });
