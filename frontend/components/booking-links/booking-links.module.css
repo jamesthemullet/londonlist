@@ -1,0 +1,35 @@
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  color: #c724b1;
+  text-decoration: none;
+  background: #fdf0fc;
+  border: 1px solid #e8b5e4;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+
+.link:hover {
+  background: #f5d5f2;
+  border-color: #c724b1;
+}
+
+.provider {
+  color: #999;
+  font-size: 0.7rem;
+}
+
+.arrow {
+  font-size: 0.65rem;
+}

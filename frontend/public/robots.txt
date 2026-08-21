@@ -3,4 +3,4 @@ Allow: /
 Disallow: /my-list
 Disallow: /api/
 
-Sitemap: https://londonlist.co.uk/sitemap.xml
+Sitemap: https://londonlist.vercel.app/sitemap.xml

@@ -9,6 +9,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
 import { buildOgImageUrl } from '../../../lib/og-image';
+import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
 
@@ -328,6 +329,7 @@ export default function PublicListPage({ pageState, listData, username, listId }
                         )}
                       </div>
                       {item.notes && <p className={styles.itemNotes}>{item.notes}</p>}
+                      <BookingLinks name={item.name} category={item.category} />
                     </li>
                   ))}
                 </ul>
@@ -356,6 +358,7 @@ export default function PublicListPage({ pageState, listData, username, listId }
                         )}
                       </div>
                       {item.notes && <p className={styles.itemNotes}>{item.notes}</p>}
+                      <BookingLinks name={item.name} category={item.category} />
                     </li>
                   ))}
                 </ul>

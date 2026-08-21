@@ -5,8 +5,32 @@ import { useAppContext } from '../../context/AppContext';
 import { buildOgImageUrl } from '../../lib/og-image';
 import styles from './[username].module.css';
 
-const API_URL = process.env.STRAPI_API_URL || process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
+const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+
+export function buildProfileJsonLd(
+  username: string,
+  lists: PublicList[],
+  siteUrl: string,
+): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    name: `${username}'s London Lists`,
+    url: `${siteUrl}/profile/${username}`,
+    mainEntity: {
+      '@type': 'Person',
+      name: username,
+      url: `${siteUrl}/profile/${username}`,
+    },
+    hasPart: lists.map((list) => ({
+      '@type': 'ItemList',
+      name: list.name,
+      url: `${siteUrl}/list/${username}/${list.documentId}`,
+      numberOfItems: list.itemCount,
+    })),
+  };
+}
 
 type PublicList = {
   documentId: string;
@@ -70,6 +94,10 @@ export default function ProfilePage({ pageState, profileData, username }: Props)
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDescription} />
         <meta name="twitter:image" content={ogImage} />
+        {buildProfileJsonLd(username, lists, SITE_URL) && (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildProfileJsonLd(username, lists, SITE_URL)) }} />
+        )}
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{username}&apos;s London Lists</h1>
