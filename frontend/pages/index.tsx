@@ -1,8 +1,14 @@
+import { useQuery } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { GET_MY_LIST } from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
+import StreakBadge from '../components/streak-badge/streak-badge';
 import { useAppContext } from '../context/AppContext';
+import { useAuthHeader } from '../hooks/use-auth-header';
+import { useStreak } from '../hooks/use-streak';
+import { GET_MY_LISTS } from './my-list';
 import styles from './index.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -98,7 +104,7 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         {user ? (
-          <LoggedInHero />
+          <LoggedInHero isPro={user.isPro} />
         ) : (
           <LoggedOutHero />
         )}
@@ -164,17 +170,80 @@ function LoggedOutHero() {
   );
 }
 
-function LoggedInHero() {
+type MyList = {
+  documentId: string;
+};
+
+type MyListsData = {
+  myLists: MyList[];
+};
+
+type ListItem = {
+  completed: boolean;
+  visitedAt: string | null;
+};
+
+type ListItemsData = {
+  listItems: ListItem[];
+};
+
+function nextMilestoneMessage(total: number, done: number): string | null {
+  if (total === 0) return null;
+  const pct = Math.round((done / total) * 100);
+  const nextMilestone = [25, 50, 75, 100].find((m) => pct < m);
+  if (!nextMilestone) return null;
+  const remaining = Math.ceil((nextMilestone / 100) * total) - done;
+  if (remaining <= 0) return null;
+  return `You're ${remaining} ${remaining === 1 ? 'place' : 'places'} from ${nextMilestone}% of your list.`;
+}
+
+function LoggedInHero({ isPro }: { isPro: boolean }) {
+  const authHeader = useAuthHeader();
+
+  const { data: listsData } = useQuery<MyListsData>(GET_MY_LISTS, {
+    context: { headers: authHeader },
+  });
+  const firstListId = listsData?.myLists[0]?.documentId;
+
+  const { data: itemsData } = useQuery<ListItemsData>(GET_MY_LIST, {
+    variables: { listDocumentId: firstListId },
+    context: { headers: authHeader },
+    skip: !firstListId,
+  });
+
+  const items = itemsData?.listItems ?? [];
+  const { streak, atRisk } = useStreak(items);
+  const done = items.filter((i) => i.completed).length;
+  const milestoneMessage = nextMilestoneMessage(items.length, done);
+
+  const showBanner = atRisk || streak > 0 || !!milestoneMessage;
+
   return (
     <>
       <div className={styles.hero}>
         <h1 className={styles.heading}>What do you want to do in London?</h1>
         <p className={styles.subheading}>Search for a place and add it to your list.</p>
       </div>
+      {showBanner && (
+        <Link href="/my-list" className={styles.welcomeBanner}>
+          <StreakBadge streak={streak} atRisk={atRisk} />
+          {!atRisk && milestoneMessage && <p className={styles.welcomeBannerText}>{milestoneMessage}</p>}
+        </Link>
+      )}
       <PlaceSearch />
       <p className={styles.loginPrompt}>
         <Link href="/my-list">View your list &rarr;</Link>
       </p>
+      {!isPro && (
+        <aside className={styles.proNudge} aria-label="Upgrade to Pro">
+          <p className={styles.proNudgeText}>
+            <strong>Free plan:</strong> up to 3 lists.{' '}
+            <Link href="/pricing" className={styles.proNudgeLink}>
+              Upgrade to Pro for unlimited lists &rarr;
+            </Link>
+          </p>
+        </aside>
+      )}
     </>
   );
 }

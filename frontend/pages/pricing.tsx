@@ -20,7 +20,8 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   'Everything in Free',
   'Unlimited lists',
-  'View counts on your public lists',
+  'View counts on each public list',
+  'Aggregate view analytics across all lists',
   'Early access to new features',
   'Priority support',
 ];

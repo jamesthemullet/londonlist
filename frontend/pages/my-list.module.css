@@ -419,3 +419,65 @@
   margin: 0 0 0.5rem;
   font-style: italic;
 }
+
+.statsCard {
+  background: #f8f4ff;
+  border: 1px solid #d8c8f0;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.statsHeading {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #7a3cba;
+  margin: 0 0 0.65rem;
+}
+
+.statsList {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.statItem {
+  min-width: 80px;
+}
+
+.statLabel {
+  font-size: 0.78rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.statValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.statCount {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: #888;
+}
+
+.statsLockedText {
+  font-size: 0.88rem;
+  color: #7a3cba;
+  margin: 0;
+}
+
+.statsUpgradeLink {
+  font-weight: 600;
+  color: #c724b1;
+  text-decoration: underline;
+}
