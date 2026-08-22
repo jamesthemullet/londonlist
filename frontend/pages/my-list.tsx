@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
 import MyList from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
+import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import styles from './my-list.module.css';
@@ -23,7 +24,7 @@ type MyListsData = {
   myLists: List[];
 };
 
-const GET_MY_LISTS = gql`
+export const GET_MY_LISTS = gql`
   query GetMyLists {
     myLists {
       documentId
@@ -67,6 +68,56 @@ const DELETE_MY_LIST = gql`
 
 const FREE_LIST_LIMIT = 3;
 
+function ProStatsCard({ lists, isPro }: { lists: List[]; isPro: boolean }) {
+  const publicLists = lists.filter((l) => l.isPublic);
+  if (publicLists.length === 0) return null;
+
+  if (!isPro) {
+    return (
+      <aside className={styles.statsCard} aria-label="List analytics">
+        <p className={styles.statsLockedText}>
+          <Link href="/pricing" className={styles.statsUpgradeLink}>
+            Upgrade to Pro to unlock list analytics
+          </Link>
+          {' '}and see how many times your lists have been viewed.
+        </p>
+      </aside>
+    );
+  }
+
+  const totalViews = publicLists.reduce((sum, l) => sum + (l.viewCount ?? 0), 0);
+  const topList =
+    publicLists.length > 1
+      ? publicLists.reduce((best, l) =>
+          (l.viewCount ?? 0) > (best.viewCount ?? 0) ? l : best,
+        )
+      : null;
+
+  return (
+    <aside className={styles.statsCard} aria-label="List analytics">
+      <h2 className={styles.statsHeading}>Your stats</h2>
+      <dl className={styles.statsList}>
+        <div className={styles.statItem}>
+          <dt className={styles.statLabel}>Total views</dt>
+          <dd className={styles.statValue}>{totalViews.toLocaleString()}</dd>
+        </div>
+        {topList && (topList.viewCount ?? 0) > 0 && (
+          <div className={styles.statItem}>
+            <dt className={styles.statLabel}>Most viewed</dt>
+            <dd className={styles.statValue}>
+              {topList.name}
+              {' '}
+              <span className={styles.statCount}>
+                ({topList.viewCount?.toLocaleString()} views)
+              </span>
+            </dd>
+          </div>
+        )}
+      </dl>
+    </aside>
+  );
+}
+
 export default function MyListPage() {
   const { user, initialized } = useAppContext();
   const router = useRouter();
@@ -83,6 +134,7 @@ export default function MyListPage() {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [createListError, setCreateListError] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -149,7 +201,7 @@ export default function MyListPage() {
 
   const handleOpenNewList = () => {
     if (isAtListLimit) {
-      router.push('/pricing');
+      setShowUpgradeModal(true);
       return;
     }
     setNewListName('');
@@ -173,7 +225,7 @@ export default function MyListPage() {
       const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
       const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
       if (code === 'FREE_LIST_LIMIT_REACHED') {
-        router.push('/pricing');
+        setShowUpgradeModal(true);
       } else {
         setCreateListError('Could not create list. Please try again.');
       }
@@ -273,6 +325,8 @@ export default function MyListPage() {
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
+
+        <ProStatsCard lists={lists} isPro={user?.isPro ?? false} />
 
         {!user?.isPro && (
           <aside
@@ -489,7 +543,7 @@ export default function MyListPage() {
               )}
             </section>
 
-            <section className={styles.section}>
+            <section className={styles.section} aria-label="Share">
               <h2 className={styles.subheading}>Share</h2>
               {activeList.isPublic ? (
                 <>
@@ -568,6 +622,7 @@ export default function MyListPage() {
           </>
         )}
       </main>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
   );
 }
