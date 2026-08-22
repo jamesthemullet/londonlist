@@ -12,6 +12,9 @@ export default function Footer() {
         </div>
         <nav aria-label="Footer navigation" className={styles.nav}>
           <Link href="/" className={styles.link}>Home</Link>
+          <Link href="/explore" className={styles.link}>Explore</Link>
+          <Link href="/templates" className={styles.link}>Starter Lists</Link>
+          <Link href="/pricing" className={styles.link}>Pricing</Link>
           <Link href="/register" className={styles.link}>Sign up free</Link>
           <Link href="/login" className={styles.link}>Log in</Link>
         </nav>
