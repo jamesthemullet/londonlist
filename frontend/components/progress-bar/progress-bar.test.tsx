@@ -44,4 +44,38 @@ describe('ProgressBar', () => {
     const fill = container.querySelector('[style]');
     expect(fill).toHaveStyle({ width: '0%' });
   });
+
+  describe('ARIA progressbar role', () => {
+    it('exposes a progressbar role for screen readers', () => {
+      render(<ProgressBar total={10} done={5} />);
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    });
+
+    it('sets aria-valuenow to the computed percentage', () => {
+      render(<ProgressBar total={10} done={5} />);
+      expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+    });
+
+    it('sets aria-valuemin to 0 and aria-valuemax to 100', () => {
+      render(<ProgressBar total={10} done={5} />);
+      const bar = screen.getByRole('progressbar');
+      expect(bar).toHaveAttribute('aria-valuemin', '0');
+      expect(bar).toHaveAttribute('aria-valuemax', '100');
+    });
+
+    it('sets aria-valuenow to 0 when total is zero', () => {
+      render(<ProgressBar total={0} done={0} />);
+      expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
+    });
+
+    it('sets aria-valuenow to 100 when all items are done', () => {
+      render(<ProgressBar total={4} done={4} />);
+      expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
+    });
+
+    it('has an accessible label', () => {
+      render(<ProgressBar total={10} done={5} />);
+      expect(screen.getByRole('progressbar')).toHaveAttribute('aria-label', 'List progress');
+    });
+  });
 });

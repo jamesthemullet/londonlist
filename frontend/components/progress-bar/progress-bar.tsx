@@ -24,7 +24,14 @@ export default function ProgressBar({ total, done }: ProgressBarProps) {
           {done} / {total}
         </span>
       </div>
-      <div className={styles.track}>
+      <div
+        className={styles.track}
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="List progress"
+      >
         <div className={styles.fill} style={{ width: `${pct}%` }} />
       </div>
     </div>
