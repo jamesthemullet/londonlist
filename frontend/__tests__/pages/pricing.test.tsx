@@ -136,7 +136,7 @@ describe('PricingPage — features', () => {
   it('renders key pro tier features', () => {
     render(<PricingPage />);
     expect(screen.getByText('Unlimited lists')).toBeInTheDocument();
-    expect(screen.getByText('View counts on your public lists')).toBeInTheDocument();
+    expect(screen.getByText('View counts on each public list')).toBeInTheDocument();
   });
 });
 

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../context/AppContext';
@@ -43,6 +43,18 @@ jest.mock('../../components/search/place-search', () => ({
 jest.mock('../../components/list-visibility-toggle/list-visibility-toggle', () => ({
   __esModule: true,
   default: () => <div data-testid="visibility-toggle" />,
+}));
+
+jest.mock('../../components/upgrade-modal/upgrade-modal', () => ({
+  __esModule: true,
+  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
+    isOpen ? (
+      <div data-testid="upgrade-modal">
+        <button type="button" onClick={onClose}>
+          Close modal
+        </button>
+      </div>
+    ) : null,
 }));
 
 const mockUseQuery = useQuery as unknown as jest.Mock;
@@ -162,7 +174,7 @@ describe('MyListPage — free tier list limit', () => {
     ).toBeInTheDocument();
   });
 
-  it('upgrade button redirects to /pricing', () => {
+  it('upgrade button opens the upgrade modal', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
     mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
@@ -171,7 +183,8 @@ describe('MyListPage — free tier list limit', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }));
 
-    expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
+    expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    expect(MOCK_ROUTER.push).not.toHaveBeenCalled();
   });
 
   it('shows "+ New list" for a Pro user with 3 lists', () => {
@@ -650,7 +663,7 @@ describe('MyListPage — upgrade gate when free user is at list limit', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('redirects to /pricing when the upgrade button is clicked', () => {
+  it('opens the upgrade modal when the upgrade button is clicked', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
 
@@ -660,7 +673,8 @@ describe('MyListPage — upgrade gate when free user is at list limit', () => {
       screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }),
     );
 
-    expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
+    expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    expect(MOCK_ROUTER.push).not.toHaveBeenCalled();
   });
 
   it('shows "+ New list" for Pro users even at 3 lists', () => {
@@ -678,7 +692,7 @@ describe('MyListPage — upgrade gate when free user is at list limit', () => {
 });
 
 describe('MyListPage — create list error handling', () => {
-  it('redirects to /pricing when backend returns FREE_LIST_LIMIT_REACHED', async () => {
+  it('opens the upgrade modal when backend returns FREE_LIST_LIMIT_REACHED', async () => {
     const limitError = {
       graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
     };
@@ -699,8 +713,9 @@ describe('MyListPage — create list error handling', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => {
-      expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/pricing');
+      expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
     });
+    expect(MOCK_ROUTER.push).not.toHaveBeenCalled();
   });
 
   it('shows an error message when list creation fails for other reasons', async () => {
@@ -739,8 +754,9 @@ describe('MyListPage — view counts', () => {
 
     render(<MyListPage />);
 
-    expect(screen.getByText('42')).toBeInTheDocument();
-    expect(screen.getByText(/views/)).toBeInTheDocument();
+    const shareSection = screen.getByRole('region', { name: 'Share' });
+    expect(within(shareSection).getByText('42')).toBeInTheDocument();
+    expect(within(shareSection).getByText(/views/)).toBeInTheDocument();
   });
 
   it('uses singular "view" when the count is 1', () => {
@@ -750,9 +766,10 @@ describe('MyListPage — view counts', () => {
 
     render(<MyListPage />);
 
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText(/\bview\b/)).toBeInTheDocument();
-    expect(screen.queryByText(/\bviews\b/)).not.toBeInTheDocument();
+    const shareSection = screen.getByRole('region', { name: 'Share' });
+    expect(within(shareSection).getByText('1')).toBeInTheDocument();
+    expect(within(shareSection).getByText(/\bview\b/)).toBeInTheDocument();
+    expect(within(shareSection).queryByText(/\bviews\b/)).not.toBeInTheDocument();
   });
 
   it('shows an upgrade prompt instead of view count for free users with a public list', () => {
@@ -795,5 +812,119 @@ describe('MyListPage — view counts', () => {
     render(<MyListPage />);
 
     expect(screen.queryByText('42')).not.toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — Pro analytics stats card', () => {
+  const PUBLIC_LISTS_TWO = [
+    { documentId: 'list-1', name: 'Hidden Pubs', isPublic: true, viewCount: 52 },
+    { documentId: 'list-2', name: 'Museum Trail', isPublic: true, viewCount: 35 },
+  ];
+  const ONE_PUBLIC = [
+    { documentId: 'list-1', name: 'Hidden Pubs', isPublic: true, viewCount: 42 },
+  ];
+  const ALL_PRIVATE = [
+    { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 },
+  ];
+
+  it('shows "Your stats" heading for Pro users with public lists', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_PUBLIC } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).getByRole('heading', { name: 'Your stats' })).toBeInTheDocument();
+  });
+
+  it('shows total views for Pro users', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LISTS_TWO } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).getByText('87')).toBeInTheDocument();
+  });
+
+  it('shows the most viewed list when there are multiple public lists', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LISTS_TWO } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).getByText(/Hidden Pubs/)).toBeInTheDocument();
+  });
+
+  it('does not show most viewed for a single public list', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_PUBLIC } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).queryByText('Most viewed')).not.toBeInTheDocument();
+  });
+
+  it('does not render the stats card when all lists are private (Pro user)', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ALL_PRIVATE } });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByRole('complementary', { name: 'List analytics' })).not.toBeInTheDocument();
+  });
+
+  it('shows upgrade teaser for free users with a public list', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_PUBLIC } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(
+      within(statsCard).getByRole('link', { name: 'Upgrade to Pro to unlock list analytics' }),
+    ).toBeInTheDocument();
+  });
+
+  it('upgrade teaser links to /pricing', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_PUBLIC } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(
+      within(statsCard).getByRole('link', { name: 'Upgrade to Pro to unlock list analytics' }),
+    ).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not render the stats card for free users with no public lists', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ALL_PRIVATE } });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByRole('complementary', { name: 'List analytics' })).not.toBeInTheDocument();
+  });
+
+  it('does not show raw view count numbers in the teaser for free users', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_PUBLIC } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).queryByText('42')).not.toBeInTheDocument();
   });
 });
