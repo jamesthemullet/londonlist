@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../context/AppContext';
+import { buildOgImageUrl } from '../../lib/og-image';
 import styles from './[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -72,6 +73,10 @@ export default function ProfilePage({ pageState, profileData, username }: Props)
   const ogTitle = `${username}'s London Lists`;
   const ogDescription = `${username} has ${lists.length} public ${listWord} on London List — ${totalPlaces} ${placeWord}, ${totalVisited} visited.`;
   const ogUrl = `${SITE_URL}/profile/${username}`;
+  const ogImage = buildOgImageUrl(
+    { title: ogTitle, username, itemCount: totalPlaces, doneCount: totalVisited },
+    SITE_URL,
+  );
 
   return (
     <>
@@ -84,9 +89,11 @@ export default function ProfilePage({ pageState, profileData, username }: Props)
         <meta property="og:description" content={ogDescription} />
         <meta property="og:url" content={ogUrl} />
         <meta property="og:type" content="profile" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" content={ogImage} />
         {buildProfileJsonLd(username, lists, SITE_URL) && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildProfileJsonLd(username, lists, SITE_URL)) }} />

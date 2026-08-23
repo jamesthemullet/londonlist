@@ -22,7 +22,7 @@ type ListItemsData = {
   listItems: ListItem[];
 };
 
-const GET_MY_LIST = gql`
+export const GET_MY_LIST = gql`
   query GetMyList($listDocumentId: ID) {
     listItems(
       sort: "createdAt:desc"
