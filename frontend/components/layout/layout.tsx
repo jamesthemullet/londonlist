@@ -75,7 +75,7 @@ function Navigation() {
             <div className={styles.navLinks}>
               <Link href="/my-list" onClick={() => setMenuOpen(false)}>My List</Link>
               <Link href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
-              <span>{user.username}</span>
+              <Link href="/account" onClick={() => setMenuOpen(false)} className={styles.navUsername}>{user.username}</Link>
               <Button onClick={handleLogout}>Log Out</Button>
             </div>
           ) : (
