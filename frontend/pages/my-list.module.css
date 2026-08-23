@@ -362,6 +362,29 @@
   text-decoration: underline;
 }
 
+.embedSection {
+  margin-top: 1.25rem;
+}
+
+.embedHeading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  color: #333;
+}
+
+.embedHint {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0 0 0.5rem;
+}
+
+.embedLocked {
+  margin: 1.25rem 0 0;
+  font-size: 0.85rem;
+  color: #888;
+}
+
 .descriptionForm {
   margin-top: 1rem;
   display: flex;

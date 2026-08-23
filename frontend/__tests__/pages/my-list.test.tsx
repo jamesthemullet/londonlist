@@ -928,3 +928,72 @@ describe('MyListPage — Pro analytics stats card', () => {
     expect(within(statsCard).queryByText('42')).not.toBeInTheDocument();
   });
 });
+
+describe('MyListPage — embed section', () => {
+  const PUBLIC_LIST = [{ documentId: 'list-pub', name: 'My Public List', isPublic: true, viewCount: 5 }];
+  const PRIVATE_LIST = [{ documentId: 'list-prv', name: 'My Private List', isPublic: false, viewCount: 0 }];
+
+  it('shows "Embed on your website" heading for Pro users with a public list', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('heading', { name: 'Embed on your website' })).toBeInTheDocument();
+  });
+
+  it('shows a "Copy code" button for Pro users with a public list', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('button', { name: 'Copy embed code' })).toBeInTheDocument();
+  });
+
+  it('shows embed code input containing the embed URL for Pro users', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    const input = screen.getByRole('textbox', { name: 'Embed code' }) as HTMLInputElement;
+    expect(input.value).toContain('/embed/alice/list-pub');
+  });
+
+  it('shows an upgrade prompt instead of embed code for free users', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText(/to embed this list on any website/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Copy embed code' })).not.toBeInTheDocument();
+  });
+
+  it('upgrade prompt for embed uses "Go Pro" link text pointing to /pricing', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('link', { name: 'Go Pro' })).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not show embed section at all for private lists', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PRIVATE_LIST } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByRole('heading', { name: 'Embed on your website' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Copy embed code' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/to embed this list on any website/)).not.toBeInTheDocument();
+  });
+});

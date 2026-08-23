@@ -1,5 +1,8 @@
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { ApolloProvider } from '@apollo/client/react';
+import type { NextPage } from 'next';
+import type { AppProps } from 'next/app';
+import type { ReactNode } from 'react';
 import { AppProvider } from '../context/AppContext';
 
 import Layout from '../components/layout/layout';
@@ -24,13 +27,20 @@ export const client = new ApolloClient({
   },
 });
 
-export default function App({ Component, pageProps }) {
+export type NextPageWithLayout<P = object, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: ReactNode) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+export default function App({ Component, pageProps }: AppPropsWithLayout) {
+  const getLayout = Component.getLayout ?? ((page: ReactNode) => <Layout>{page}</Layout>);
   return (
     <ApolloProvider client={client}>
       <AppProvider>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
+        {getLayout(<Component {...pageProps} />)}
       </AppProvider>
     </ApolloProvider>
   );

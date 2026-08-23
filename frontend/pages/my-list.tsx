@@ -133,6 +133,7 @@ export default function MyListPage() {
   const [descriptionValue, setDescriptionValue] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
   const [createListError, setCreateListError] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -302,6 +303,19 @@ export default function MyListPage() {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard not available in this context
+    }
+  };
+
+  const handleCopyEmbed = async () => {
+    if (!activeList || !user) return;
+    const src = `${window.location.origin}/embed/${user.username}/${activeList.documentId}`;
+    const code = `<iframe src="${src}" width="100%" height="520" frameborder="0" title="London List — ${activeList.name}" style="border:1px solid #e5e7eb;border-radius:8px;"></iframe>`;
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedEmbed(true);
+      setTimeout(() => setCopiedEmbed(false), 2000);
     } catch {
       // clipboard not available in this context
     }
@@ -574,6 +588,36 @@ export default function MyListPage() {
                         Upgrade to Pro
                       </Link>{' '}
                       to see how many times your list has been viewed.
+                    </p>
+                  )}
+                  {user?.isPro ? (
+                    <div className={styles.embedSection}>
+                      <h3 className={styles.embedHeading}>Embed on your website</h3>
+                      <p className={styles.embedHint}>Paste this into any page or blog post.</p>
+                      <div className={styles.shareRow}>
+                        <input
+                          className={styles.shareUrl}
+                          readOnly
+                          value={`<iframe src="${typeof window !== 'undefined' ? window.location.origin : ''}/embed/${user.username}/${activeList.documentId}" width="100%" height="520" frameborder="0" title="London List — ${activeList.name}" style="border:1px solid #e5e7eb;border-radius:8px;"></iframe>`}
+                          aria-label="Embed code"
+                          onFocus={(e) => e.currentTarget.select()}
+                        />
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          onClick={handleCopyEmbed}
+                          aria-label={copiedEmbed ? 'Embed code copied' : 'Copy embed code'}
+                        >
+                          {copiedEmbed ? 'Copied!' : 'Copy code'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className={styles.embedLocked}>
+                      <Link href="/pricing" className={styles.viewCountUpgradeLink}>
+                        Go Pro
+                      </Link>{' '}
+                      to embed this list on any website.
                     </p>
                   )}
                 </>
