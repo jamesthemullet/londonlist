@@ -103,6 +103,30 @@
   line-height: 1.5;
 }
 
+.welcomeBanner {
+  display: block;
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: #fafafa;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.welcomeBanner:hover {
+  border-color: #999;
+  background: #f5f5f5;
+}
+
+.welcomeBannerText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
 .loginPrompt {
   font-size: 0.9rem;
   color: #555;

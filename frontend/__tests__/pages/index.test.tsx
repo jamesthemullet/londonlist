@@ -1,5 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { useQuery } from '@apollo/client/react';
 import Home, { buildWebSiteJsonLd } from '../../pages/index';
+
+jest.mock('@apollo/client/react', () => ({
+  useQuery: jest.fn(),
+}));
+
+jest.mock('../../hooks/use-auth-header', () => ({
+  useAuthHeader: () => ({}),
+}));
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -24,6 +33,7 @@ jest.mock('next/link', () => ({
 
 import { useAppContext } from '../../context/AppContext';
 const mockUseAppContext = useAppContext as jest.Mock;
+const mockUseQuery = useQuery as unknown as jest.Mock;
 
 const PUBLIC_LISTS = [
   { documentId: 'doc-1', name: 'Weekend Wanders', username: 'alice' },
@@ -37,8 +47,23 @@ function mockFetch(data: object, ok = true) {
   } as Response);
 }
 
+function mockListQueries({
+  lists = [{ documentId: 'list-1' }],
+  items = [],
+}: {
+  lists?: Array<{ documentId: string }>;
+  items?: Array<{ completed: boolean; visitedAt: string | null }>;
+} = {}) {
+  mockUseQuery.mockImplementation((query: { definitions: [{ name: { value: string } }] }) => {
+    const name = query.definitions[0]?.name?.value;
+    if (name === 'GetMyLists') return { data: { myLists: lists } };
+    return { data: { listItems: items } };
+  });
+}
+
 beforeEach(() => {
   mockUseAppContext.mockReturnValue({ user: null, setUser: jest.fn(), initialized: true });
+  mockListQueries();
 });
 
 afterEach(() => {
@@ -249,6 +274,95 @@ describe('Home page — Pro upgrade nudge', () => {
     render(<Home />);
 
     expect(screen.queryByRole('complementary', { name: /upgrade to pro/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('Home page — welcome back banner', () => {
+  beforeEach(() => {
+    mockFetch({ data: [] });
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('shows no banner when the user has no items yet', () => {
+    mockListQueries({ lists: [], items: [] });
+
+    render(<Home />);
+
+    expect(screen.queryByText(/streak/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/places from/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the at-risk streak message when the streak is at risk', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-06-25T12:00:00Z'));
+    mockListQueries({
+      lists: [{ documentId: 'list-1' }],
+      items: [{ completed: true, visitedAt: '2026-05-10T12:00:00Z' }],
+    });
+
+    render(<Home />);
+
+    expect(
+      screen.getByText(/Your 1-month streak is at risk — visit somewhere before the end of the month!/),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the streak badge when there is an active streak with no milestone left', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-06-15T12:00:00Z'));
+    mockListQueries({
+      lists: [{ documentId: 'list-1' }],
+      items: [
+        { completed: true, visitedAt: '2026-06-05T12:00:00Z' },
+        { completed: true, visitedAt: '2026-06-06T12:00:00Z' },
+      ],
+    });
+
+    render(<Home />);
+
+    expect(screen.getByText('1-month streak')).toBeInTheDocument();
+    expect(screen.queryByText(/places from/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the next-milestone message when there is progress but no active streak', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-06-15T12:00:00Z'));
+    mockListQueries({
+      lists: [{ documentId: 'list-1' }],
+      items: [
+        { completed: true, visitedAt: '2026-01-10T12:00:00Z' },
+        { completed: false, visitedAt: null },
+        { completed: false, visitedAt: null },
+        { completed: false, visitedAt: null },
+      ],
+    });
+
+    render(<Home />);
+
+    expect(screen.getByText("You're 1 place from 50% of your list.")).toBeInTheDocument();
+  });
+
+  it('links the banner to /my-list', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-06-15T12:00:00Z'));
+    mockListQueries({
+      lists: [{ documentId: 'list-1' }],
+      items: [
+        { completed: true, visitedAt: '2026-01-10T12:00:00Z' },
+        { completed: false, visitedAt: null },
+        { completed: false, visitedAt: null },
+        { completed: false, visitedAt: null },
+      ],
+    });
+
+    render(<Home />);
+
+    const banner = screen.getByText("You're 1 place from 50% of your list.").closest('a');
+    expect(banner).toHaveAttribute('href', '/my-list');
   });
 });
 

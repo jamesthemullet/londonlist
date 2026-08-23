@@ -46,6 +46,13 @@ describe('Form — rendering', () => {
     render(<Form {...baseProps} error={{ message: 'Invalid credentials' }} />);
     expect(screen.getByText('Error: Invalid credentials')).toBeInTheDocument();
   });
+
+  it('renders the error with role="alert" so screen readers announce it', () => {
+    render(<Form {...baseProps} error={{ message: 'Invalid credentials' }} />);
+    const alert = screen.getByRole('alert');
+    expect(alert).toBeInTheDocument();
+    expect(alert).toHaveTextContent('Error: Invalid credentials');
+  });
 });
 
 describe('Form — email validation', () => {

@@ -139,9 +139,10 @@ describe('Layout — Navigation (logged in)', () => {
     });
   });
 
-  it('shows the username in the nav', () => {
+  it('shows the username as a link to /account in the nav', () => {
     render(<Layout>x</Layout>);
-    expect(screen.getByText('alice')).toBeInTheDocument();
+    const usernameLink = screen.getByRole('link', { name: 'alice' });
+    expect(usernameLink).toHaveAttribute('href', '/account');
   });
 
   it('shows My List link when logged in', () => {
@@ -302,6 +303,14 @@ describe('Layout — Hamburger menu (logged in)', () => {
     const hamburger = screen.getByRole('button', { name: /open menu/i });
     fireEvent.click(hamburger);
     fireEvent.click(screen.getByRole('link', { name: /pricing/i }));
+    expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes the menu when the account (username) link is clicked', () => {
+    render(<Layout>x</Layout>);
+    const hamburger = screen.getByRole('button', { name: /open menu/i });
+    fireEvent.click(hamburger);
+    fireEvent.click(screen.getByRole('link', { name: 'alice' }));
     expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false');
   });
 });
