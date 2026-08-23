@@ -11,13 +11,22 @@ describe('buildSitemapEntries', () => {
     expect(home?.changefreq).toBe('daily');
   });
 
-  it('includes static pages (explore, pricing, register, login)', () => {
+  it('includes static pages (explore, templates, pricing, register, login)', () => {
     const entries = buildSitemapEntries([]);
     const locs = entries.map((e) => e.loc);
     expect(locs).toContain('/explore');
+    expect(locs).toContain('/templates');
     expect(locs).toContain('/pricing');
     expect(locs).toContain('/register');
     expect(locs).toContain('/login');
+  });
+
+  it('includes the templates page with weekly changefreq and priority 0.7', () => {
+    const entries = buildSitemapEntries([]);
+    const templates = entries.find((e) => e.loc === '/templates');
+    expect(templates).toBeDefined();
+    expect(templates?.changefreq).toBe('weekly');
+    expect(templates?.priority).toBe('0.7');
   });
 
   it('includes the pricing page with monthly changefreq and priority 0.8', () => {
@@ -50,7 +59,7 @@ describe('buildSitemapEntries', () => {
 
   it('returns only static pages when the list is empty', () => {
     const entries = buildSitemapEntries([]);
-    expect(entries.length).toBe(5); // homepage, explore, pricing, register, login
+    expect(entries.length).toBe(6); // homepage, explore, templates, pricing, register, login
   });
 
   it('returns static pages plus one profile entry and one list entry per valid list', () => {
@@ -59,7 +68,7 @@ describe('buildSitemapEntries', () => {
       { documentId: 'b', username: 'bob' },
     ];
     const entries = buildSitemapEntries(lists);
-    expect(entries.length).toBe(9); // 5 static + 2 profiles + 2 lists
+    expect(entries.length).toBe(10); // 6 static + 2 profiles + 2 lists
   });
 
   it('includes a profile entry for each unique username', () => {

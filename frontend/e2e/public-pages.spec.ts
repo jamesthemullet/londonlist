@@ -142,7 +142,7 @@ test.describe('Site navigation', () => {
   test('Explore link in header navigates to /explore', async ({ page }) => {
     await page.goto('/');
 
-    await page.getByRole('link', { name: 'Explore' }).click();
+    await page.getByRole('banner').getByRole('link', { name: 'Explore' }).click();
 
     await expect(page).toHaveURL(/\/explore/);
   });

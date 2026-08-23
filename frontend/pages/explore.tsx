@@ -6,6 +6,7 @@ import { useAppContext } from '../context/AppContext';
 import styles from './explore.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 type PublicList = {
   documentId: string;
@@ -19,6 +20,25 @@ type PublicList = {
 type Props = {
   lists: PublicList[];
 };
+
+export function buildExplorePageJsonLd(lists: PublicList[], siteUrl: string): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Explore London Lists',
+    description:
+      'Browse curated lists of things to do in London — hidden gems, restaurants, museums, parks, and more.',
+    url: `${siteUrl}/explore`,
+    hasPart: lists
+      .filter((l) => l.username)
+      .map((list) => ({
+        '@type': 'ItemList',
+        name: list.name,
+        url: `${siteUrl}/list/${list.username}/${list.documentId}`,
+        numberOfItems: list.itemCount,
+      })),
+  };
+}
 
 export function deriveAllCategories(lists: PublicList[]): string[] {
   const seen = new Set<string>();
@@ -65,6 +85,10 @@ export default function ExplorePage({ lists }: Props) {
         />
         <meta property="og:type" content="website" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {lists.length > 0 && (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildExplorePageJsonLd(lists, SITE_URL)) }} />
+        )}
       </Head>
       <main className={styles.main}>
         <div className={styles.hero}>
