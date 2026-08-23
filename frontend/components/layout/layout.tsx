@@ -49,6 +49,7 @@ function Navigation() {
         <div className={styles.navBrand}>
           <Link href="/" aria-label="London List — home">London List</Link>
           <Link href="/explore">Explore</Link>
+          <Link href="/templates">Starter Lists</Link>
         </div>
 
         <button

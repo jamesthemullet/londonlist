@@ -8,14 +8,14 @@ import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
+import { buildOgImageUrl } from '../../../lib/og-image';
 import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
 
 const ListMap = dynamic(() => import('../../../components/map/list-map'), { ssr: false });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
-const DEFAULT_OG_IMAGE = `${SITE_URL}/images/temp-seo-image.jpg`;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
@@ -39,6 +39,12 @@ type PublicListData = {
   viewCount?: number;
 };
 
+type OtherList = {
+  documentId: string;
+  name: string;
+  itemCount: number;
+};
+
 type PageState = 'found' | 'private' | 'not_found';
 
 type Props = {
@@ -46,6 +52,7 @@ type Props = {
   listData: PublicListData | null;
   username: string;
   listId: string;
+  otherLists?: OtherList[];
 };
 
 const CREATE_MY_LIST = gql`
@@ -197,7 +204,7 @@ export function buildItemListJsonLd(
   };
 }
 
-export default function PublicListPage({ pageState, listData, username, listId }: Props) {
+export default function PublicListPage({ pageState, listData, username, listId, otherLists = [] }: Props) {
   const { user, initialized } = useAppContext();
   if (pageState === 'not_found') {
     return (
@@ -225,6 +232,10 @@ export default function PublicListPage({ pageState, listData, username, listId }
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
+  const ogImage = buildOgImageUrl(
+    { title: listData?.listName ?? '', username, itemCount: items.length, doneCount: done.length },
+    SITE_URL,
+  );
 
   const mapItems: MapItem[] = items
     .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)
@@ -260,12 +271,12 @@ export default function PublicListPage({ pageState, listData, username, listId }
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={DEFAULT_OG_IMAGE} />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:locale" content="en_GB" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
+        <meta name="twitter:image" content={ogImage} />
         {jsonLd && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -363,6 +374,29 @@ export default function PublicListPage({ pageState, listData, username, listId }
           </div>
         )}
       </main>
+      {otherLists.length > 0 && (
+        <section className={styles.moreLists} aria-label={`More lists by ${username}`}>
+          <h2 className={styles.moreListsHeading}>More by {username}</h2>
+          <ul className={styles.moreListsGrid}>
+            {otherLists.map((list) => (
+              <li key={list.documentId}>
+                <Link
+                  href={`/list/${username}/${list.documentId}`}
+                  className={styles.moreListCard}
+                >
+                  <span className={styles.moreListName}>{list.name}</span>
+                  {list.itemCount > 0 && (
+                    <span className={styles.moreListCount}>
+                      {list.itemCount} {list.itemCount === 1 ? 'place' : 'places'}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {initialized && !user && (
         <aside className={styles.conversionBanner}>
           <p className={styles.conversionHeadline}>
@@ -390,21 +424,35 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
   const { username, listId } = context.params as { username: string; listId: string };
 
   try {
-    const res = await fetch(`${API_URL}/api/lists/public/${username}/${listId}`, {
-      signal: AbortSignal.timeout(5000),
-    });
-    if (res.status === 403) {
-      return { props: { pageState: 'private', listData: null, username, listId } };
+    const [listRes, profileRes] = await Promise.all([
+      fetch(`${API_URL}/api/lists/public/${username}/${listId}`, {
+        signal: AbortSignal.timeout(5000),
+      }),
+      fetch(`${API_URL}/api/lists/public/${username}`, {
+        signal: AbortSignal.timeout(5000),
+      }),
+    ]);
+
+    if (listRes.status === 403) {
+      return { props: { pageState: 'private', listData: null, username, listId, otherLists: [] } };
     }
-    if (res.status === 404) {
-      return { props: { pageState: 'not_found', listData: null, username, listId } };
+    if (listRes.status === 404) {
+      return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [] } };
     }
-    if (res.ok) {
-      const data: PublicListData = await res.json();
-      return { props: { pageState: 'found', listData: data, username, listId } };
+    if (listRes.ok) {
+      const data: PublicListData = await listRes.json();
+
+      let otherLists: OtherList[] = [];
+      if (profileRes.ok) {
+        const profileData: { lists: Array<{ documentId: string; name: string; itemCount: number }> } =
+          await profileRes.json();
+        otherLists = (profileData.lists ?? []).filter((l) => l.documentId !== listId);
+      }
+
+      return { props: { pageState: 'found', listData: data, username, listId, otherLists } };
     }
-    return { props: { pageState: 'not_found', listData: null, username, listId } };
+    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [] } };
   } catch {
-    return { props: { pageState: 'not_found', listData: null, username, listId } };
+    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [] } };
   }
 };
