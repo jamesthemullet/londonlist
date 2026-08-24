@@ -126,6 +126,7 @@ export default function ExplorePage({ lists }: Props) {
               type="button"
               className={activeCategory === null ? styles.categoryChipActive : styles.categoryChip}
               onClick={() => setActiveCategory(null)}
+              aria-pressed={activeCategory === null}
             >
               All
             </button>
@@ -135,6 +136,7 @@ export default function ExplorePage({ lists }: Props) {
                 type="button"
                 className={activeCategory === cat ? styles.categoryChipActive : styles.categoryChip}
                 onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+                aria-pressed={activeCategory === cat}
               >
                 {cat}
               </button>

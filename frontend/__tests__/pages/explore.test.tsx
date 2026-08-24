@@ -208,6 +208,31 @@ describe('ExplorePage — category filter', () => {
     expect(screen.queryByText('Museum Trail')).not.toBeInTheDocument();
   });
 
+  it('the "All" chip has aria-pressed=true by default', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('a category chip has aria-pressed=false when not active', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByRole('button', { name: 'museum' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('sets aria-pressed=true on a clicked chip and false on "All"', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    expect(screen.getByRole('button', { name: 'museum' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('restores aria-pressed=true on "All" after deselecting a chip', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'museum' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
   it('updates count correctly after category filter', () => {
     render(<ExplorePage lists={LISTS} />);
     fireEvent.click(screen.getByRole('button', { name: 'museum' }));
