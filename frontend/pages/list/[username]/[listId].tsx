@@ -8,6 +8,7 @@ import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
+import SaveListButton from '../../../components/save-list-button/save-list-button';
 import { buildOgImageUrl } from '../../../lib/og-image';
 import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
@@ -316,6 +317,11 @@ export default function PublicListPage({ pageState, listData, username, listId, 
           </>
         )}
         <ShareButtons url={canonicalUrl} title={pageTitle} />
+        <SaveListButton
+          listId={listId}
+          username={username}
+          name={listData?.listName ?? 'Saved list'}
+        />
         {initialized && user && items.length > 0 && (
           <CopyListButton items={items} listName={listData?.listName ?? 'Copied list'} />
         )}

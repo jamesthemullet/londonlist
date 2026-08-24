@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { GET_MY_LIST } from '../components/my-list/my-list';
+import SavedListsWidget from '../components/saved-lists-widget/saved-lists-widget';
 import PlaceSearch from '../components/search/place-search';
 import StreakBadge from '../components/streak-badge/streak-badge';
 import { useAppContext } from '../context/AppContext';
@@ -108,6 +109,8 @@ export default function Home() {
         ) : (
           <LoggedOutHero />
         )}
+
+        <SavedListsWidget />
 
         {publicLists.length > 0 && (
           <section className={styles.publicLists}>
