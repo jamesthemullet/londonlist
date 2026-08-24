@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export type SavedList = {
+type SavedList = {
   listId: string;
   username: string;
   name: string;
