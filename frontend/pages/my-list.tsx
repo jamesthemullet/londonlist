@@ -18,6 +18,7 @@ type List = {
   description?: string | null;
   isPublic: boolean;
   viewCount: number;
+  itemCount: number;
 };
 
 type MyListsData = {
@@ -32,6 +33,7 @@ export const GET_MY_LISTS = gql`
       description
       isPublic
       viewCount
+      itemCount
     }
   }
 `;
@@ -67,6 +69,7 @@ const DELETE_MY_LIST = gql`
 `;
 
 const FREE_LIST_LIMIT = 3;
+const FREE_ITEM_LIMIT = 20;
 
 function ProStatsCard({ lists, isPro }: { lists: List[]; isPro: boolean }) {
   const publicLists = lists.filter((l) => l.isPublic);
@@ -198,6 +201,7 @@ export default function MyListPage() {
 
   const activeList = lists.find((l) => l.documentId === activeListId) ?? null;
   const isAtListLimit = !user?.isPro && lists.length >= FREE_LIST_LIMIT;
+  const activeItemCount = activeList?.itemCount ?? 0;
 
   const handleOpenNewList = () => {
     if (isAtListLimit) {
@@ -475,7 +479,13 @@ export default function MyListPage() {
 
             <section className={styles.section}>
               <h2 className={styles.subheading}>Add a place</h2>
-              <PlaceSearch listId={activeList.documentId} />
+              <PlaceSearch
+                listId={activeList.documentId}
+                itemCount={activeItemCount}
+                isPro={user?.isPro ?? false}
+                freeItemLimit={FREE_ITEM_LIMIT}
+                onLimitReached={() => setShowUpgradeModal(true)}
+              />
             </section>
             <section className={styles.section}>
               <MyList listId={activeList.documentId} />

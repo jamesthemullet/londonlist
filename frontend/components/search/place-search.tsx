@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
+import Link from 'next/link';
 import Cookie from 'js-cookie';
 import { useEffect, useState } from 'react';
 import { useAuthHeader } from '../../hooks/use-auth-header';
@@ -71,9 +72,14 @@ function osmTypeExpanded(short: string): string {
 
 type Props = {
   listId?: string;
+  itemCount?: number;
+  isPro?: boolean;
+  freeItemLimit?: number;
+  onLimitReached?: () => void;
 };
 
-export default function PlaceSearch({ listId }: Props) {
+export default function PlaceSearch({ listId, itemCount, isPro, freeItemLimit = 20, onLimitReached }: Props) {
+  const isAtItemLimit = !isPro && itemCount !== undefined && itemCount >= freeItemLimit;
   const authHeader = useAuthHeader();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PhotonFeature[]>([]);
@@ -159,13 +165,47 @@ export default function PlaceSearch({ listId }: Props) {
         return;
       }
       setAdded((prev) => new Set(prev).add(key));
-    } catch {
-      setAddError('Could not add to list. Please try again.');
+    } catch (err) {
+      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
+      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
+      if (code === 'FREE_ITEM_LIMIT_REACHED') {
+        if (onLimitReached) onLimitReached();
+      } else {
+        setAddError('Could not add to list. Please try again.');
+      }
     }
+  }
+
+  if (isAtItemLimit) {
+    return (
+      <div className={styles.container}>
+        <div
+          className={styles.limitBanner}
+          role="status"
+          aria-label={`${freeItemLimit} of ${freeItemLimit} places used — upgrade required`}
+        >
+          <span className={styles.limitCounter} aria-hidden="true">
+            {freeItemLimit}/{freeItemLimit} places
+          </span>
+          <p className={styles.limitText}>
+            You&apos;ve reached the {freeItemLimit}-place limit on the free plan.{' '}
+            <Link href="/pricing" className={styles.upgradeLink}>
+              Upgrade to Pro
+            </Link>{' '}
+            for unlimited places per list.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className={styles.container}>
+      {!isPro && itemCount !== undefined && (
+        <p className={styles.itemCounter}>
+          {itemCount}/{freeItemLimit} places on free plan
+        </p>
+      )}
       <div className={styles.inputWrapper}>
         <label htmlFor="place-search-input" className={styles.srOnly}>
           Search for a place in London
