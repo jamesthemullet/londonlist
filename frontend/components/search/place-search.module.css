@@ -136,3 +136,36 @@
   color: #c0392b;
   font-size: 0.9rem;
 }
+
+.itemCounter {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.limitBanner {
+  padding: 1rem;
+  border: 2px dashed #e0a800;
+  border-radius: 8px;
+  background: #fffbea;
+}
+
+.limitCounter {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b8860b;
+}
+
+.limitText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.upgradeLink {
+  color: #333;
+  font-weight: 600;
+  text-decoration: underline;
+}
