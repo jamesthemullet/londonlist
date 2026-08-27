@@ -1,16 +1,24 @@
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
-import { useQuery, useMutation } from '@apollo/client/react';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client/react';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../context/AppContext';
 import MyListPage from '../../pages/my-list';
+import { downloadCsv } from '../../lib/export';
 
 jest.mock('@apollo/client/react', () => ({
   useQuery: jest.fn(),
   useMutation: jest.fn(),
+  useLazyQuery: jest.fn(),
 }));
 
 jest.mock('@apollo/client', () => ({
   gql: (strings: TemplateStringsArray) => strings,
+}));
+
+jest.mock('../../lib/export', () => ({
+  buildCsvContent: jest.fn().mockReturnValue('Name,Category\nTest,museum'),
+  buildCsvFilename: jest.fn().mockReturnValue('My-List.csv'),
+  downloadCsv: jest.fn(),
 }));
 
 jest.mock('../../hooks/use-auth-header', () => ({
@@ -59,6 +67,7 @@ jest.mock('../../components/upgrade-modal/upgrade-modal', () => ({
 
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
+const mockUseLazyQuery = useLazyQuery as unknown as jest.Mock;
 const mockUseAppContext = useAppContext as jest.Mock;
 const mockUseRouter = useRouter as jest.Mock;
 
@@ -104,6 +113,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockUseRouter.mockReturnValue(MOCK_ROUTER);
   mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+  mockUseLazyQuery.mockReturnValue([jest.fn().mockResolvedValue({ data: { listItems: [] } }), {}]);
 });
 
 describe('MyListPage — auth', () => {
@@ -779,7 +789,7 @@ describe('MyListPage — view counts', () => {
 
     render(<MyListPage />);
 
-    expect(screen.getByRole('link', { name: 'Upgrade to Pro' })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Upgrade to Pro' }).length).toBeGreaterThan(0);
     expect(screen.getByText(/to see how many times your list has been viewed/)).toBeInTheDocument();
   });
 
@@ -790,7 +800,10 @@ describe('MyListPage — view counts', () => {
 
     render(<MyListPage />);
 
-    expect(screen.getByRole('link', { name: 'Upgrade to Pro' })).toHaveAttribute('href', '/pricing');
+    const upgradeLinks = screen.getAllByRole('link', { name: 'Upgrade to Pro' });
+    for (const link of upgradeLinks) {
+      expect(link).toHaveAttribute('href', '/pricing');
+    }
   });
 
   it('does not show view count or upgrade prompt for private lists', () => {
@@ -926,5 +939,65 @@ describe('MyListPage — Pro analytics stats card', () => {
 
     const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
     expect(within(statsCard).queryByText('42')).not.toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — export', () => {
+  const ONE_LIST_WITH_ITEMS = [
+    { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0, itemCount: 2 },
+  ];
+
+  it('shows an upgrade prompt for free users', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST_WITH_ITEMS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText(/to export your list as a CSV file/)).toBeInTheDocument();
+  });
+
+  it('shows a Download as CSV button for Pro users', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST_WITH_ITEMS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.getByRole('button', { name: 'Download as CSV' })).toBeInTheDocument();
+  });
+
+  it('calls fetchListItems and triggers a download when Pro user clicks export', async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      data: {
+        listItems: [
+          { name: 'British Museum', category: 'museum', completed: false, visitedAt: null, notes: null },
+        ],
+      },
+    });
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST_WITH_ITEMS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseLazyQuery.mockReturnValue([mockFetch, {}]);
+
+    render(<MyListPage />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Download as CSV' }));
+    });
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith({ variables: { listDocumentId: 'list-1' } });
+    });
+    expect(downloadCsv).toHaveBeenCalled();
+  });
+
+  it('does not show the export upgrade prompt for Pro users', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST_WITH_ITEMS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByText(/to export your list as a CSV file/)).not.toBeInTheDocument();
   });
 });

@@ -1,15 +1,16 @@
 import { gql } from '@apollo/client';
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useMutation, useQuery, useLazyQuery } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
-import MyList from '../components/my-list/my-list';
+import MyList, { GET_MY_LIST } from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
+import { buildCsvContent, buildCsvFilename, downloadCsv } from '../lib/export';
 import styles from './my-list.module.css';
 
 type List = {
@@ -138,6 +139,7 @@ export default function MyListPage() {
   const [copied, setCopied] = useState(false);
   const [createListError, setCreateListError] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -168,6 +170,11 @@ export default function MyListPage() {
   const [deleteList] = useMutation(DELETE_MY_LIST, {
     context: { headers: authHeader },
     refetchQueries: [{ query: GET_MY_LISTS, context: { headers: authHeader } }],
+  });
+
+  const [fetchListItems] = useLazyQuery<{ listItems: Array<{ name: string; category: string | null; completed: boolean; visitedAt: string | null; notes: string | null }> }>(GET_MY_LIST, {
+    context: { headers: authHeader },
+    fetchPolicy: 'cache-first',
   });
 
   const lists = data?.myLists ?? [];
@@ -316,6 +323,19 @@ export default function MyListPage() {
     await updateList({
       variables: { documentId: activeList.documentId, isPublic: !activeList.isPublic },
     });
+  };
+
+  const handleExportList = async () => {
+    if (!activeList) return;
+    setIsExporting(true);
+    try {
+      const result = await fetchListItems({ variables: { listDocumentId: activeList.documentId } });
+      const items = result.data?.listItems ?? [];
+      const content = buildCsvContent(items);
+      downloadCsv(content, buildCsvFilename(activeList.name));
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (!initialized || !user) return null;
@@ -590,6 +610,28 @@ export default function MyListPage() {
               ) : (
                 <p className={styles.sharePrivate}>
                   Make this list public to share it with others.
+                </p>
+              )}
+            </section>
+
+            <section className={styles.section} aria-label="Export">
+              <h2 className={styles.subheading}>Export</h2>
+              {user?.isPro ? (
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={handleExportList}
+                  disabled={isExporting}
+                  aria-busy={isExporting}
+                >
+                  {isExporting ? 'Preparing…' : 'Download as CSV'}
+                </button>
+              ) : (
+                <p className={styles.sharePrivate}>
+                  <Link href="/pricing" className={styles.upgradeBannerLink}>
+                    Upgrade to Pro
+                  </Link>
+                  {' '}to export your list as a CSV file.
                 </p>
               )}
             </section>

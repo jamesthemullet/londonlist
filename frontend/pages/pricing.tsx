@@ -20,6 +20,7 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   'Everything in Free',
   'Unlimited lists',
+  'Export any list as a CSV file',
   'View counts on each public list',
   'Aggregate view analytics across all lists',
   'Early access to new features',

@@ -4,6 +4,7 @@ import styles from './upgrade-modal.module.css';
 
 const PRO_BENEFITS = [
   'Unlimited lists — no cap, ever',
+  'Export any list as a CSV file',
   'View counts on all your public lists',
   'Early access to new features',
   'Priority support',
