@@ -986,7 +986,7 @@ describe('MyListPage — export', () => {
     });
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith({ variables: { listDocumentId: 'list-1' } });
+      expect(mockFetch).toHaveBeenCalledWith(expect.objectContaining({ variables: { listDocumentId: 'list-1' } }));
     });
     expect(downloadCsv).toHaveBeenCalled();
   });

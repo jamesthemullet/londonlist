@@ -173,7 +173,6 @@ export default function MyListPage() {
   });
 
   const [fetchListItems] = useLazyQuery<{ listItems: Array<{ name: string; category: string | null; completed: boolean; visitedAt: string | null; notes: string | null }> }>(GET_MY_LIST, {
-    context: { headers: authHeader },
     fetchPolicy: 'cache-first',
   });
 
@@ -329,7 +328,7 @@ export default function MyListPage() {
     if (!activeList) return;
     setIsExporting(true);
     try {
-      const result = await fetchListItems({ variables: { listDocumentId: activeList.documentId } });
+      const result = await fetchListItems({ variables: { listDocumentId: activeList.documentId }, context: { headers: authHeader } });
       const items = result.data?.listItems ?? [];
       const content = buildCsvContent(items);
       downloadCsv(content, buildCsvFilename(activeList.name));
