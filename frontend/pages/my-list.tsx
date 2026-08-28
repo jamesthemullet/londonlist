@@ -488,7 +488,7 @@ export default function MyListPage() {
               />
             </section>
             <section className={styles.section}>
-              <MyList listId={activeList.documentId} isPro={user?.isPro ?? false} />
+              <MyList listId={activeList.documentId} />
             </section>
             <section className={styles.section}>
               <h2 className={styles.subheading}>List settings</h2>

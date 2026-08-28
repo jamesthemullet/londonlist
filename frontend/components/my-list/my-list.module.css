@@ -226,22 +226,6 @@
   color: #fff;
 }
 
-.mapUpgradeNudge {
-  font-size: 0.8rem;
-  color: #888;
-  margin: 0;
-}
-
-.mapUpgradeLink {
-  color: #c724b1;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.mapUpgradeLink:hover {
-  text-decoration: underline;
-}
-
 .mapContainer {
   margin: 0.75rem 0;
   border-radius: 8px;

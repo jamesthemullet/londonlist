@@ -1,7 +1,6 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { useState } from 'react';
 import Loader from '../Loader';
 import ProgressBar from '../progress-bar/progress-bar';
@@ -77,10 +76,9 @@ const UPDATE_NOTES = gql`
 
 type Props = {
   listId: string;
-  isPro?: boolean;
 };
 
-export default function MyList({ listId, isPro = false }: Props) {
+export default function MyList({ listId }: Props) {
   const authHeader = useAuthHeader();
   const [showMap, setShowMap] = useState(false);
 
@@ -163,30 +161,21 @@ export default function MyList({ listId, isPro = false }: Props) {
       <StreakBadge streak={streak} atRisk={atRisk} />
       <ProgressBar total={items.length} done={done.length} />
       <div className={styles.mapToggleRow}>
-        {isPro ? (
-          <button
-            type="button"
-            className={styles.mapToggle}
-            onClick={() => setShowMap((s) => !s)}
-            aria-expanded={showMap}
-          >
-            {showMap ? 'Hide map' : 'Show map'}
-          </button>
-        ) : (
-          <p className={styles.mapUpgradeNudge}>
-            <Link href="/pricing" className={styles.mapUpgradeLink}>
-              Upgrade to Pro
-            </Link>
-            {' '}to view your places on a map.
-          </p>
-        )}
+        <button
+          type="button"
+          className={styles.mapToggle}
+          onClick={() => setShowMap((s) => !s)}
+          aria-expanded={showMap}
+        >
+          {showMap ? 'Hide map' : 'Show map'}
+        </button>
       </div>
-      {isPro && showMap && mapItems.length > 0 && (
+      {showMap && mapItems.length > 0 && (
         <div className={styles.mapContainer}>
           <ListMap items={mapItems} />
         </div>
       )}
-      {isPro && showMap && mapItems.length === 0 && (
+      {showMap && mapItems.length === 0 && (
         <p className={styles.mapNoCoords}>No places with location data yet — add more from the search above.</p>
       )}
       {todo.length > 0 && (

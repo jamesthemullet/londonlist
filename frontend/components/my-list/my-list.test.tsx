@@ -27,23 +27,6 @@ jest.mock('next/dynamic', () => () => {
   return MockListMap;
 });
 
-jest.mock('next/link', () => ({
-  __esModule: true,
-  default: ({
-    href,
-    children,
-    className,
-  }: {
-    href: string;
-    children: React.ReactNode;
-    className?: string;
-  }) => (
-    <a href={href} className={className}>
-      {children}
-    </a>
-  ),
-}));
-
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 
@@ -329,12 +312,12 @@ const ITEMS_WITH_COORDS = [
   { documentId: 'item-map-2', name: 'Hyde Park', category: 'park', completed: false, osm_id: '456', visitedAt: null, notes: null, lat: 51.5074, lng: -0.1657 },
 ];
 
-describe('MyList — map toggle (Pro users)', () => {
-  it('shows "Show map" button for Pro users when items exist', () => {
+describe('MyList — map toggle', () => {
+  it('shows "Show map" button when items exist', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" isPro={true} />);
+    render(<MyList listId="list-1" />);
 
     expect(screen.getByRole('button', { name: 'Show map' })).toBeInTheDocument();
   });
@@ -344,7 +327,7 @@ describe('MyList — map toggle (Pro users)', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" isPro={true} />);
+    render(<MyList listId="list-1" />);
 
     await user.click(screen.getByRole('button', { name: 'Show map' }));
 
@@ -356,7 +339,7 @@ describe('MyList — map toggle (Pro users)', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" isPro={true} />);
+    render(<MyList listId="list-1" />);
 
     await user.click(screen.getByRole('button', { name: 'Show map' }));
 
@@ -368,7 +351,7 @@ describe('MyList — map toggle (Pro users)', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" isPro={true} />);
+    render(<MyList listId="list-1" />);
 
     await user.click(screen.getByRole('button', { name: 'Show map' }));
     await user.click(screen.getByRole('button', { name: 'Hide map' }));
@@ -380,7 +363,7 @@ describe('MyList — map toggle (Pro users)', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" isPro={true} />);
+    render(<MyList listId="list-1" />);
 
     expect(screen.getByRole('button', { name: 'Show map' })).toHaveAttribute('aria-expanded', 'false');
   });
@@ -390,7 +373,7 @@ describe('MyList — map toggle (Pro users)', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" isPro={true} />);
+    render(<MyList listId="list-1" />);
 
     await user.click(screen.getByRole('button', { name: 'Show map' }));
 
@@ -402,7 +385,7 @@ describe('MyList — map toggle (Pro users)', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" isPro={true} />);
+    render(<MyList listId="list-1" />);
 
     await user.click(screen.getByRole('button', { name: 'Show map' }));
 
@@ -414,56 +397,8 @@ describe('MyList — map toggle (Pro users)', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
 
-    render(<MyList listId="list-1" isPro={true} />);
-
-    expect(screen.queryByRole('button', { name: 'Show map' })).not.toBeInTheDocument();
-  });
-});
-
-describe('MyList — map upgrade nudge (free users)', () => {
-  it('shows an upgrade link for free users when items exist', () => {
-    setupMutations();
-    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
-
-    render(<MyList listId="list-1" isPro={false} />);
-
-    expect(screen.getByRole('link', { name: /upgrade to pro/i })).toBeInTheDocument();
-  });
-
-  it('links the upgrade nudge to /pricing', () => {
-    setupMutations();
-    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
-
-    render(<MyList listId="list-1" isPro={false} />);
-
-    expect(screen.getByRole('link', { name: /upgrade to pro/i })).toHaveAttribute('href', '/pricing');
-  });
-
-  it('does not show the upgrade link when the list is empty', () => {
-    setupMutations();
-    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
-
-    render(<MyList listId="list-1" isPro={false} />);
-
-    expect(screen.queryByRole('link', { name: /upgrade to pro/i })).not.toBeInTheDocument();
-  });
-
-  it('does not show the upgrade link for Pro users', () => {
-    setupMutations();
-    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
-
-    render(<MyList listId="list-1" isPro={true} />);
-
-    expect(screen.queryByRole('link', { name: /upgrade to pro/i })).not.toBeInTheDocument();
-  });
-
-  it('defaults to free (no map toggle) when isPro prop is omitted', () => {
-    setupMutations();
-    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
-
     render(<MyList listId="list-1" />);
 
-    expect(screen.queryByRole('button', { name: /show map/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /upgrade to pro/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Show map' })).not.toBeInTheDocument();
   });
 });
