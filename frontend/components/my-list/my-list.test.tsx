@@ -19,6 +19,31 @@ jest.mock('../../hooks/use-auth-header', () => ({
 jest.mock('../Loader', () => () => <div data-testid="loader" />);
 jest.mock('../progress-bar/progress-bar', () => () => null);
 
+jest.mock('next/dynamic', () => () => {
+  const MockListMap = ({ items }: { items: { documentId: string }[] }) => (
+    <div data-testid="list-map-mock" data-item-count={items.length} />
+  );
+  MockListMap.displayName = 'ListMap';
+  return MockListMap;
+});
+
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  ),
+}));
+
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 
@@ -296,5 +321,149 @@ describe('MyList — notes integration', () => {
     expect(mockUpdateNotes).toHaveBeenCalledWith({
       variables: { documentId: 'item-notes-2', notes: 'Go early on Saturday' },
     });
+  });
+});
+
+const ITEMS_WITH_COORDS = [
+  { documentId: 'item-map-1', name: 'British Museum', category: 'museum', completed: false, osm_id: '123', visitedAt: null, notes: null, lat: 51.5194, lng: -0.1269 },
+  { documentId: 'item-map-2', name: 'Hyde Park', category: 'park', completed: false, osm_id: '456', visitedAt: null, notes: null, lat: 51.5074, lng: -0.1657 },
+];
+
+describe('MyList — map toggle (Pro users)', () => {
+  it('shows "Show map" button for Pro users when items exist', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    expect(screen.getByRole('button', { name: 'Show map' })).toBeInTheDocument();
+  });
+
+  it('toggles label to "Hide map" after clicking "Show map"', async () => {
+    const user = userEvent.setup();
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    await user.click(screen.getByRole('button', { name: 'Show map' }));
+
+    expect(screen.getByRole('button', { name: 'Hide map' })).toBeInTheDocument();
+  });
+
+  it('shows the map after clicking "Show map" when items have coordinates', async () => {
+    const user = userEvent.setup();
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    await user.click(screen.getByRole('button', { name: 'Show map' }));
+
+    expect(screen.getByTestId('list-map-mock')).toBeInTheDocument();
+  });
+
+  it('hides the map after clicking "Hide map"', async () => {
+    const user = userEvent.setup();
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    await user.click(screen.getByRole('button', { name: 'Show map' }));
+    await user.click(screen.getByRole('button', { name: 'Hide map' }));
+
+    expect(screen.queryByTestId('list-map-mock')).not.toBeInTheDocument();
+  });
+
+  it('sets aria-expanded=false on the toggle button initially', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    expect(screen.getByRole('button', { name: 'Show map' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('sets aria-expanded=true after opening the map', async () => {
+    const user = userEvent.setup();
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    await user.click(screen.getByRole('button', { name: 'Show map' }));
+
+    expect(screen.getByRole('button', { name: 'Hide map' })).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('shows a "no coords" message when all items lack location data', async () => {
+    const user = userEvent.setup();
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    await user.click(screen.getByRole('button', { name: 'Show map' }));
+
+    expect(screen.queryByTestId('list-map-mock')).not.toBeInTheDocument();
+    expect(screen.getByText(/no places with location data/i)).toBeInTheDocument();
+  });
+
+  it('does not show the "Show map" button when the list is empty', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    expect(screen.queryByRole('button', { name: 'Show map' })).not.toBeInTheDocument();
+  });
+});
+
+describe('MyList — map upgrade nudge (free users)', () => {
+  it('shows an upgrade link for free users when items exist', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={false} />);
+
+    expect(screen.getByRole('link', { name: /upgrade to pro/i })).toBeInTheDocument();
+  });
+
+  it('links the upgrade nudge to /pricing', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={false} />);
+
+    expect(screen.getByRole('link', { name: /upgrade to pro/i })).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not show the upgrade link when the list is empty', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={false} />);
+
+    expect(screen.queryByRole('link', { name: /upgrade to pro/i })).not.toBeInTheDocument();
+  });
+
+  it('does not show the upgrade link for Pro users', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" isPro={true} />);
+
+    expect(screen.queryByRole('link', { name: /upgrade to pro/i })).not.toBeInTheDocument();
+  });
+
+  it('defaults to free (no map toggle) when isPro prop is omitted', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    expect(screen.queryByRole('button', { name: /show map/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /upgrade to pro/i })).toBeInTheDocument();
   });
 });
