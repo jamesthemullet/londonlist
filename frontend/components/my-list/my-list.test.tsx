@@ -313,37 +313,34 @@ const ITEMS_WITH_COORDS = [
 ];
 
 describe('MyList — map toggle', () => {
-  it('shows "Show map" button when items exist', () => {
+  it('shows the map by default when items have coordinates', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
     render(<MyList listId="list-1" />);
 
-    expect(screen.getByRole('button', { name: 'Show map' })).toBeInTheDocument();
+    expect(screen.getByTestId('list-map-mock')).toBeInTheDocument();
   });
 
-  it('toggles label to "Hide map" after clicking "Show map"', async () => {
-    const user = userEvent.setup();
+  it('shows "Hide map" button by default when items exist', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
     render(<MyList listId="list-1" />);
-
-    await user.click(screen.getByRole('button', { name: 'Show map' }));
 
     expect(screen.getByRole('button', { name: 'Hide map' })).toBeInTheDocument();
   });
 
-  it('shows the map after clicking "Show map" when items have coordinates', async () => {
+  it('toggles label to "Show map" after clicking "Hide map"', async () => {
     const user = userEvent.setup();
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
     render(<MyList listId="list-1" />);
 
-    await user.click(screen.getByRole('button', { name: 'Show map' }));
+    await user.click(screen.getByRole('button', { name: 'Hide map' }));
 
-    expect(screen.getByTestId('list-map-mock')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show map' })).toBeInTheDocument();
   });
 
   it('hides the map after clicking "Hide map"', async () => {
@@ -353,52 +350,61 @@ describe('MyList — map toggle', () => {
 
     render(<MyList listId="list-1" />);
 
-    await user.click(screen.getByRole('button', { name: 'Show map' }));
     await user.click(screen.getByRole('button', { name: 'Hide map' }));
 
     expect(screen.queryByTestId('list-map-mock')).not.toBeInTheDocument();
   });
 
-  it('sets aria-expanded=false on the toggle button initially', () => {
-    setupMutations();
-    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
-
-    render(<MyList listId="list-1" />);
-
-    expect(screen.getByRole('button', { name: 'Show map' })).toHaveAttribute('aria-expanded', 'false');
-  });
-
-  it('sets aria-expanded=true after opening the map', async () => {
+  it('shows the map again after clicking "Show map"', async () => {
     const user = userEvent.setup();
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
     render(<MyList listId="list-1" />);
 
+    await user.click(screen.getByRole('button', { name: 'Hide map' }));
     await user.click(screen.getByRole('button', { name: 'Show map' }));
+
+    expect(screen.getByTestId('list-map-mock')).toBeInTheDocument();
+  });
+
+  it('sets aria-expanded=true on the toggle button initially', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
+
+    render(<MyList listId="list-1" />);
 
     expect(screen.getByRole('button', { name: 'Hide map' })).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('shows a "no coords" message when all items lack location data', async () => {
+  it('sets aria-expanded=false after hiding the map', async () => {
     const user = userEvent.setup();
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
+
+    render(<MyList listId="list-1" />);
+
+    await user.click(screen.getByRole('button', { name: 'Hide map' }));
+
+    expect(screen.getByRole('button', { name: 'Show map' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('shows a "no coords" message by default when all items lack location data', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
     render(<MyList listId="list-1" />);
 
-    await user.click(screen.getByRole('button', { name: 'Show map' }));
-
     expect(screen.queryByTestId('list-map-mock')).not.toBeInTheDocument();
     expect(screen.getByText(/no places with location data/i)).toBeInTheDocument();
   });
 
-  it('does not show the "Show map" button when the list is empty', () => {
+  it('does not show the map toggle when the list is empty', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
 
     render(<MyList listId="list-1" />);
 
-    expect(screen.queryByRole('button', { name: 'Show map' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /show map|hide map/i })).not.toBeInTheDocument();
   });
 });

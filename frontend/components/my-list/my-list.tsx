@@ -80,7 +80,7 @@ type Props = {
 
 export default function MyList({ listId }: Props) {
   const authHeader = useAuthHeader();
-  const [showMap, setShowMap] = useState(false);
+  const [showMap, setShowMap] = useState(true);
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
     variables: { listDocumentId: listId },
