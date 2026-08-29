@@ -5,6 +5,8 @@ import { useMemo, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import styles from './explore.module.css';
 
+export type SortOption = 'most-places' | 'fewest-places' | 'alphabetical';
+
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
@@ -50,10 +52,22 @@ export function deriveAllCategories(lists: PublicList[]): string[] {
   return [...seen].sort();
 }
 
+export function sortLists(lists: PublicList[], sortBy: SortOption): PublicList[] {
+  const copy = [...lists];
+  if (sortBy === 'most-places') {
+    return copy.sort((a, b) => b.itemCount - a.itemCount);
+  }
+  if (sortBy === 'fewest-places') {
+    return copy.sort((a, b) => a.itemCount - b.itemCount);
+  }
+  return copy.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export default function ExplorePage({ lists }: Props) {
   const { user, initialized } = useAppContext();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('most-places');
 
   const allCategories = useMemo(() => deriveAllCategories(lists), [lists]);
 
@@ -69,6 +83,8 @@ export default function ExplorePage({ lists }: Props) {
       return matchesQuery && matchesCategory;
     });
   }, [lists, query, activeCategory]);
+
+  const sorted = useMemo(() => sortLists(filtered, sortBy), [filtered, sortBy]);
 
   return (
     <>
@@ -117,6 +133,20 @@ export default function ExplorePage({ lists }: Props) {
             className={styles.searchInput}
             aria-label="Search lists"
           />
+          <label htmlFor="sort-lists" className={styles.sortLabel}>
+            Sort by
+          </label>
+          <select
+            id="sort-lists"
+            className={styles.sortSelect}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            aria-label="Sort lists"
+          >
+            <option value="most-places">Most places</option>
+            <option value="fewest-places">Fewest places</option>
+            <option value="alphabetical">A–Z</option>
+          </select>
         </div>
 
         {allCategories.length > 0 && (
@@ -144,7 +174,7 @@ export default function ExplorePage({ lists }: Props) {
           </fieldset>
         )}
 
-        {filtered.length === 0 ? (
+        {sorted.length === 0 ? (
           <p className={styles.empty}>
             {query || activeCategory
               ? 'No lists match your filters.'
@@ -153,10 +183,10 @@ export default function ExplorePage({ lists }: Props) {
         ) : (
           <>
             <p className={styles.count} aria-live="polite">
-              {filtered.length} list{filtered.length !== 1 ? 's' : ''}
+              {sorted.length} list{sorted.length !== 1 ? 's' : ''}
             </p>
             <ul className={styles.grid}>
-              {filtered.map((list) => (
+              {sorted.map((list) => (
                 <li key={list.documentId}>
                   <Link
                     href={`/list/${list.username}/${list.documentId}`}

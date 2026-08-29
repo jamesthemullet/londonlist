@@ -48,10 +48,15 @@
 
 .searchRow {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
 }
 
 .searchInput {
-  width: 100%;
+  flex: 1;
+  min-width: 180px;
   padding: 0.625rem 0.875rem;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -61,6 +66,28 @@
 }
 
 .searchInput:focus {
+  border-color: #333;
+  outline: 2px solid #333;
+}
+
+.sortLabel {
+  font-size: 0.85rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.sortSelect {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: #fff;
+  cursor: pointer;
+  outline-offset: 2px;
+  color: #333;
+}
+
+.sortSelect:focus {
   border-color: #333;
   outline: 2px solid #333;
 }

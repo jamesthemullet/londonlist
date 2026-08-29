@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ExplorePage, { deriveAllCategories, buildExplorePageJsonLd } from '../../pages/explore';
+import ExplorePage, { deriveAllCategories, sortLists, buildExplorePageJsonLd } from '../../pages/explore';
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -120,7 +120,7 @@ describe('ExplorePage — item counts', () => {
   it('does not show item count for lists with 0 items', () => {
     const emptyList = [{ ...LISTS[0], itemCount: 0, categories: [] }];
     render(<ExplorePage lists={emptyList} />);
-    expect(screen.queryByText(/place/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\d+ place/)).not.toBeInTheDocument();
   });
 
   it('shows category list on each card', () => {
@@ -329,6 +329,148 @@ describe('deriveAllCategories', () => {
 
   it('returns empty array for empty list', () => {
     expect(deriveAllCategories([])).toEqual([]);
+  });
+});
+
+describe('sortLists', () => {
+  const input = [
+    { documentId: 'a', name: 'Zoos', username: 'x', itemCount: 2, categories: [] },
+    { documentId: 'b', name: 'Art Galleries', username: 'y', itemCount: 10, categories: [] },
+    { documentId: 'c', name: 'Markets', username: 'z', itemCount: 5, categories: [] },
+  ];
+
+  it('sorts by most-places descending', () => {
+    const result = sortLists(input, 'most-places');
+    expect(result.map((l) => l.itemCount)).toEqual([10, 5, 2]);
+  });
+
+  it('sorts by fewest-places ascending', () => {
+    const result = sortLists(input, 'fewest-places');
+    expect(result.map((l) => l.itemCount)).toEqual([2, 5, 10]);
+  });
+
+  it('sorts alphabetically by name', () => {
+    const result = sortLists(input, 'alphabetical');
+    expect(result.map((l) => l.name)).toEqual(['Art Galleries', 'Markets', 'Zoos']);
+  });
+
+  it('does not mutate the original array', () => {
+    const original = [...input];
+    sortLists(input, 'most-places');
+    expect(input).toEqual(original);
+  });
+
+  it('returns empty array unchanged', () => {
+    expect(sortLists([], 'most-places')).toEqual([]);
+  });
+
+  it('handles ties in itemCount by preserving relative order for most-places', () => {
+    const tied = [
+      { documentId: 'x', name: 'B', username: 'u', itemCount: 5, categories: [] },
+      { documentId: 'y', name: 'A', username: 'u', itemCount: 5, categories: [] },
+    ];
+    const result = sortLists(tied, 'most-places');
+    expect(result.map((l) => l.itemCount)).toEqual([5, 5]);
+  });
+});
+
+describe('ExplorePage — sort controls', () => {
+  it('renders the sort select with default "Most places" option selected', () => {
+    render(<ExplorePage lists={LISTS} />);
+    const select = screen.getByRole('combobox', { name: /sort lists/i });
+    expect(select).toHaveValue('most-places');
+  });
+
+  it('renders all three sort options', () => {
+    render(<ExplorePage lists={LISTS} />);
+    const options = screen.getAllByRole('option');
+    const values = options.map((o) => (o as HTMLOptionElement).value);
+    expect(values).toContain('most-places');
+    expect(values).toContain('fewest-places');
+    expect(values).toContain('alphabetical');
+  });
+
+  it('renders a visible "Sort by" label', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByText('Sort by')).toBeInTheDocument();
+  });
+
+  it('defaults to most-places order (Museum Trail with 8 appears before Weekend Wanders with 5)', () => {
+    render(<ExplorePage lists={LISTS} />);
+    const cards = screen.getAllByRole('link').filter((el) =>
+      ['Weekend Wanders', 'Museum Trail', 'Hidden Gems'].some((name) =>
+        el.textContent?.includes(name),
+      ),
+    );
+    const names = cards.map((c) => c.textContent);
+    const museumIdx = names.findIndex((n) => n?.includes('Museum Trail'));
+    const weekendIdx = names.findIndex((n) => n?.includes('Weekend Wanders'));
+    expect(museumIdx).toBeLessThan(weekendIdx);
+  });
+
+  it('re-orders to alphabetical when A–Z is selected', () => {
+    render(<ExplorePage lists={LISTS} />);
+    const select = screen.getByRole('combobox', { name: /sort lists/i });
+    fireEvent.change(select, { target: { value: 'alphabetical' } });
+    const cards = screen.getAllByRole('link').filter((el) =>
+      ['Weekend Wanders', 'Museum Trail', 'Hidden Gems'].some((name) =>
+        el.textContent?.includes(name),
+      ),
+    );
+    const names = cards.map((c) => c.textContent);
+    const hiddenIdx = names.findIndex((n) => n?.includes('Hidden Gems'));
+    const museumIdx = names.findIndex((n) => n?.includes('Museum Trail'));
+    const weekendIdx = names.findIndex((n) => n?.includes('Weekend Wanders'));
+    expect(hiddenIdx).toBeLessThan(museumIdx);
+    expect(museumIdx).toBeLessThan(weekendIdx);
+  });
+
+  it('re-orders to fewest-places when selected (Hidden Gems with 3 appears first)', () => {
+    render(<ExplorePage lists={LISTS} />);
+    const select = screen.getByRole('combobox', { name: /sort lists/i });
+    fireEvent.change(select, { target: { value: 'fewest-places' } });
+    const cards = screen.getAllByRole('link').filter((el) =>
+      ['Weekend Wanders', 'Museum Trail', 'Hidden Gems'].some((name) =>
+        el.textContent?.includes(name),
+      ),
+    );
+    const names = cards.map((c) => c.textContent);
+    const hiddenIdx = names.findIndex((n) => n?.includes('Hidden Gems'));
+    const museumIdx = names.findIndex((n) => n?.includes('Museum Trail'));
+    expect(hiddenIdx).toBeLessThan(museumIdx);
+  });
+
+  it('applies sort after category filter', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    const select = screen.getByRole('combobox', { name: /sort lists/i });
+    fireEvent.change(select, { target: { value: 'fewest-places' } });
+    const cards = screen.getAllByRole('link').filter((el) =>
+      ['Weekend Wanders', 'Museum Trail'].some((name) =>
+        el.textContent?.includes(name),
+      ),
+    );
+    const names = cards.map((c) => c.textContent);
+    const weekendIdx = names.findIndex((n) => n?.includes('Weekend Wanders'));
+    const museumIdx = names.findIndex((n) => n?.includes('Museum Trail'));
+    expect(weekendIdx).toBeLessThan(museumIdx);
+  });
+
+  it('applies sort after text search', () => {
+    render(<ExplorePage lists={LISTS} />);
+    const input = screen.getByRole('searchbox');
+    fireEvent.change(input, { target: { value: 'alice' } });
+    const select = screen.getByRole('combobox', { name: /sort lists/i });
+    fireEvent.change(select, { target: { value: 'alphabetical' } });
+    const cards = screen.getAllByRole('link').filter((el) =>
+      ['Weekend Wanders', 'Hidden Gems'].some((name) =>
+        el.textContent?.includes(name),
+      ),
+    );
+    const names = cards.map((c) => c.textContent);
+    const hiddenIdx = names.findIndex((n) => n?.includes('Hidden Gems'));
+    const weekendIdx = names.findIndex((n) => n?.includes('Weekend Wanders'));
+    expect(hiddenIdx).toBeLessThan(weekendIdx);
   });
 });
 
