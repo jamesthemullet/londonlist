@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import Loader from '../Loader';
 import ProgressBar from '../progress-bar/progress-bar';
@@ -7,6 +8,9 @@ import StreakBadge from '../streak-badge/streak-badge';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import { useStreak } from '../../hooks/use-streak';
 import styles from './my-list.module.css';
+import type { MapItem } from '../map/list-map';
+
+const ListMap = dynamic(() => import('../map/list-map'), { ssr: false });
 
 type ListItem = {
   documentId: string;
@@ -16,6 +20,8 @@ type ListItem = {
   osm_id: string;
   visitedAt: string | null;
   notes: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type ListItemsData = {
@@ -35,6 +41,8 @@ export const GET_MY_LIST = gql`
       osm_id
       visitedAt
       notes
+      lat
+      lng
     }
   }
 `;
@@ -72,6 +80,7 @@ type Props = {
 
 export default function MyList({ listId }: Props) {
   const authHeader = useAuthHeader();
+  const [showMap, setShowMap] = useState(true);
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
     variables: { listDocumentId: listId },
@@ -136,10 +145,39 @@ export default function MyList({ listId }: Props) {
     return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
   }).length;
 
+  const mapItems: MapItem[] = items
+    .filter((i): i is ListItem & { lat: number; lng: number } => i.lat != null && i.lng != null)
+    .map((i) => ({
+      documentId: i.documentId,
+      name: i.name,
+      lat: i.lat,
+      lng: i.lng,
+      completed: i.completed,
+      category: i.category,
+    }));
+
   return (
     <div className={styles.container}>
       <StreakBadge streak={streak} atRisk={atRisk} />
       <ProgressBar total={items.length} done={done.length} />
+      <div className={styles.mapToggleRow}>
+        <button
+          type="button"
+          className={styles.mapToggle}
+          onClick={() => setShowMap((s) => !s)}
+          aria-expanded={showMap}
+        >
+          {showMap ? 'Hide map' : 'Show map'}
+        </button>
+      </div>
+      {showMap && mapItems.length > 0 && (
+        <div className={styles.mapContainer}>
+          <ListMap items={mapItems} />
+        </div>
+      )}
+      {showMap && mapItems.length === 0 && (
+        <p className={styles.mapNoCoords}>No places with location data yet — add more from the search above.</p>
+      )}
       {todo.length > 0 && (
         <section>
           <h2 className={styles.sectionHeading}>To do ({todo.length})</h2>

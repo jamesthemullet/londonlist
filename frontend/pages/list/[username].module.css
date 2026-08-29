@@ -303,3 +303,36 @@
   font-size: 0.75rem;
   color: #999;
 }
+
+.moreListMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.moreListAuthor {
+  font-size: 0.75rem;
+  color: #bbb;
+}
+
+.relatedLists {
+  margin: 2rem 0 0;
+  width: 100%;
+  max-width: 640px;
+  padding: 0 1rem;
+}
+
+.relatedExploreLink {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+}
+
+.relatedExploreLink a {
+  color: #c724b1;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.relatedExploreLink a:hover {
+  color: #a81d97;
+}

@@ -45,6 +45,22 @@ type OtherList = {
   itemCount: number;
 };
 
+type RelatedList = {
+  documentId: string;
+  name: string;
+  username: string;
+  itemCount: number;
+  categories: string[];
+};
+
+type PublicExploreList = {
+  documentId: string;
+  name: string;
+  username: string | null;
+  itemCount: number;
+  categories: string[];
+};
+
 type PageState = 'found' | 'private' | 'not_found';
 
 type Props = {
@@ -53,7 +69,41 @@ type Props = {
   username: string;
   listId: string;
   otherLists?: OtherList[];
+  relatedLists?: RelatedList[];
 };
+
+export function selectRelatedLists(
+  currentCategories: string[],
+  currentListId: string,
+  currentUsername: string,
+  allLists: PublicExploreList[],
+  limit = 3,
+): RelatedList[] {
+  const currentCategorySet = new Set(currentCategories.map((c) => c.toLowerCase()));
+
+  return allLists
+    .filter(
+      (l) =>
+        l.documentId !== currentListId &&
+        l.username !== currentUsername &&
+        l.username !== null &&
+        l.itemCount > 0,
+    )
+    .map((l) => {
+      const overlap = l.categories.filter((c) => currentCategorySet.has(c.toLowerCase())).length;
+      return { list: l, overlap };
+    })
+    .filter(({ overlap }) => overlap > 0)
+    .sort((a, b) => b.overlap - a.overlap || b.list.itemCount - a.list.itemCount)
+    .slice(0, limit)
+    .map(({ list }) => ({
+      documentId: list.documentId,
+      name: list.name,
+      username: list.username as string,
+      itemCount: list.itemCount,
+      categories: list.categories,
+    }));
+}
 
 const CREATE_MY_LIST = gql`
   mutation CopyListCreateMyList($name: String!) {
@@ -204,7 +254,7 @@ export function buildItemListJsonLd(
   };
 }
 
-export default function PublicListPage({ pageState, listData, username, listId, otherLists = [] }: Props) {
+export default function PublicListPage({ pageState, listData, username, listId, otherLists = [], relatedLists = [] }: Props) {
   const { user, initialized } = useAppContext();
   if (pageState === 'not_found') {
     return (
@@ -397,6 +447,33 @@ export default function PublicListPage({ pageState, listData, username, listId, 
         </section>
       )}
 
+      {relatedLists.length > 0 && (
+        <section className={styles.relatedLists} aria-label="Related lists you might like">
+          <h2 className={styles.moreListsHeading}>You might also like</h2>
+          <ul className={styles.moreListsGrid}>
+            {relatedLists.map((list) => (
+              <li key={list.documentId}>
+                <Link
+                  href={`/list/${list.username}/${list.documentId}`}
+                  className={styles.moreListCard}
+                >
+                  <span className={styles.moreListName}>{list.name}</span>
+                  <span className={styles.moreListMeta}>
+                    <span className={styles.moreListCount}>
+                      {list.itemCount} {list.itemCount === 1 ? 'place' : 'places'}
+                    </span>
+                    <span className={styles.moreListAuthor}>by {list.username}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className={styles.relatedExploreLink}>
+            <Link href="/explore">Browse all London lists →</Link>
+          </p>
+        </section>
+      )}
+
       {initialized && !user && (
         <aside className={styles.conversionBanner}>
           <p className={styles.conversionHeadline}>
@@ -424,20 +501,23 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
   const { username, listId } = context.params as { username: string; listId: string };
 
   try {
-    const [listRes, profileRes] = await Promise.all([
+    const [listRes, profileRes, exploreRes] = await Promise.all([
       fetch(`${API_URL}/api/lists/public/${username}/${listId}`, {
         signal: AbortSignal.timeout(5000),
       }),
       fetch(`${API_URL}/api/lists/public/${username}`, {
         signal: AbortSignal.timeout(5000),
       }),
+      fetch(`${API_URL}/api/lists/public?pageSize=50`, {
+        signal: AbortSignal.timeout(5000),
+      }),
     ]);
 
     if (listRes.status === 403) {
-      return { props: { pageState: 'private', listData: null, username, listId, otherLists: [] } };
+      return { props: { pageState: 'private', listData: null, username, listId, otherLists: [], relatedLists: [] } };
     }
     if (listRes.status === 404) {
-      return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [] } };
+      return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
     }
     if (listRes.ok) {
       const data: PublicListData = await listRes.json();
@@ -449,10 +529,17 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
         otherLists = (profileData.lists ?? []).filter((l) => l.documentId !== listId);
       }
 
-      return { props: { pageState: 'found', listData: data, username, listId, otherLists } };
+      let relatedLists: RelatedList[] = [];
+      if (exploreRes.ok) {
+        const exploreData: { data: PublicExploreList[] } = await exploreRes.json();
+        const currentCategories = [...new Set(data.data.map((i) => i.category).filter((c): c is string => c !== null))];
+        relatedLists = selectRelatedLists(currentCategories, listId, username, exploreData.data ?? []);
+      }
+
+      return { props: { pageState: 'found', listData: data, username, listId, otherLists, relatedLists } };
     }
-    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [] } };
+    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
   } catch {
-    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [] } };
+    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
   }
 };

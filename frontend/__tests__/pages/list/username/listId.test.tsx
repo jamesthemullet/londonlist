@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription } from '../../../../pages/list/[username]/[listId]';
+import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription, selectRelatedLists } from '../../../../pages/list/[username]/[listId]';
 
 jest.mock('../../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -1284,5 +1284,337 @@ describe('PublicListPage — more lists by author', () => {
       />,
     );
     expect(screen.queryByRole('heading', { name: /More by/i })).not.toBeInTheDocument();
+  });
+});
+
+// ─── selectRelatedLists unit tests ───────────────────────────────────────────
+
+const EXPLORE_LISTS = [
+  {
+    documentId: 'rel-1',
+    name: 'Museum Trail',
+    username: 'bob',
+    itemCount: 5,
+    categories: ['museum', 'gallery'],
+  },
+  {
+    documentId: 'rel-2',
+    name: 'Park Run',
+    username: 'carol',
+    itemCount: 3,
+    categories: ['park'],
+  },
+  {
+    documentId: 'rel-3',
+    name: 'Art Weekend',
+    username: 'dave',
+    itemCount: 8,
+    categories: ['gallery', 'museum'],
+  },
+  {
+    documentId: 'rel-4',
+    name: "Alice's Other List",
+    username: 'alice',
+    itemCount: 4,
+    categories: ['museum'],
+  },
+  {
+    documentId: 'current-list',
+    name: 'Current List',
+    username: 'alice',
+    itemCount: 2,
+    categories: ['museum'],
+  },
+  {
+    documentId: 'rel-5',
+    name: 'Empty List',
+    username: 'eve',
+    itemCount: 0,
+    categories: ['museum'],
+  },
+  {
+    documentId: 'rel-6',
+    name: 'No username list',
+    username: null as unknown as string,
+    itemCount: 3,
+    categories: ['museum'],
+  },
+];
+
+describe('selectRelatedLists', () => {
+  it('returns lists that share categories with the current list', () => {
+    const result = selectRelatedLists(
+      ['museum'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    const ids = result.map((l) => l.documentId);
+    expect(ids).toContain('rel-1');
+    expect(ids).toContain('rel-3');
+  });
+
+  it('excludes the current list itself', () => {
+    const result = selectRelatedLists(
+      ['museum'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    expect(result.map((l) => l.documentId)).not.toContain('current-list');
+  });
+
+  it('excludes lists by the same user', () => {
+    const result = selectRelatedLists(
+      ['museum'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    expect(result.every((l) => l.username !== 'alice')).toBe(true);
+  });
+
+  it('excludes lists with zero items', () => {
+    const result = selectRelatedLists(
+      ['museum'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    expect(result.every((l) => l.itemCount > 0)).toBe(true);
+  });
+
+  it('excludes lists with null username', () => {
+    const result = selectRelatedLists(
+      ['museum'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    expect(result.every((l) => l.username !== null)).toBe(true);
+  });
+
+  it('excludes lists with no category overlap', () => {
+    const result = selectRelatedLists(
+      ['park'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    expect(result.map((l) => l.documentId)).not.toContain('rel-1');
+  });
+
+  it('returns lists sorted by overlap score descending', () => {
+    const result = selectRelatedLists(
+      ['museum', 'gallery'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    expect(result[0].documentId).toBe('rel-3');
+  });
+
+  it('breaks overlap ties by itemCount descending', () => {
+    const lists = [
+      { documentId: 'a', name: 'A', username: 'bob', itemCount: 2, categories: ['museum'] },
+      { documentId: 'b', name: 'B', username: 'carol', itemCount: 10, categories: ['museum'] },
+    ];
+    const result = selectRelatedLists(['museum'], 'current-list', 'alice', lists);
+    expect(result[0].documentId).toBe('b');
+  });
+
+  it('respects the limit parameter', () => {
+    const result = selectRelatedLists(
+      ['museum'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+      1,
+    );
+    expect(result).toHaveLength(1);
+  });
+
+  it('returns at most 3 results by default', () => {
+    const manyLists = Array.from({ length: 10 }, (_, i) => ({
+      documentId: `list-${i}`,
+      name: `List ${i}`,
+      username: `user-${i}`,
+      itemCount: i + 1,
+      categories: ['museum'],
+    }));
+    const result = selectRelatedLists(['museum'], 'current-list', 'alice', manyLists);
+    expect(result.length).toBeLessThanOrEqual(3);
+  });
+
+  it('returns empty array when no lists match', () => {
+    const result = selectRelatedLists(
+      ['restaurant'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    expect(result).toHaveLength(0);
+  });
+
+  it('returns empty array when allLists is empty', () => {
+    const result = selectRelatedLists(['museum'], 'current-list', 'alice', []);
+    expect(result).toHaveLength(0);
+  });
+
+  it('is case-insensitive in category matching', () => {
+    const lists = [
+      { documentId: 'a', name: 'A', username: 'bob', itemCount: 3, categories: ['Museum'] },
+    ];
+    const result = selectRelatedLists(['museum'], 'current-list', 'alice', lists);
+    expect(result).toHaveLength(1);
+  });
+
+  it('returns RelatedList objects with the correct shape', () => {
+    const result = selectRelatedLists(
+      ['museum'],
+      'current-list',
+      'alice',
+      EXPLORE_LISTS,
+    );
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        documentId: expect.any(String),
+        name: expect.any(String),
+        username: expect.any(String),
+        itemCount: expect.any(Number),
+        categories: expect.any(Array),
+      }),
+    );
+  });
+});
+
+// ─── PublicListPage — related lists section ───────────────────────────────────
+
+describe('PublicListPage — related lists section', () => {
+  const listData = {
+    data: [TODO_ITEM, DONE_ITEM],
+    username: 'alice',
+    listName: 'Weekend Wanders',
+  };
+
+  const RELATED = [
+    {
+      documentId: 'rel-1',
+      name: 'Museum Trail',
+      username: 'bob',
+      itemCount: 5,
+      categories: ['museum'],
+    },
+    {
+      documentId: 'rel-2',
+      name: 'Art Weekend',
+      username: 'dave',
+      itemCount: 8,
+      categories: ['gallery'],
+    },
+  ];
+
+  it('renders "You might also like" heading when relatedLists is non-empty', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        relatedLists={RELATED}
+      />,
+    );
+    expect(screen.getByRole('heading', { name: 'You might also like' })).toBeInTheDocument();
+  });
+
+  it('renders each related list as a link', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        relatedLists={RELATED}
+      />,
+    );
+    const museumLink = screen.getByRole('link', { name: /Museum Trail/i });
+    expect(museumLink).toHaveAttribute('href', '/list/bob/rel-1');
+    const artLink = screen.getByRole('link', { name: /Art Weekend/i });
+    expect(artLink).toHaveAttribute('href', '/list/dave/rel-2');
+  });
+
+  it('renders the "Browse all London lists" CTA link', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        relatedLists={RELATED}
+      />,
+    );
+    expect(screen.getByRole('link', { name: 'Browse all London lists →' })).toHaveAttribute(
+      'href',
+      '/explore',
+    );
+  });
+
+  it('does not render the related lists section when relatedLists is empty', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        relatedLists={[]}
+      />,
+    );
+    expect(
+      screen.queryByRole('heading', { name: 'You might also like' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not render the related lists section when relatedLists is not provided', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+      />,
+    );
+    expect(
+      screen.queryByRole('heading', { name: 'You might also like' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('labels the related lists section for accessibility', () => {
+    const { container } = render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        relatedLists={RELATED}
+      />,
+    );
+    const section = container.querySelector('section[aria-label="Related lists you might like"]');
+    expect(section).toBeInTheDocument();
+  });
+
+  it('shows item counts and author names for each related list', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={listData}
+        username="alice"
+        listId="list-abc"
+        relatedLists={RELATED}
+      />,
+    );
+    expect(screen.getByText('5 places')).toBeInTheDocument();
+    expect(screen.getByText('by bob')).toBeInTheDocument();
+    expect(screen.getByText('8 places')).toBeInTheDocument();
+    expect(screen.getByText('by dave')).toBeInTheDocument();
   });
 });
