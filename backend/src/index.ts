@@ -9,6 +9,7 @@ function requireUser(context: { state?: { user?: unknown } }) {
 }
 
 const FREE_LIST_LIMIT = 3;
+const FREE_ITEM_LIMIT = 20;
 
 export default {
   register({ strapi }) {
@@ -22,6 +23,7 @@ export default {
           isPublic: Boolean!
           viewCount: Int
           description: String
+          itemCount: Int
         }
         extend type UsersPermissionsMe {
           isPro: Boolean
@@ -79,10 +81,16 @@ export default {
             async resolve(_parent, _args, context) {
               const user = requireUser(context);
 
-              return strapi.documents('api::list.list').findMany({
+              const lists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
+                populate: { list_items: { fields: ['documentId'] } },
                 sort: 'createdAt:asc',
               });
+
+              return lists.map((list) => ({
+                ...list,
+                itemCount: ((list as { list_items?: unknown[] }).list_items ?? []).length,
+              }));
             },
           },
         },
@@ -137,6 +145,24 @@ export default {
                 });
                 if (!list || !isOwnedBy(list, user.id)) {
                   throw new Error('Forbidden access');
+                }
+
+                const fullUser = await strapi.db
+                  .query('plugin::users-permissions.user')
+                  .findOne({ where: { id: user.id } });
+
+                if (!fullUser?.isPro) {
+                  const existingItems = await strapi.documents('api::list-item.list-item').findMany({
+                    filters: { list: { documentId: { $eq: listDocumentId } } },
+                    fields: ['documentId'],
+                  });
+                  if (existingItems.length >= FREE_ITEM_LIMIT) {
+                    const err = new Error('Free plan item limit reached') as Error & {
+                      extensions?: Record<string, unknown>;
+                    };
+                    err.extensions = { code: 'FREE_ITEM_LIMIT_REACHED' };
+                    throw err;
+                  }
                 }
               }
 

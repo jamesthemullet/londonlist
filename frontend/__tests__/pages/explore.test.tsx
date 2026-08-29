@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ExplorePage, { deriveAllCategories, sortLists } from '../../pages/explore';
+import ExplorePage, { deriveAllCategories, sortLists, buildExplorePageJsonLd } from '../../pages/explore';
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -206,6 +206,31 @@ describe('ExplorePage — category filter', () => {
     fireEvent.change(input, { target: { value: 'weekend' } });
     expect(screen.getByText('Weekend Wanders')).toBeInTheDocument();
     expect(screen.queryByText('Museum Trail')).not.toBeInTheDocument();
+  });
+
+  it('the "All" chip has aria-pressed=true by default', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('a category chip has aria-pressed=false when not active', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByRole('button', { name: 'museum' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('sets aria-pressed=true on a clicked chip and false on "All"', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    expect(screen.getByRole('button', { name: 'museum' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('restores aria-pressed=true on "All" after deselecting a chip', () => {
+    render(<ExplorePage lists={LISTS} />);
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    fireEvent.click(screen.getByRole('button', { name: 'museum' }));
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'museum' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('updates count correctly after category filter', () => {
@@ -446,5 +471,66 @@ describe('ExplorePage — sort controls', () => {
     const hiddenIdx = names.findIndex((n) => n?.includes('Hidden Gems'));
     const weekendIdx = names.findIndex((n) => n?.includes('Weekend Wanders'));
     expect(hiddenIdx).toBeLessThan(weekendIdx);
+  });
+});
+
+describe('buildExplorePageJsonLd', () => {
+  const SITE_URL = 'https://example.com';
+
+  it('returns a CollectionPage schema type', () => {
+    const result = buildExplorePageJsonLd([], SITE_URL) as Record<string, unknown>;
+    expect(result['@type']).toBe('CollectionPage');
+    expect(result['@context']).toBe('https://schema.org');
+  });
+
+  it('sets the name to "Explore London Lists"', () => {
+    const result = buildExplorePageJsonLd([], SITE_URL) as Record<string, unknown>;
+    expect(result.name).toBe('Explore London Lists');
+  });
+
+  it('sets the url to the explore page', () => {
+    const result = buildExplorePageJsonLd([], SITE_URL) as Record<string, unknown>;
+    expect(result.url).toBe('https://example.com/explore');
+  });
+
+  it('returns empty hasPart when no lists are provided', () => {
+    const result = buildExplorePageJsonLd([], SITE_URL) as Record<string, unknown>;
+    expect(result.hasPart).toEqual([]);
+  });
+
+  it('includes an ItemList entry for each list with a username', () => {
+    const result = buildExplorePageJsonLd(LISTS, SITE_URL) as Record<string, unknown>;
+    const parts = result.hasPart as Array<Record<string, unknown>>;
+    expect(parts).toHaveLength(3);
+    expect(parts[0]['@type']).toBe('ItemList');
+  });
+
+  it('sets the correct URL for each list', () => {
+    const result = buildExplorePageJsonLd([LISTS[0]], SITE_URL) as Record<string, unknown>;
+    const parts = result.hasPart as Array<Record<string, unknown>>;
+    expect(parts[0].url).toBe('https://example.com/list/alice/doc-1');
+  });
+
+  it('sets numberOfItems from itemCount', () => {
+    const result = buildExplorePageJsonLd([LISTS[0]], SITE_URL) as Record<string, unknown>;
+    const parts = result.hasPart as Array<Record<string, unknown>>;
+    expect(parts[0].numberOfItems).toBe(5);
+  });
+
+  it('excludes lists without a username', () => {
+    const listsWithNull = [
+      ...LISTS,
+      { documentId: 'doc-anon', name: 'Anon list', username: null, itemCount: 2, categories: [] },
+    ];
+    const result = buildExplorePageJsonLd(listsWithNull, SITE_URL) as Record<string, unknown>;
+    const parts = result.hasPart as Array<Record<string, unknown>>;
+    expect(parts).toHaveLength(3);
+  });
+
+  it('uses the provided siteUrl as the base for all URLs', () => {
+    const result = buildExplorePageJsonLd([LISTS[0]], 'https://londonlist.co.uk') as Record<string, unknown>;
+    const parts = result.hasPart as Array<Record<string, unknown>>;
+    expect(parts[0].url).toContain('https://londonlist.co.uk');
+    expect(result.url).toBe('https://londonlist.co.uk/explore');
   });
 });

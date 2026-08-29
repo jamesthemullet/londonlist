@@ -51,6 +51,15 @@
   gap: 1rem;
 }
 
+.navUsername {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.navUsername:hover {
+  opacity: 1;
+}
+
 /* Hamburger button — hidden on desktop */
 .hamburger {
   display: none;
