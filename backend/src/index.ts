@@ -24,6 +24,7 @@ export default {
           viewCount: Int
           description: String
           itemCount: Int
+          completedCount: Int
         }
         extend type UsersPermissionsMe {
           isPro: Boolean
@@ -83,14 +84,18 @@ export default {
 
               const lists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
-                populate: { list_items: { fields: ['documentId'] } },
+                populate: { list_items: { fields: ['documentId', 'completed'] } },
                 sort: 'createdAt:asc',
               });
 
-              return lists.map((list) => ({
-                ...list,
-                itemCount: ((list as { list_items?: unknown[] }).list_items ?? []).length,
-              }));
+              return lists.map((list) => {
+                const items = (list as { list_items?: { completed?: boolean }[] }).list_items ?? [];
+                return {
+                  ...list,
+                  itemCount: items.length,
+                  completedCount: items.filter((i) => i.completed).length,
+                };
+              });
             },
           },
         },

@@ -19,6 +19,7 @@ type List = {
   isPublic: boolean;
   viewCount: number;
   itemCount: number;
+  completedCount: number;
 };
 
 type MyListsData = {
@@ -34,6 +35,7 @@ export const GET_MY_LISTS = gql`
       isPublic
       viewCount
       itemCount
+      completedCount
     }
   }
 `;
@@ -73,7 +75,11 @@ const FREE_ITEM_LIMIT = 20;
 
 function ProStatsCard({ lists, isPro }: { lists: List[]; isPro: boolean }) {
   const publicLists = lists.filter((l) => l.isPublic);
-  if (publicLists.length === 0) return null;
+  const hasPublicLists = publicLists.length > 0;
+  const totalItems = lists.reduce((sum, l) => sum + (l.itemCount ?? 0), 0);
+
+  if (!isPro && !hasPublicLists) return null;
+  if (isPro && !hasPublicLists && totalItems === 0) return null;
 
   if (!isPro) {
     return (
@@ -88,6 +94,8 @@ function ProStatsCard({ lists, isPro }: { lists: List[]; isPro: boolean }) {
     );
   }
 
+  const totalCompleted = lists.reduce((sum, l) => sum + (l.completedCount ?? 0), 0);
+  const completionRate = totalItems > 0 ? Math.round((totalCompleted / totalItems) * 100) : 0;
   const totalViews = publicLists.reduce((sum, l) => sum + (l.viewCount ?? 0), 0);
   const topList =
     publicLists.length > 1
@@ -100,10 +108,28 @@ function ProStatsCard({ lists, isPro }: { lists: List[]; isPro: boolean }) {
     <aside className={styles.statsCard} aria-label="List analytics">
       <h2 className={styles.statsHeading}>Your stats</h2>
       <dl className={styles.statsList}>
-        <div className={styles.statItem}>
-          <dt className={styles.statLabel}>Total views</dt>
-          <dd className={styles.statValue}>{totalViews.toLocaleString()}</dd>
-        </div>
+        {totalItems > 0 && (
+          <div className={styles.statItem}>
+            <dt className={styles.statLabel}>Places saved</dt>
+            <dd className={styles.statValue}>{totalItems.toLocaleString()}</dd>
+          </div>
+        )}
+        {totalItems > 0 && (
+          <div className={styles.statItem}>
+            <dt className={styles.statLabel}>Completed</dt>
+            <dd className={styles.statValue}>
+              {totalCompleted.toLocaleString()}
+              {' '}
+              <span className={styles.statCount}>({completionRate}%)</span>
+            </dd>
+          </div>
+        )}
+        {hasPublicLists && (
+          <div className={styles.statItem}>
+            <dt className={styles.statLabel}>Total views</dt>
+            <dd className={styles.statValue}>{totalViews.toLocaleString()}</dd>
+          </div>
+        )}
         {topList && (topList.viewCount ?? 0) > 0 && (
           <div className={styles.statItem}>
             <dt className={styles.statLabel}>Most viewed</dt>
