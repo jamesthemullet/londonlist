@@ -48,7 +48,7 @@ jest.mock('../../../components/milestone-celebration/milestone-celebration', () 
   ),
 }));
 
-const mockUseQuery = useQuery as jest.Mock;
+const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 
 const NOOP_MUTATION = [jest.fn(), {}];
