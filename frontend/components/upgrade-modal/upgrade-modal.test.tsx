@@ -156,6 +156,13 @@ describe('UpgradeModal — interactions', () => {
     fireEvent.click(screen.getByRole('link', { name: /see pro plans/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('does not call onClose when a key is pressed inside the dialog', () => {
+    const onClose = jest.fn();
+    render(<UpgradeModal isOpen={true} onClose={onClose} />);
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });
 
 describe('UpgradeModal — open/closed transitions', () => {
