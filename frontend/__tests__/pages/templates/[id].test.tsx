@@ -301,18 +301,19 @@ describe('buildTemplateJsonLd', () => {
   });
 });
 
+type StaticPathsResult = { paths: Array<{ params: { id: string } }>; fallback: boolean };
+
 describe('getStaticPaths', () => {
   it('returns a path for every template', () => {
-    const result = getStaticPaths({});
-    const paths = result.paths as Array<{ params: { id: string } }>;
-    expect(paths).toHaveLength(TEMPLATES.length);
+    const result = getStaticPaths({}) as StaticPathsResult;
+    expect(result.paths).toHaveLength(TEMPLATES.length);
     for (const t of TEMPLATES) {
-      expect(paths.some((p) => p.params.id === t.id)).toBe(true);
+      expect(result.paths.some((p) => p.params.id === t.id)).toBe(true);
     }
   });
 
   it('sets fallback to false', () => {
-    const result = getStaticPaths({});
+    const result = getStaticPaths({}) as StaticPathsResult;
     expect(result.fallback).toBe(false);
   });
 });
