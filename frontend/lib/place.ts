@@ -12,10 +12,6 @@ export type GetPlaceData = {
   place: PublicPlace | null;
 };
 
-export type GetPlaceVars = {
-  osm_id: string;
-};
-
 export const GET_PLACE = gql`
   query GetPlace($osm_id: String!) {
     place(osm_id: $osm_id) {
