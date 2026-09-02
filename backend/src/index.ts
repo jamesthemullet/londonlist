@@ -25,11 +25,19 @@ export default {
           description: String
           itemCount: Int
         }
+        type PublicPlace {
+          osm_id: String!
+          name: String!
+          category: String
+          lat: Float
+          lng: Float
+        }
         extend type UsersPermissionsMe {
           isPro: Boolean
         }
         extend type Query {
           myLists: [ListEntity]
+          place(osm_id: String!): PublicPlace
         }
         extend type Mutation {
           createMyList(name: String!, description: String): ListEntity
@@ -39,6 +47,25 @@ export default {
       `,
       resolvers: {
         Query: {
+          place: {
+            async resolve(_parent, args) {
+              const [item] = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { osm_id: { $eq: args.osm_id } },
+                sort: 'createdAt:asc',
+                limit: 1,
+              });
+
+              if (!item) return null;
+
+              return {
+                osm_id: item.osm_id,
+                name: item.name,
+                category: item.category ?? null,
+                lat: item.lat ?? null,
+                lng: item.lng ?? null,
+              };
+            },
+          },
           listItems: {
             async resolve(_parent, args, context) {
               const user = requireUser(context);
