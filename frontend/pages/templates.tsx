@@ -117,7 +117,11 @@ export function TemplateCard({ template }: TemplateCardProps) {
   return (
     <article className={styles.card} aria-label={template.name}>
       <div className={styles.cardHeader}>
-        <h2 className={styles.cardTitle}>{template.name}</h2>
+        <h2 className={styles.cardTitle}>
+          <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
+            {template.name}
+          </Link>
+        </h2>
         <p className={styles.cardDescription}>{template.description}</p>
       </div>
 

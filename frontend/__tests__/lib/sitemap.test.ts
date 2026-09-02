@@ -1,4 +1,5 @@
 import { buildSitemapEntries, generateSitemapXml } from '../../lib/sitemap';
+import { TEMPLATES } from '../../lib/templates';
 
 const SITE_URL = 'https://londonlist.vercel.app';
 
@@ -59,7 +60,9 @@ describe('buildSitemapEntries', () => {
 
   it('returns only static pages when the list is empty', () => {
     const entries = buildSitemapEntries([]);
-    expect(entries.length).toBe(6); // homepage, explore, templates, pricing, register, login
+    // homepage, explore, templates, N template detail pages, pricing, register, login
+    const expectedStatic = 6 + TEMPLATES.length;
+    expect(entries.length).toBe(expectedStatic);
   });
 
   it('returns static pages plus one profile entry and one list entry per valid list', () => {
@@ -68,7 +71,18 @@ describe('buildSitemapEntries', () => {
       { documentId: 'b', username: 'bob' },
     ];
     const entries = buildSitemapEntries(lists);
-    expect(entries.length).toBe(10); // 6 static + 2 profiles + 2 lists
+    const expectedStatic = 6 + TEMPLATES.length;
+    expect(entries.length).toBe(expectedStatic + 2 + 2); // static + 2 profiles + 2 lists
+  });
+
+  it('includes a template detail entry for each template', () => {
+    const entries = buildSitemapEntries([]);
+    for (const t of TEMPLATES) {
+      const entry = entries.find((e) => e.loc === `/templates/${t.id}`);
+      expect(entry).toBeDefined();
+      expect(entry?.changefreq).toBe('monthly');
+      expect(entry?.priority).toBe('0.6');
+    }
   });
 
   it('includes a profile entry for each unique username', () => {
