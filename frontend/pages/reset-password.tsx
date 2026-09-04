@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
+import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -35,9 +36,25 @@ export default function ResetPasswordPage() {
   const code = typeof query.code === 'string' ? query.code : null;
 
   if (code) {
-    return <SetNewPasswordForm code={code} />;
+    return (
+      <>
+        <Head>
+          <title>Set new password — London List</title>
+          <meta name="description" content="Set a new password for your London List account." />
+        </Head>
+        <SetNewPasswordForm code={code} />
+      </>
+    );
   }
-  return <ForgotPasswordForm />;
+  return (
+    <>
+      <Head>
+        <title>Reset password — London List</title>
+        <meta name="description" content="Reset your London List account password." />
+      </Head>
+      <ForgotPasswordForm />
+    </>
+  );
 }
 
 function ForgotPasswordForm() {
