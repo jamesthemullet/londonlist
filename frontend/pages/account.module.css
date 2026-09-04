@@ -124,6 +124,75 @@
   border-radius: 6px;
 }
 
+/* ── Plan section ── */
+
+.planRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.planBadgePro {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #c724b1;
+  color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.planBadgeFree {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #eee;
+  color: #555;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.planDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.planDescription {
+  font-size: 0.88rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.planManageLink {
+  font-size: 0.88rem;
+  color: #c724b1;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.planManageLink:hover {
+  text-decoration: underline;
+}
+
+.planUpgradeLink {
+  font-size: 0.88rem;
+  color: #c724b1;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.planUpgradeLink:hover {
+  text-decoration: underline;
+}
+
 /* ── Danger zone ── */
 
 .dangerZone {

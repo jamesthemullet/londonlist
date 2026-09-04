@@ -1,5 +1,6 @@
 import Cookie from 'js-cookie';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
@@ -135,6 +136,33 @@ export default function AccountPage() {
             <span className={styles.infoLabel}>Email</span>
             <span className={styles.infoValue}>{user.email}</span>
           </div>
+        </section>
+
+        <section className={styles.section} aria-labelledby="your-plan-heading">
+          <h2 className={styles.sectionHeading} id="your-plan-heading">
+            Your plan
+          </h2>
+          {user.isPro ? (
+            <div className={styles.planRow}>
+              <span className={styles.planBadgePro}>Pro</span>
+              <div className={styles.planDetails}>
+                <p className={styles.planDescription}>Unlimited lists, view analytics, early access to new features.</p>
+                <Link href="/pricing" className={styles.planManageLink}>
+                  Manage subscription →
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.planRow}>
+              <span className={styles.planBadgeFree}>Free</span>
+              <div className={styles.planDetails}>
+                <p className={styles.planDescription}>Up to 3 lists. Upgrade to Pro for unlimited lists and analytics.</p>
+                <Link href="/pricing" className={styles.planUpgradeLink}>
+                  Upgrade to Pro →
+                </Link>
+              </div>
+            </div>
+          )}
         </section>
 
         <section className={styles.section} aria-labelledby="change-password-heading">
