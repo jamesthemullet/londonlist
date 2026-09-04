@@ -7,6 +7,7 @@ import { useAppContext } from '../context/AppContext';
 import styles from './pricing.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 const FREE_FEATURES = [
   'Up to 3 lists',
@@ -115,11 +116,18 @@ export default function PricingPage() {
     <>
       <Head>
         <title>Pricing — London List</title>
-        <meta
-          name="description"
-          content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists and analytics."
-        />
+        <meta name="description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="canonical" href={`${SITE_URL}/pricing`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="London List" />
+        <meta property="og:title" content="Pricing — London List" />
+        <meta property="og:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
+        <meta property="og:url" content={`${SITE_URL}/pricing`} />
+        <meta property="og:locale" content="en_GB" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Pricing — London List" />
+        <meta name="twitter:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
       </Head>
       <main className={styles.main}>
         <div className={styles.hero}>
