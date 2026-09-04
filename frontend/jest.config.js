@@ -12,7 +12,16 @@ const config = {
     '^.+\\.(t|j)sx?$': ['babel-jest', { presets: ['next/babel'] }],
   },
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
-  collectCoverageFrom: ['components/**/*.{ts,tsx}', 'hooks/**/*.ts', 'context/**/*.tsx', 'lib/**/*.ts'],
+  collectCoverageFrom: [
+    'components/**/*.{ts,tsx}',
+    'hooks/**/*.ts',
+    'context/**/*.tsx',
+    'lib/**/*.ts',
+    'pages/**/*.{ts,tsx}',
+    '!pages/_app.tsx',
+    '!pages/_document.tsx',
+    '!pages/api/**',
+  ],
 };
 
 export default config;

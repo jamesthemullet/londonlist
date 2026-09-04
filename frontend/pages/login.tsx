@@ -1,11 +1,11 @@
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
+import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-
-import Link from 'next/link';
 import Loader from '../components/Loader';
 import Form from '../components/core/form/form';
 
@@ -71,6 +71,10 @@ export default function LoginRoute() {
 
   return (
     <>
+      <Head>
+        <title>Log in — London List</title>
+        <meta name="description" content="Log in to your London List account to manage your London to-do lists." />
+      </Head>
       <Form
         title="Login"
         buttonText="Login"
