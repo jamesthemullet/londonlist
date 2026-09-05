@@ -3,7 +3,7 @@ import { useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import Loader from '../components/Loader';
 import { Button } from '../components/core/button/button';
 import { useAppContext } from '../context/AppContext';
@@ -50,8 +50,14 @@ function isValidEmail(email: string): boolean {
 }
 
 export default function RegisterRoute() {
-  const { setUser } = useAppContext();
+  const { user, initialized, setUser } = useAppContext();
   const router = useRouter();
+
+  useEffect(() => {
+    if (initialized && user) {
+      router.replace('/my-list');
+    }
+  }, [initialized, user, router]);
 
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [registerMutation, { loading, error }] = useMutation<
