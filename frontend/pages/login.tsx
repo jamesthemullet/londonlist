@@ -4,7 +4,7 @@ import Cookie from 'js-cookie';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import Loader from '../components/Loader';
 import Form from '../components/core/form/form';
@@ -43,8 +43,14 @@ const LOGIN_MUTATION = gql`
 `;
 
 export default function LoginRoute() {
-  const { setUser } = useAppContext();
+  const { user, initialized, setUser } = useAppContext();
   const router = useRouter();
+
+  useEffect(() => {
+    if (initialized && user) {
+      router.replace('/my-list');
+    }
+  }, [initialized, user, router]);
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loginMutation, { loading, error }] = useMutation<
