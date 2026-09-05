@@ -11,7 +11,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## 1. Test coverage — unit gaps and e2e
 
 - [x] `frontend/jest.config.js`'s `collectCoverageFrom` excludes `pages/**` entirely, so `pages/museum/[id].tsx`, `my-list.tsx`, `login.tsx`, `register.tsx`, `reset-password.tsx`, `account.tsx`, `list/[username]/[listId].tsx`, `explore.tsx` etc. have unmeasured unit coverage — add `pages/**/*.{ts,tsx}` (excluding `_app.tsx`/`_document.tsx`/`api/**`) to surface real numbers (found: 2026-09-01) (fixed: 2026-09-01)
-- [ ] `frontend/components/upgrade-modal/upgrade-modal.tsx` is at 94.44% stmts / 85.71% funcs, uncovered line 49 — add a test for the untested branch/callback (Stripe-adjacent UI) (found: 2026-09-01)
+- [x] `frontend/components/upgrade-modal/upgrade-modal.tsx` is at 94.44% stmts / 85.71% funcs, uncovered line 49 — add a test for the untested branch/callback (Stripe-adjacent UI) (found: 2026-09-01) (fixed: 2026-09-02)
 - [ ] Backend has zero test files under `backend/src` and no `test` script in `backend/package.json` — start with `backend/src/api/stripe/controllers/stripe.ts` (custom checkout/webhook logic, highest priority given it handles money) (found: 2026-09-01)
 - [ ] Add unit tests for `backend/src/api/list/controllers/list.ts` (140 lines of custom ownership/visibility logic, currently untested) (found: 2026-09-01)
 - [ ] Add unit tests for `backend/src/api/account/controllers/account.ts` and `backend/src/api/list-setting/controllers/list-setting.ts` (custom logic, currently untested) (found: 2026-09-01)
