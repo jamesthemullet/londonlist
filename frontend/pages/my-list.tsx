@@ -12,6 +12,8 @@ import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import styles from './my-list.module.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
+
 type List = {
   documentId: string;
   name: string;
@@ -488,7 +490,15 @@ export default function MyListPage() {
               />
             </section>
             <section className={styles.section}>
-              <MyList listId={activeList.documentId} />
+              <MyList
+                listId={activeList.documentId}
+                listName={activeList.name}
+                shareUrl={
+                  activeList.isPublic && user?.username
+                    ? `${SITE_URL}/list/${user.username}/${activeList.documentId}`
+                    : undefined
+                }
+              />
             </section>
             <section className={styles.section}>
               <h2 className={styles.subheading}>List settings</h2>

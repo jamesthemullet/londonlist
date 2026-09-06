@@ -150,6 +150,13 @@ describe('UpgradeModal — interactions', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it('does not call onClose when Escape is pressed inside the dialog (keydown does not bubble to document)', () => {
+    const onClose = jest.fn();
+    render(<UpgradeModal isOpen={true} onClose={onClose} />);
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('calls onClose when the "See Pro plans" link is clicked', () => {
     const onClose = jest.fn();
     render(<UpgradeModal isOpen={true} onClose={onClose} />);

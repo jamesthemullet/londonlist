@@ -289,6 +289,12 @@ export default {
   },
 
   async bootstrap({ strapi }) {
+    if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
+      throw new Error(
+        'FRONTEND_URL environment variable is required in production. ' +
+          'Set it to the comma-separated list of allowed frontend origins to avoid CORS falling back to localhost.'
+      );
+    }
     await grantPermissions(strapi);
   },
 };

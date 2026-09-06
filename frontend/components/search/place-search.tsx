@@ -222,6 +222,7 @@ export default function PlaceSearch({ listId, itemCount, isPro, freeItemLimit = 
       </div>
 
       <div role="status" aria-live="polite" aria-atomic="true" className={styles.srOnly}>
+        {searching && query.length >= 3 && 'Searching…'}
         {!searching && query.length >= 3 && results.length > 0 &&
           `${results.length} result${results.length === 1 ? '' : 's'} found`}
         {!searching && query.length >= 3 && results.length === 0 &&
