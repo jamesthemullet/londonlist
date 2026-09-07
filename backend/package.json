@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
+    "@strapi/typescript-utils": "5.52.3",
     "@types/jest": "^30.0.0",
     "jest": "^30.3.0",
     "knip": "^6.16.1",
