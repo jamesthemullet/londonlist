@@ -24,6 +24,7 @@ export default {
           viewCount: Int
           description: String
           itemCount: Int
+          completedCount: Int
         }
         type PublicPlace {
           osm_id: String!
@@ -110,14 +111,18 @@ export default {
 
               const lists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
-                populate: { list_items: { fields: ['documentId'] } },
+                populate: { list_items: { fields: ['documentId', 'completed'] } },
                 sort: 'createdAt:asc',
               });
 
-              return lists.map((list) => ({
-                ...list,
-                itemCount: ((list as { list_items?: unknown[] }).list_items ?? []).length,
-              }));
+              return lists.map((list) => {
+                const items = (list as { list_items?: { completed?: boolean }[] }).list_items ?? [];
+                return {
+                  ...list,
+                  itemCount: items.length,
+                  completedCount: items.filter((i) => i.completed).length,
+                };
+              });
             },
           },
         },
@@ -316,6 +321,12 @@ export default {
   },
 
   async bootstrap({ strapi }) {
+    if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
+      throw new Error(
+        'FRONTEND_URL environment variable is required in production. ' +
+          'Set it to the comma-separated list of allowed frontend origins to avoid CORS falling back to localhost.'
+      );
+    }
     await grantPermissions(strapi);
   },
 };
