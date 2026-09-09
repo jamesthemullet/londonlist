@@ -38,6 +38,7 @@ const mockUseRouter = useRouter as jest.Mock;
 const mockCookieSet = (Cookie as unknown as { set: jest.Mock }).set;
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 const mockSetUser = jest.fn();
 
 async function fillForm(username: string, email: string, password: string) {
@@ -48,9 +49,10 @@ async function fillForm(username: string, email: string, password: string) {
 
 beforeEach(() => {
   mockPush.mockReset();
+  mockReplace.mockReset();
   mockSetUser.mockReset();
   mockCookieSet.mockReset();
-  mockUseRouter.mockReturnValue({ push: mockPush });
+  mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace });
   mockUseAppContext.mockReturnValue({ user: null, setUser: mockSetUser, initialized: true });
   mockUseMutation.mockReturnValue([jest.fn(), { loading: false, error: null }]);
 });
@@ -242,5 +244,34 @@ describe('RegisterRoute — successful registration', () => {
     await waitFor(() => {
       expect(mockCookieSet).toHaveBeenCalledWith('token', 'reg-jwt', expect.any(Object));
     });
+  });
+});
+
+describe('RegisterRoute — already logged-in redirect', () => {
+  it('redirects to /my-list when user is already logged in and auth is initialised', async () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', username: 'alice' },
+      initialized: true,
+      setUser: mockSetUser,
+    });
+    render(<RegisterRoute />);
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/my-list');
+    });
+  });
+
+  it('does not redirect when initialized is false', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', username: 'alice' },
+      initialized: false,
+      setUser: mockSetUser,
+    });
+    render(<RegisterRoute />);
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('does not redirect when user is null', () => {
+    render(<RegisterRoute />);
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 });
