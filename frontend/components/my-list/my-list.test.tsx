@@ -63,7 +63,7 @@ describe('MyList — loading and error states', () => {
     mockUseMutation.mockReturnValue([jest.fn(), {}]);
     mockUseQuery.mockReturnValue({ loading: true, data: undefined, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByTestId('loader')).toBeInTheDocument();
   });
@@ -72,7 +72,7 @@ describe('MyList — loading and error states', () => {
     mockUseMutation.mockReturnValue([jest.fn(), {}]);
     mockUseQuery.mockReturnValue({ loading: false, data: undefined, error: new Error('Network error') });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText('Error loading your list.')).toBeInTheDocument();
   });
@@ -81,7 +81,7 @@ describe('MyList — loading and error states', () => {
     mockUseMutation.mockReturnValue([jest.fn(), {}]);
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText(/your list is empty/i)).toBeInTheDocument();
   });
@@ -92,7 +92,7 @@ describe('MyList — rendering items', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText('To do (2)')).toBeInTheDocument();
     expect(screen.getByText('British Museum')).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe('MyList — rendering items', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText('Done (1)')).toBeInTheDocument();
     expect(screen.getByText('Tower of London')).toBeInTheDocument();
@@ -117,7 +117,7 @@ describe('MyList — rendering items', () => {
       error: undefined,
     });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText('To do (2)')).toBeInTheDocument();
     expect(screen.getByText('Done (1)')).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe('MyList — rendering items', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.queryByText(/^Done/)).not.toBeInTheDocument();
   });
@@ -136,7 +136,7 @@ describe('MyList — rendering items', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.queryByText(/^To do/)).not.toBeInTheDocument();
   });
@@ -145,7 +145,7 @@ describe('MyList — rendering items', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText('museum')).toBeInTheDocument();
     expect(screen.getByText('park')).toBeInTheDocument();
@@ -157,7 +157,7 @@ describe('MyList — visit diary', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText(/^Visited /)).toBeInTheDocument();
   });
@@ -167,7 +167,7 @@ describe('MyList — visit diary', () => {
     const itemWithoutDate = [{ ...DONE_ITEMS[0], visitedAt: null }];
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: itemWithoutDate }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.queryByText(/^Visited /)).not.toBeInTheDocument();
   });
@@ -176,7 +176,7 @@ describe('MyList — visit diary', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText(/place.*visited this month/i)).toBeInTheDocument();
   });
@@ -187,7 +187,7 @@ describe('MyList — visit diary', () => {
     const itemOldVisit = [{ ...DONE_ITEMS[0], visitedAt: oldDate }];
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: itemOldVisit }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.queryByText(/visited this month/i)).not.toBeInTheDocument();
   });
@@ -200,7 +200,7 @@ describe('MyList — visit diary', () => {
     ];
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: twoThisMonth }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByText(/2 places visited this month/i)).toBeInTheDocument();
   });
@@ -211,7 +211,7 @@ describe('MyList — interactions', () => {
     const { mockToggle } = setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]);
@@ -225,7 +225,7 @@ describe('MyList — interactions', () => {
     const { mockToggle } = setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     const checkbox = screen.getByRole('checkbox');
     fireEvent.click(checkbox);
@@ -239,7 +239,7 @@ describe('MyList — interactions', () => {
     const { mockDelete } = setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     const deleteButtons = screen.getAllByRole('button', { name: /^Remove / });
     fireEvent.click(deleteButtons[0]);
@@ -255,7 +255,7 @@ describe('MyList — interactions (done items)', () => {
     const { mockDelete } = setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     const deleteButton = screen.getByRole('button', { name: /^Remove / });
     fireEvent.click(deleteButton);
@@ -279,7 +279,7 @@ describe('MyList — notes integration', () => {
     const { mockUpdateNotes } = setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_WITH_NOTES }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     await user.click(screen.getByRole('button', { name: '+ Add note' }));
     await user.type(screen.getByRole('textbox', { name: 'Notes for Tate Modern' }), 'Must see Turbine Hall');
@@ -295,7 +295,7 @@ describe('MyList — notes integration', () => {
     const { mockUpdateNotes } = setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_WITH_NOTES }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     await user.click(screen.getByRole('button', { name: '+ Add note' }));
     await user.type(screen.getByRole('textbox', { name: 'Notes for Borough Market' }), 'Go early on Saturday');
@@ -317,7 +317,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByTestId('list-map-mock')).toBeInTheDocument();
   });
@@ -326,7 +326,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByRole('button', { name: 'Hide map' })).toBeInTheDocument();
   });
@@ -336,7 +336,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     await user.click(screen.getByRole('button', { name: 'Hide map' }));
 
@@ -348,7 +348,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     await user.click(screen.getByRole('button', { name: 'Hide map' }));
 
@@ -360,7 +360,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     await user.click(screen.getByRole('button', { name: 'Hide map' }));
     await user.click(screen.getByRole('button', { name: 'Show map' }));
@@ -372,7 +372,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.getByRole('button', { name: 'Hide map' })).toHaveAttribute('aria-expanded', 'true');
   });
@@ -382,7 +382,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: ITEMS_WITH_COORDS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     await user.click(screen.getByRole('button', { name: 'Hide map' }));
 
@@ -393,7 +393,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.queryByTestId('list-map-mock')).not.toBeInTheDocument();
     expect(screen.getByText(/no places with location data/i)).toBeInTheDocument();
@@ -403,7 +403,7 @@ describe('MyList — map toggle', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
 
-    render(<MyList listId="list-1" />);
+    render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.queryByRole('button', { name: /show map|hide map/i })).not.toBeInTheDocument();
   });
