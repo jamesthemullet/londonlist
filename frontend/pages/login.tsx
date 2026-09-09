@@ -1,11 +1,11 @@
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react';
 import Cookie from 'js-cookie';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { useAppContext } from '../context/AppContext';
-
+import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { useAppContext } from '../context/AppContext';
 import Loader from '../components/Loader';
 import Form from '../components/core/form/form';
 
@@ -43,8 +43,14 @@ const LOGIN_MUTATION = gql`
 `;
 
 export default function LoginRoute() {
-  const { setUser } = useAppContext();
+  const { user, initialized, setUser } = useAppContext();
   const router = useRouter();
+
+  useEffect(() => {
+    if (initialized && user) {
+      router.replace('/my-list');
+    }
+  }, [initialized, user, router]);
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loginMutation, { loading, error }] = useMutation<
@@ -71,6 +77,10 @@ export default function LoginRoute() {
 
   return (
     <>
+      <Head>
+        <title>Log in — London List</title>
+        <meta name="description" content="Log in to your London List account to manage your London to-do lists." />
+      </Head>
       <Form
         title="Login"
         buttonText="Login"
