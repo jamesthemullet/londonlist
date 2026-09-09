@@ -10,6 +10,23 @@ jest.mock('next/head', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  ),
+}));
+
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
 }));
@@ -292,5 +309,86 @@ describe('AccountPage — delete account', () => {
     fireEvent.click(screen.getByRole('button', { name: /delete my account/i }));
     fireEvent.click(screen.getByRole('button', { name: /yes, delete my account/i }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/something went wrong/i);
+  });
+});
+
+// ─── Your plan section ───────────────────────────────────────────────────────
+
+describe('AccountPage — Your plan section (Free user)', () => {
+  beforeEach(() => {
+    mockUseAppContext.mockReturnValue({
+      user: { ...mockUser, isPro: false },
+      setUser: mockSetUser,
+      initialized: true,
+    });
+  });
+
+  it('renders the "Your plan" section heading', () => {
+    render(<AccountPage />);
+    expect(screen.getByRole('heading', { name: /your plan/i })).toBeInTheDocument();
+  });
+
+  it('shows the "Free" badge for a free user', () => {
+    render(<AccountPage />);
+    expect(screen.getByText('Free')).toBeInTheDocument();
+  });
+
+  it('does not show the "Pro" badge for a free user', () => {
+    render(<AccountPage />);
+    expect(screen.queryByText('Pro')).not.toBeInTheDocument();
+  });
+
+  it('shows the list limit in the plan description', () => {
+    render(<AccountPage />);
+    expect(screen.getByText(/up to 3 lists/i)).toBeInTheDocument();
+  });
+
+  it('renders an "Upgrade to Pro" link pointing to /pricing', () => {
+    render(<AccountPage />);
+    const link = screen.getByRole('link', { name: /upgrade to pro/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not render a "Manage subscription" link for free users', () => {
+    render(<AccountPage />);
+    expect(screen.queryByRole('link', { name: /manage subscription/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('AccountPage — Your plan section (Pro user)', () => {
+  beforeEach(() => {
+    mockUseAppContext.mockReturnValue({
+      user: { ...mockUser, isPro: true },
+      setUser: mockSetUser,
+      initialized: true,
+    });
+  });
+
+  it('shows the "Pro" badge for a Pro user', () => {
+    render(<AccountPage />);
+    expect(screen.getByText('Pro')).toBeInTheDocument();
+  });
+
+  it('does not show the "Free" badge for a Pro user', () => {
+    render(<AccountPage />);
+    expect(screen.queryByText('Free')).not.toBeInTheDocument();
+  });
+
+  it('shows the unlimited lists description for Pro users', () => {
+    render(<AccountPage />);
+    expect(screen.getByText(/unlimited lists/i)).toBeInTheDocument();
+  });
+
+  it('renders a "Manage subscription" link pointing to /pricing', () => {
+    render(<AccountPage />);
+    const link = screen.getByRole('link', { name: /manage subscription/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not render an "Upgrade to Pro" link for Pro users', () => {
+    render(<AccountPage />);
+    expect(screen.queryByRole('link', { name: /upgrade to pro/i })).not.toBeInTheDocument();
   });
 });

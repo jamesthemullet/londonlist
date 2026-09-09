@@ -12,16 +12,21 @@
     "lint:fix": "biome lint --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "knip": "knip"
+    "knip": "knip",
+    "test": "jest"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
-    "knip": "^6.16.1"
+    "@types/jest": "^30.0.0",
+    "jest": "^30.3.0",
+    "knip": "^6.16.1",
+    "ts-jest": "^29.4.12",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@strapi/plugin-graphql": "^5.0.0",
-    "@strapi/plugin-users-permissions": "5.52.2",
-    "@strapi/strapi": "5.52.2",
+    "@strapi/plugin-users-permissions": "5.52.3",
+    "@strapi/strapi": "5.52.3",
     "better-sqlite3": "^13.0.0",
     "pg": "^8.11.2",
     "pg-connection-string": "^2.6.2",
@@ -63,7 +68,7 @@
     "uuid": "5fc86eda-9832-4cdc-9418-d20eb44bd4f5"
   },
   "engines": {
-    "node": ">=18.0.0 <=24.20",
+    "node": ">=18.0.0 <=24.21",
     "npm": ">=6.0.0"
   },
   "license": "MIT"
