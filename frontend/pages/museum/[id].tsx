@@ -91,7 +91,7 @@ export default function Museum() {
   const router = useRouter();
   const museumId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
 
-  const { loading, error, data } = useQuery<MuseumExhibitionsQueryData, MuseumExhibitionsQueryVars>(
+  const { loading, error, data, refetch } = useQuery<MuseumExhibitionsQueryData, MuseumExhibitionsQueryVars>(
     GET_MUSEUM_EXHIBITIONS,
     {
       variables: { id: museumId ?? '' },
@@ -105,7 +105,25 @@ export default function Museum() {
 
   if (loading) return <Loader />;
 
-  if (error || !data?.museum?.data) {
+  if (error) {
+    return (
+      <>
+        <Head>
+          <title>Error loading museum — London List</title>
+        </Head>
+        <main>
+          <h1>Error loading museum</h1>
+          <p>We couldn&apos;t load this museum&apos;s exhibitions.</p>
+          <button type="button" onClick={() => refetch()}>
+            Try again
+          </button>
+          <Link href="/explore">Back to Explore</Link>
+        </main>
+      </>
+    );
+  }
+
+  if (!data?.museum?.data) {
     return (
       <>
         <Head>
@@ -113,7 +131,7 @@ export default function Museum() {
         </Head>
         <main>
           <h1>Museum not found</h1>
-          <p>We couldn&apos;t load this museum&apos;s exhibitions.</p>
+          <p>We couldn&apos;t find this museum.</p>
           <Link href="/explore">Back to Explore</Link>
         </main>
       </>
