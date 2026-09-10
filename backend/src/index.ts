@@ -30,6 +30,7 @@ export default {
           osm_id: String!
           name: String!
           category: String
+          area: String
           lat: Float
           lng: Float
         }
@@ -39,6 +40,7 @@ export default {
         extend type Query {
           myLists: [ListEntity]
           place(osm_id: String!): PublicPlace
+          placesByArea(area: String!): [PublicPlace]
         }
         extend type Mutation {
           createMyList(name: String!, description: String): ListEntity
@@ -62,9 +64,43 @@ export default {
                 osm_id: item.osm_id,
                 name: item.name,
                 category: item.category ?? null,
+                area: item.area ?? null,
                 lat: item.lat ?? null,
                 lng: item.lng ?? null,
               };
+            },
+          },
+          placesByArea: {
+            async resolve(_parent, args) {
+              const items = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { area: { $eq: args.area } },
+                sort: 'createdAt:asc',
+              });
+
+              const seen = new Set<string>();
+              const places: Array<{
+                osm_id: string;
+                name: string;
+                category: string | null;
+                area: string | null;
+                lat: number | null;
+                lng: number | null;
+              }> = [];
+
+              for (const item of items) {
+                if (seen.has(item.osm_id)) continue;
+                seen.add(item.osm_id);
+                places.push({
+                  osm_id: item.osm_id,
+                  name: item.name,
+                  category: item.category ?? null,
+                  area: item.area ?? null,
+                  lat: item.lat ?? null,
+                  lng: item.lng ?? null,
+                });
+              }
+
+              return places;
             },
           },
           listItems: {
