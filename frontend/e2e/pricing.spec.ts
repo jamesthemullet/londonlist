@@ -23,7 +23,7 @@ test.describe('Pricing page — logged-out user', () => {
   test('defaults to monthly billing showing £3.99/month', async ({ page }) => {
     await page.goto('/pricing');
 
-    await expect(page.getByText('£3.99')).toBeVisible();
+    await expect(page.getByText('£3.99', { exact: true })).toBeVisible();
     await expect(page.getByText('Monthly')).toBeVisible();
   });
 
@@ -32,8 +32,8 @@ test.describe('Pricing page — logged-out user', () => {
 
     await page.getByRole('button', { name: /Annual/ }).click();
 
-    await expect(page.getByText('£3.33')).toBeVisible();
-    await expect(page.getByText('£39.99')).toBeVisible();
+    await expect(page.getByText('£3.33', { exact: true })).toBeVisible();
+    await expect(page.getByText('Billed as £39.99/year')).toBeVisible();
     await expect(page.getByText('Save 2 months')).toBeVisible();
   });
 
@@ -70,7 +70,7 @@ test.describe('Pricing page — logged-out user', () => {
   test('shows note that sign-in is required for logged-out users', async ({ page }) => {
     await page.goto('/pricing');
 
-    await expect(page.getByText("You'll need to sign in first.")).toBeVisible();
+    await expect(page.getByText(/You.ll need to sign in first/)).toBeVisible();
   });
 
   test('shows "Get started free" link pointing to /register', async ({ page }) => {
@@ -109,7 +109,7 @@ test.describe('Pricing page — FAQ section', () => {
   test('shows free trial FAQ answer', async ({ page }) => {
     await page.goto('/pricing');
 
-    await expect(page.getByText(/14-day free trial/)).toBeVisible();
+    await expect(page.getByText('How does the 14-day free trial work?')).toBeVisible();
   });
 
   test('shows cancellation FAQ', async ({ page }) => {
@@ -131,7 +131,7 @@ test.describe('Pricing page — Free tier features', () => {
   test('lists core free features', async ({ page }) => {
     await page.goto('/pricing');
 
-    await expect(page.getByText('Up to 3 lists')).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: 'Up to 3 lists' })).toBeVisible();
     await expect(page.getByText('Public & private lists')).toBeVisible();
     await expect(page.getByText('Progress tracking & completion')).toBeVisible();
   });
