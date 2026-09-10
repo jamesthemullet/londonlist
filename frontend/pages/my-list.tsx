@@ -12,7 +12,7 @@ import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import styles from './my-list.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 type List = {
   documentId: string;
