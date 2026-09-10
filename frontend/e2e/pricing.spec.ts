@@ -24,7 +24,7 @@ test.describe('Pricing page — logged-out user', () => {
     await page.goto('/pricing');
 
     await expect(page.getByText('£3.99', { exact: true })).toBeVisible();
-    await expect(page.getByText('Monthly')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Monthly' })).toBeVisible();
   });
 
   test('switching to annual shows discounted price', async ({ page }) => {
