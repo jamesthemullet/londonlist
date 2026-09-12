@@ -73,7 +73,7 @@ function ExhibitionCard({ data }: { data: ExhibitionItem }) {
   );
 }
 
-function buildMuseumJsonLd(name: string, museumId: string) {
+export function buildMuseumJsonLd(name: string, museumId: string) {
   return {
     '@context': 'https://schema.org',
     '@type': 'TouristAttraction',
