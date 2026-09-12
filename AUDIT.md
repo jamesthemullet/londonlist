@@ -28,7 +28,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 3. Performance
 
-- [ ] `.github/lighthouse/budget.json` exists (200KB script budget, 4 third-party resource limit) but nothing in `.github/workflows/` (`ci.yml` or `pull_request_audit.yml`) references Lighthouse or this file — either wire in `@lhci/cli` or remove the dead config (found: 2026-09-01)
+- [x] `.github/lighthouse/budget.json` exists (200KB script budget, 4 third-party resource limit) but nothing in `.github/workflows/` (`ci.yml` or `pull_request_audit.yml`) references Lighthouse or this file — either wire in `@lhci/cli` or remove the dead config (found: 2026-09-01) (fixed: 2026-09-11)
 - [ ] `frontend/pages/museum/[id].tsx:5,68-75` has a fully commented-out `next/image` block for `ExhibitionCard` — exhibitions currently render no image at all; either restore the image or remove the dead code (found: 2026-09-01)
 - [ ] `next build` (Turbopack) prints no per-route First Load JS bundle sizes, so route-by-route comparison against the 200KB script budget isn't currently possible from build output alone — would need `next build --profile` or a bundle analyzer to get real numbers if the budget above is ever enforced (found: 2026-09-01)
 
