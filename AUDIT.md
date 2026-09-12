@@ -26,7 +26,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 3. Performance
 
-- [ ] `.github/lighthouse/budget.json` exists (200KB script budget, 4 third-party resource limit) but nothing in `.github/workflows/` (`ci.yml` or `pull_request_audit.yml`) references Lighthouse or this file — either wire in `@lhci/cli` or remove the dead config (found: 2026-09-01)
+- [x] `.github/lighthouse/budget.json` exists (200KB script budget, 4 third-party resource limit) but nothing in `.github/workflows/` (`ci.yml` or `pull_request_audit.yml`) references Lighthouse or this file — either wire in `@lhci/cli` or remove the dead config (found: 2026-09-01) (fixed: 2026-09-11)
 - [ ] `next build` (Turbopack) prints no per-route First Load JS bundle sizes, so route-by-route comparison against the 200KB script budget isn't currently possible from build output alone — would need `next build --profile` or a bundle analyzer to get real numbers if the budget above is ever enforced (found: 2026-09-01)
 
 ## 4. SEO / metadata
