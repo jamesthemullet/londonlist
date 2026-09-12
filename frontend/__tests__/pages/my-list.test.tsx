@@ -817,14 +817,17 @@ describe('MyListPage — view counts', () => {
 
 describe('MyListPage — Pro analytics stats card', () => {
   const PUBLIC_LISTS_TWO = [
-    { documentId: 'list-1', name: 'Hidden Pubs', isPublic: true, viewCount: 52 },
-    { documentId: 'list-2', name: 'Museum Trail', isPublic: true, viewCount: 35 },
+    { documentId: 'list-1', name: 'Hidden Pubs', isPublic: true, viewCount: 52, itemCount: 8, completedCount: 4 },
+    { documentId: 'list-2', name: 'Museum Trail', isPublic: true, viewCount: 35, itemCount: 5, completedCount: 5 },
   ];
   const ONE_PUBLIC = [
-    { documentId: 'list-1', name: 'Hidden Pubs', isPublic: true, viewCount: 42 },
+    { documentId: 'list-1', name: 'Hidden Pubs', isPublic: true, viewCount: 42, itemCount: 10, completedCount: 3 },
   ];
   const ALL_PRIVATE = [
-    { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0 },
+    { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0, itemCount: 0, completedCount: 0 },
+  ];
+  const ALL_PRIVATE_WITH_ITEMS = [
+    { documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0, itemCount: 12, completedCount: 6 },
   ];
 
   it('shows "Your stats" heading for Pro users with public lists', () => {
@@ -926,5 +929,72 @@ describe('MyListPage — Pro analytics stats card', () => {
 
     const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
     expect(within(statsCard).queryByText('42')).not.toBeInTheDocument();
+  });
+
+  it('shows "Places saved" stat for Pro users with items', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LISTS_TWO } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).getByText('Places saved')).toBeInTheDocument();
+    expect(within(statsCard).getByText('13')).toBeInTheDocument();
+  });
+
+  it('shows "Completed" stat with count and percentage for Pro users', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    // 4 + 5 = 9 completed out of 13 total = 69%
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LISTS_TWO } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).getByText('Completed')).toBeInTheDocument();
+    expect(within(statsCard).getByText('9')).toBeInTheDocument();
+    expect(within(statsCard).getByText('(69%)')).toBeInTheDocument();
+  });
+
+  it('shows stats card for Pro users with only private lists that have items', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ALL_PRIVATE_WITH_ITEMS } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).getByRole('heading', { name: 'Your stats' })).toBeInTheDocument();
+    expect(within(statsCard).getByText('12')).toBeInTheDocument();
+    expect(within(statsCard).queryByText('Total views')).not.toBeInTheDocument();
+  });
+
+  it('shows 50% completion rate when half the items are done', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ALL_PRIVATE_WITH_ITEMS } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).getByText('(50%)')).toBeInTheDocument();
+  });
+
+  it('does not show "Places saved" or "Completed" when all lists are empty', () => {
+    setupMutations();
+    mockUseAppContext.mockReturnValue({ user: MOCK_PRO_USER, initialized: true });
+    // ONE_PUBLIC has itemCount: 10
+    const PUBLIC_EMPTY = [
+      { documentId: 'list-1', name: 'Empty List', isPublic: true, viewCount: 5, itemCount: 0, completedCount: 0 },
+    ];
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_EMPTY } });
+
+    render(<MyListPage />);
+
+    const statsCard = screen.getByRole('complementary', { name: 'List analytics' });
+    expect(within(statsCard).queryByText('Places saved')).not.toBeInTheDocument();
+    expect(within(statsCard).queryByText('Completed')).not.toBeInTheDocument();
+    expect(within(statsCard).getByText('Total views')).toBeInTheDocument();
   });
 });

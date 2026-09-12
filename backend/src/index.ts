@@ -24,12 +24,22 @@ export default {
           viewCount: Int
           description: String
           itemCount: Int
+          completedCount: Int
+        }
+        type PublicPlace {
+          osm_id: String!
+          name: String!
+          category: String
+          lat: Float
+          lng: Float
         }
         extend type UsersPermissionsMe {
           isPro: Boolean
         }
         extend type Query {
           myLists: [ListEntity]
+          place(osm_id: String!): PublicPlace
+          relatedPlaces(osm_id: String!, limit: Int): [PublicPlace!]!
         }
         extend type Mutation {
           createMyList(name: String!, description: String): ListEntity
@@ -39,6 +49,63 @@ export default {
       `,
       resolvers: {
         Query: {
+          place: {
+            async resolve(_parent, args) {
+              const [item] = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { osm_id: { $eq: args.osm_id } },
+                sort: 'createdAt:asc',
+                limit: 1,
+              });
+
+              if (!item) return null;
+
+              return {
+                osm_id: item.osm_id,
+                name: item.name,
+                category: item.category ?? null,
+                lat: item.lat ?? null,
+                lng: item.lng ?? null,
+              };
+            },
+          },
+          relatedPlaces: {
+            async resolve(_parent, args) {
+              const cap = Math.min(args.limit ?? 6, 12);
+
+              const [target] = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { osm_id: { $eq: args.osm_id } },
+                limit: 1,
+              });
+
+              if (!target?.category) return [];
+
+              const candidates = await strapi.documents('api::list-item.list-item').findMany({
+                filters: {
+                  category: { $eq: target.category },
+                  osm_id: { $ne: args.osm_id },
+                },
+                sort: 'createdAt:desc',
+              });
+
+              const seen = new Set<string>();
+              const results: { osm_id: string; name: string; category: string | null; lat: number | null; lng: number | null }[] = [];
+              for (const item of candidates) {
+                if (!seen.has(item.osm_id)) {
+                  seen.add(item.osm_id);
+                  results.push({
+                    osm_id: item.osm_id,
+                    name: item.name,
+                    category: item.category ?? null,
+                    lat: item.lat ?? null,
+                    lng: item.lng ?? null,
+                  });
+                  if (results.length >= cap) break;
+                }
+              }
+
+              return results;
+            },
+          },
           listItems: {
             async resolve(_parent, args, context) {
               const user = requireUser(context);
@@ -83,14 +150,18 @@ export default {
 
               const lists = await strapi.documents('api::list.list').findMany({
                 filters: { user: { id: { $eq: user.id } } },
-                populate: { list_items: { fields: ['documentId'] } },
+                populate: { list_items: { fields: ['documentId', 'completed'] } },
                 sort: 'createdAt:asc',
               });
 
-              return lists.map((list) => ({
-                ...list,
-                itemCount: ((list as { list_items?: unknown[] }).list_items ?? []).length,
-              }));
+              return lists.map((list) => {
+                const items = (list as { list_items?: { completed?: boolean }[] }).list_items ?? [];
+                return {
+                  ...list,
+                  itemCount: items.length,
+                  completedCount: items.filter((i) => i.completed).length,
+                };
+              });
             },
           },
         },
