@@ -10,13 +10,12 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 1. Test coverage — unit gaps and e2e
 
-- [x] `frontend/jest.config.js`'s `collectCoverageFrom` excludes `pages/**` entirely, so `pages/museum/[id].tsx`, `my-list.tsx`, `login.tsx`, `register.tsx`, `reset-password.tsx`, `account.tsx`, `list/[username]/[listId].tsx`, `explore.tsx` etc. have unmeasured unit coverage — add `pages/**/*.{ts,tsx}` (excluding `_app.tsx`/`_document.tsx`/`api/**`) to surface real numbers (found: 2026-09-01) (fixed: 2026-09-01)
+- [x] `frontend/jest.config.js`'s `collectCoverageFrom` excludes `pages/**` entirely, so `my-list.tsx`, `login.tsx`, `register.tsx`, `reset-password.tsx`, `account.tsx`, `list/[username]/[listId].tsx`, `explore.tsx` etc. have unmeasured unit coverage — add `pages/**/*.{ts,tsx}` (excluding `_app.tsx`/`_document.tsx`/`api/**`) to surface real numbers (found: 2026-09-01) (fixed: 2026-09-01)
 - [x] Backend has zero test files under `backend/src` and no `test` script in `backend/package.json` — start with `backend/src/api/stripe/controllers/stripe.ts` (custom checkout/webhook logic, highest priority given it handles money) (found: 2026-09-01) (fixed: 2026-09-03)
 - [x] `frontend/components/upgrade-modal/upgrade-modal.tsx` is at 94.44% stmts / 85.71% funcs, uncovered line 49 — add a test for the untested branch/callback (Stripe-adjacent UI) (found: 2026-09-01) (fixed: 2026-09-01)
 - [ ] Add unit tests for `backend/src/api/list/controllers/list.ts` (140 lines of custom ownership/visibility logic, currently untested) (found: 2026-09-01)
 - [ ] Add unit tests for `backend/src/api/account/controllers/account.ts` and `backend/src/api/list-setting/controllers/list-setting.ts` (custom logic, currently untested) (found: 2026-09-01)
 - [ ] No e2e spec covers register → login → reset-password happy path — add `frontend/e2e/auth-flow.spec.ts` (existing specs `auth.spec.ts`/`public-pages.spec.ts` only test logged-out redirects and form validation, not a real submit) (found: 2026-09-01)
-- [ ] No e2e spec covers `pages/museum/[id].tsx` — add `frontend/e2e/museum-detail.spec.ts` navigating from explore/search into a museum detail page and asserting content renders (found: 2026-09-01)
 - [ ] No e2e spec covers personal list building (add/remove item, visibility toggle) — add `frontend/e2e/my-list-management.spec.ts` for `pages/my-list.tsx` / `components/list-visibility-toggle` (found: 2026-09-01)
 - [ ] No e2e spec covers the Leaflet map (`components/map/list-map.tsx`) — add `frontend/e2e/list-map.spec.ts` for pin rendering and click-through to a detail page (found: 2026-09-01)
 - [ ] No e2e spec covers the Stripe upgrade/checkout trigger (`components/upgrade-modal`, `pages/pricing.tsx`) — add `frontend/e2e/upgrade-checkout.spec.ts` covering the modal trigger and redirect to Stripe Checkout (can stop at the redirect boundary) (found: 2026-09-01)
@@ -24,26 +23,20 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## 2. Accessibility
 
 - [ ] List page (`pages/list/[username]/[listId].tsx`) `<h1>` renders as a bare number (e.g. "2") when no descriptive list name is set — screen-reader users navigating by heading get no context; default to something like "Untitled list" when name is empty (found: 2026-09-01)
-- [x] `pages/museum/[id].tsx` error state ("Error Loading Exhibitions") has no heading semantics, no retry action, and no link back to Explore when the GraphQL query fails — see also item under Responsive/UX below (found: 2026-09-01) (fixed: 2026-09-10)
 
 ## 3. Performance
 
 - [ ] `.github/lighthouse/budget.json` exists (200KB script budget, 4 third-party resource limit) but nothing in `.github/workflows/` (`ci.yml` or `pull_request_audit.yml`) references Lighthouse or this file — either wire in `@lhci/cli` or remove the dead config (found: 2026-09-01)
-- [ ] `frontend/pages/museum/[id].tsx:5,68-75` has a fully commented-out `next/image` block for `ExhibitionCard` — exhibitions currently render no image at all; either restore the image or remove the dead code (found: 2026-09-01)
 - [ ] `next build` (Turbopack) prints no per-route First Load JS bundle sizes, so route-by-route comparison against the 200KB script budget isn't currently possible from build output alone — would need `next build --profile` or a bundle analyzer to get real numbers if the budget above is ever enforced (found: 2026-09-01)
 
 ## 4. SEO / metadata
 
-- [ ] `frontend/pages/museum/[id].tsx` has no per-route `<Head>`/title/description/OG tags at all — falls back to the generic "London List" default; add a title using `museum.data.attributes.name` (highest-impact single fix, most shareable/indexable page type) (found: 2026-09-01)
-- [ ] `frontend/pages/museum/[id].tsx` has no JSON-LD structured data — add a `Place`/`TouristAttraction` schema.org block mirroring the pattern already used in `list/[username]/[listId].tsx:332` (found: 2026-09-01)
 - [ ] `frontend/pages/login.tsx` and `reset-password.tsx` have no `<Head>`/title override, falling back to the generic "London List" title — add short per-page titles (e.g. "Log in — London List") for browser tab/history clarity (found: 2026-09-01)
 - [ ] `frontend/pages/pricing.tsx:117-123` has a `<title>` but no meta description or OG tags, unlike every other content page — add them for consistency (found: 2026-09-01)
-- [ ] `frontend/pages/museum/[id].tsx` uses `<h3>` for exhibition subheadings (line 77) with no `<h2>` in between, skipping a heading level — fix alongside the title/JSON-LD work above (found: 2026-09-01)
 
 ## 5. Responsive / UX
 
 - [ ] `pages/list/[username]/[listId].tsx` — on a hard/direct navigation (full page load, not client-side routing) the Leaflet map and its To Do/Done legend fail to render entirely, leaving an empty gap, while the list below loads fine; reproduced twice on fresh reloads. This breaks the primary list-sharing use case (opening a shared link directly) (found: 2026-09-01)
-- [ ] `pages/museum/[id].tsx` — loads indefinitely ("Loading...") then settles into a raw, unstyled "Error Loading Exhibitions" message with no retry button or link back to Explore, for at least museum id `1` — a raw GraphQL-style error is surfaced directly to the user instead of a friendly not-found/error state (found: 2026-09-01)
 - [ ] Header auth state (Log In/Sign Up vs. My List/email/Log Out) flickers inconsistently across consecutive reloads of the same URL on `/login`, `/register`, `/reset-password`, and hard-navigated list pages for the same unchanged session — suggests the client-side auth check races with hydration rather than reading a reliable source of truth (found: 2026-09-01)
 - [ ] Logged-in users can still fully access and submit `/login`, `/register`, `/reset-password` — no redirect to their list occurs; minor UX confusion, not a security issue (found: 2026-09-01)
 
@@ -67,4 +60,3 @@ audit adds new findings to the bottom of each section and leaves checked items a
 - [ ] `GET_MY_LISTS`/`CREATE_MY_LIST`/`UPDATE_MY_LIST` in `frontend/pages/my-list.tsx:28-63` all request the same list fields (`documentId, name, description, isPublic, viewCount`) — extract to a shared Apollo fragment (found: 2026-09-01)
 - [ ] `SITE_URL` fallback is copy-pasted across 7 files; 6 correctly fall back to `https://londonlist.vercel.app` but `frontend/pages/list/[username]/[listId].tsx:18` falls back to `https://londonlist.co.uk` — a domain the project does not own. Fix the one-line mismatch and consider extracting `SITE_URL` to one shared constant module (also surfaced independently by the browser audit: share buttons on the list page build links using `londonlist.co.uk`) (found: 2026-09-01)
 - [ ] `frontend/components/meta/meta.tsx:3-23` has a 21-line commented-out `seoProps` type block no longer referenced anywhere — delete it (found: 2026-09-01)
-- [ ] `frontend/pages/museum/[id].tsx:62` has a vague leftover `// will add some logic here` placeholder comment with no tracking issue — clean up (found: 2026-09-01)
