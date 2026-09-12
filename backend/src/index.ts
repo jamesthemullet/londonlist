@@ -41,6 +41,7 @@ export default {
           myLists: [ListEntity]
           place(osm_id: String!): PublicPlace
           placesByArea(area: String!): [PublicPlace]
+          relatedPlaces(osm_id: String!, limit: Int): [PublicPlace!]!
         }
         extend type Mutation {
           createMyList(name: String!, description: String): ListEntity
@@ -101,6 +102,42 @@ export default {
               }
 
               return places;
+          relatedPlaces: {
+            async resolve(_parent, args) {
+              const cap = Math.min(args.limit ?? 6, 12);
+
+              const [target] = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { osm_id: { $eq: args.osm_id } },
+                limit: 1,
+              });
+
+              if (!target?.category) return [];
+
+              const candidates = await strapi.documents('api::list-item.list-item').findMany({
+                filters: {
+                  category: { $eq: target.category },
+                  osm_id: { $ne: args.osm_id },
+                },
+                sort: 'createdAt:desc',
+              });
+
+              const seen = new Set<string>();
+              const results: { osm_id: string; name: string; category: string | null; lat: number | null; lng: number | null }[] = [];
+              for (const item of candidates) {
+                if (!seen.has(item.osm_id)) {
+                  seen.add(item.osm_id);
+                  results.push({
+                    osm_id: item.osm_id,
+                    name: item.name,
+                    category: item.category ?? null,
+                    lat: item.lat ?? null,
+                    lng: item.lng ?? null,
+                  });
+                  if (results.length >= cap) break;
+                }
+              }
+
+              return results;
             },
           },
           listItems: {
