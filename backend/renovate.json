@@ -3,5 +3,6 @@
   "prConcurrentLimit": 2,
   "prHourlyLimit": 10,
   "timezone": "Europe/London",
-  "schedule": ["* 2-5 * * *"]
+  "schedule": ["* 2-5 * * *"],
+  "rebaseWhen": "conflicted"
 }
