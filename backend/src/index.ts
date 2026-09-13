@@ -102,6 +102,8 @@ export default {
               }
 
               return places;
+            },
+          },
           relatedPlaces: {
             async resolve(_parent, args) {
               const cap = Math.min(args.limit ?? 6, 12);
