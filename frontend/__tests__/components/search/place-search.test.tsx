@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useMutation } from '@apollo/client/react';
 import PlaceSearch from '../../../components/search/place-search';
 
@@ -21,6 +22,11 @@ jest.mock('next/link', () => ({
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
     <a href={href} className={className}>{children}</a>
   ),
+}));
+
+jest.mock('../../../hooks/use-debounce', () => ({
+  __esModule: true,
+  default: <T,>(value: T) => value,
 }));
 
 const mockUseMutation = useMutation as jest.Mock;
@@ -102,5 +108,35 @@ describe('PlaceSearch — onLimitReached callback', () => {
 
     // No search input interaction needed — we test the mutation error handler directly
     // by asserting the callback wires up; the mutation itself is unit-tested via handleAdd
+  });
+});
+
+describe('PlaceSearch — search live region announcements', () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = jest.fn(() => new Promise(() => {})) as jest.Mock;
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('announces "Searching…" in the live status region while a search is in progress', async () => {
+    const user = userEvent.setup();
+    render(<PlaceSearch listId="list-1" itemCount={0} isPro={false} freeItemLimit={20} />);
+
+    await user.type(screen.getByRole('textbox'), 'muse');
+
+    expect(screen.getByRole('status')).toHaveTextContent('Searching…');
+  });
+
+  it('live region is empty before the query reaches 3 characters', async () => {
+    const user = userEvent.setup();
+    render(<PlaceSearch listId="list-1" itemCount={0} isPro={false} freeItemLimit={20} />);
+
+    await user.type(screen.getByRole('textbox'), 'mu');
+
+    expect(screen.getByRole('status')).toHaveTextContent('');
   });
 });

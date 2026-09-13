@@ -34,6 +34,7 @@ const CREATE_LIST_ITEM = gql`
     $lat: Float
     $lng: Float
     $category: String
+    $area: String
     $list: ID
   ) {
     createListItem(
@@ -43,6 +44,7 @@ const CREATE_LIST_ITEM = gql`
         lat: $lat
         lng: $lng
         category: $category
+        area: $area
         completed: false
         list: $list
       }
@@ -153,6 +155,7 @@ export default function PlaceSearch({ listId, itemCount, isPro, freeItemLimit = 
           lat: geometry.coordinates[1],
           lng: geometry.coordinates[0],
           category: properties.osm_value ?? properties.osm_key ?? '',
+          area: properties.district ?? null,
           list: listId,
         },
         context: {
@@ -222,6 +225,7 @@ export default function PlaceSearch({ listId, itemCount, isPro, freeItemLimit = 
       </div>
 
       <div role="status" aria-live="polite" aria-atomic="true" className={styles.srOnly}>
+        {searching && query.length >= 3 && 'Searching…'}
         {!searching && query.length >= 3 && results.length > 0 &&
           `${results.length} result${results.length === 1 ? '' : 's'} found`}
         {!searching && query.length >= 3 && results.length === 0 &&

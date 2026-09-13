@@ -1618,3 +1618,29 @@ describe('PublicListPage — related lists section', () => {
     expect(screen.getByText('by dave')).toBeInTheDocument();
   });
 });
+
+describe('PublicListPage — untitled list fallback', () => {
+  it('renders "Untitled list" as the h1 when listName is an empty string', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={{ data: [], username: 'alice', listName: '' }}
+        username="alice"
+        listId="list-abc"
+      />,
+    );
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Untitled list');
+  });
+
+  it('renders the actual list name when listName is provided', () => {
+    render(
+      <PublicListPage
+        pageState="found"
+        listData={{ data: [], username: 'alice', listName: 'My London Picks' }}
+        username="alice"
+        listId="list-abc"
+      />,
+    );
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('My London Picks');
+  });
+});

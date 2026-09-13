@@ -1,8 +1,9 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Loader from '../Loader';
+import MilestoneCelebration from '../milestone-celebration/milestone-celebration';
 import ProgressBar from '../progress-bar/progress-bar';
 import StreakBadge from '../streak-badge/streak-badge';
 import { useAuthHeader } from '../../hooks/use-auth-header';
@@ -74,13 +75,34 @@ const UPDATE_NOTES = gql`
   }
 `;
 
+const MILESTONES = [25, 50, 75, 100] as const;
+type Milestone = (typeof MILESTONES)[number];
+
+export function getMilestoneCrossed(
+  prevDone: number,
+  newDone: number,
+  total: number,
+): Milestone | null {
+  for (const milestone of MILESTONES) {
+    const threshold = Math.ceil((milestone / 100) * total);
+    if (newDone >= threshold && prevDone < threshold) {
+      return milestone;
+    }
+  }
+  return null;
+}
+
 type Props = {
   listId: string;
+  listName: string;
+  shareUrl?: string;
 };
 
-export default function MyList({ listId }: Props) {
+export default function MyList({ listId, listName, shareUrl }: Props) {
   const authHeader = useAuthHeader();
   const [showMap, setShowMap] = useState(true);
+  const [celebrationMilestone, setCelebrationMilestone] = useState<Milestone | null>(null);
+  const prevDoneCountRef = useRef<number | null>(null);
 
   const { loading, error, data } = useQuery<ListItemsData>(GET_MY_LIST, {
     variables: { listDocumentId: listId },
@@ -123,6 +145,29 @@ export default function MyList({ listId }: Props) {
 
   const items = data?.listItems ?? [];
   const { streak, atRisk } = useStreak(items);
+  const done = items.filter((i) => i.completed);
+
+  useEffect(() => {
+    const total = items.length;
+    const newDoneCount = done.length;
+
+    if (total === 0) return;
+
+    if (prevDoneCountRef.current === null) {
+      prevDoneCountRef.current = newDoneCount;
+      return;
+    }
+
+    const prevCount = prevDoneCountRef.current;
+    prevDoneCountRef.current = newDoneCount;
+
+    if (newDoneCount <= prevCount) return;
+
+    const crossed = getMilestoneCrossed(prevCount, newDoneCount, total);
+    if (crossed !== null) {
+      setCelebrationMilestone(crossed);
+    }
+  }, [done.length, items.length]);
 
   if (loading && !data) return <Loader />;
   if (error) return <p>Error loading your list.</p>;
@@ -136,7 +181,6 @@ export default function MyList({ listId }: Props) {
   }
 
   const todo = items.filter((i) => !i.completed);
-  const done = items.filter((i) => i.completed);
 
   const now = new Date();
   const visitedThisMonth = done.filter((i) => {
@@ -158,6 +202,14 @@ export default function MyList({ listId }: Props) {
 
   return (
     <div className={styles.container}>
+      {celebrationMilestone !== null && (
+        <MilestoneCelebration
+          milestone={celebrationMilestone}
+          listName={listName}
+          shareUrl={shareUrl}
+          onDismiss={() => setCelebrationMilestone(null)}
+        />
+      )}
       <StreakBadge streak={streak} atRisk={atRisk} />
       <ProgressBar total={items.length} done={done.length} />
       <div className={styles.mapToggleRow}>

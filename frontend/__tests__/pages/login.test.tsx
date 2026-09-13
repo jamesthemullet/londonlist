@@ -45,13 +45,15 @@ const mockUseRouter = useRouter as jest.Mock;
 const mockCookieSet = (Cookie as unknown as { set: jest.Mock }).set;
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 const mockSetUser = jest.fn();
 
 beforeEach(() => {
   mockPush.mockReset();
+  mockReplace.mockReset();
   mockSetUser.mockReset();
   mockCookieSet.mockReset();
-  mockUseRouter.mockReturnValue({ push: mockPush });
+  mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace });
   mockUseAppContext.mockReturnValue({ user: null, setUser: mockSetUser, initialized: true });
   mockUseMutation.mockReturnValue([jest.fn(), { loading: false, error: null }]);
 });
@@ -154,5 +156,34 @@ describe('LoginRoute — successful login', () => {
     await waitFor(() => {
       expect(mockCookieSet).toHaveBeenCalledWith('token', 'test-jwt', expect.any(Object));
     });
+  });
+});
+
+describe('LoginRoute — already logged-in redirect', () => {
+  it('redirects to /my-list when user is already logged in and auth is initialised', async () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', username: 'alice' },
+      initialized: true,
+      setUser: mockSetUser,
+    });
+    render(<LoginRoute />);
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/my-list');
+    });
+  });
+
+  it('does not redirect when initialized is false', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', username: 'alice' },
+      initialized: false,
+      setUser: mockSetUser,
+    });
+    render(<LoginRoute />);
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('does not redirect when user is null', () => {
+    render(<LoginRoute />);
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 });

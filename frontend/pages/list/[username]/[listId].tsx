@@ -281,9 +281,10 @@ export default function PublicListPage({ pageState, listData, username, listId, 
   const items = listData?.data ?? [];
   const todo = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
+  const listName = listData?.listName || 'Untitled list';
   const jsonLd = listData ? buildItemListJsonLd(listData, username, listId) : null;
   const ogImage = buildOgImageUrl(
-    { title: listData?.listName ?? '', username, itemCount: items.length, doneCount: done.length },
+    { title: listName, username, itemCount: items.length, doneCount: done.length },
     SITE_URL,
   );
 
@@ -297,21 +298,20 @@ export default function PublicListPage({ pageState, listData, username, listId, 
       completed: i.completed,
       category: i.category,
     }));
-
   const canonicalUrl = `${SITE_URL}/list/${username}/${listId}`;
-  const pageTitle = `${listData?.listName} — ${username}'s London List`;
+  const pageTitle = `${listName} — ${username}'s London List`;
   const listDescription = listData?.description ?? null;
   const pageDescription =
     listDescription ??
     (items.length > 0
-      ? `${username} is exploring London. ${items.length} place${items.length === 1 ? '' : 's'} on their "${listData?.listName}" list — ${todo.length} to do, ${done.length} done.`
-      : `${username}'s London list: ${listData?.listName}`);
+      ? `${username} is exploring London. ${items.length} place${items.length === 1 ? '' : 's'} on their "${listName}" list — ${todo.length} to do, ${done.length} done.`
+      : `${username}'s London list: ${listName}`);
 
   return (
     <>
       <Head>
         <title>
-          {listData?.listName} — {username}&apos;s London List
+          {listName} — {username}&apos;s London List
         </title>
         <meta name="description" content={pageDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -333,7 +333,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
         )}
       </Head>
       <main className={styles.main}>
-        <h1 className={styles.heading}>{listData?.listName}</h1>
+        <h1 className={styles.heading}>{listName}</h1>
         <div className={styles.metaRow}>
           <p className={styles.subtitle}>
             <Link href={`/profile/${username}`}>{username}&apos;s lists</Link>
@@ -367,7 +367,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
         )}
         <ShareButtons url={canonicalUrl} title={pageTitle} />
         {initialized && user && items.length > 0 && (
-          <CopyListButton items={items} listName={listData?.listName ?? 'Copied list'} />
+          <CopyListButton items={items} listName={listName} />
         )}
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>

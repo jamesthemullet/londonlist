@@ -1,0 +1,343 @@
+.main {
+  width: 100%;
+  max-width: 720px;
+  padding: 3rem 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.breadcrumbLink {
+  color: #555;
+  text-decoration: none;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbSep {
+  color: #bbb;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.heading {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.description {
+  font-size: 1.05rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.6;
+  max-width: 580px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  background: #f0f0f0;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.copySection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.copyButton {
+  padding: 0.75rem 1.5rem;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+
+.copyButton:hover:not(:disabled) {
+  background: #333;
+}
+
+.copyButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.signInCta {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #111;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+
+.signInCta:hover {
+  background: #333;
+}
+
+.signInNote {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0;
+}
+
+.copySuccess {
+  font-size: 0.95rem;
+  color: #1a7a40;
+  font-weight: 500;
+  margin: 0;
+}
+
+.copySuccessLink {
+  color: #1a7a40;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.copyError {
+  font-size: 0.85rem;
+  color: #c0392b;
+  margin: 0;
+}
+
+.placesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.placesHeading {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #888;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.placeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.placeItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.placeItem:last-child {
+  border-bottom: none;
+}
+
+.placeNumber {
+  width: 1.5rem;
+  text-align: right;
+  font-size: 0.8rem;
+  color: #bbb;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.placeInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.placeName {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #111;
+}
+
+.placeCategory {
+  font-size: 0.75rem;
+  color: #888;
+  padding: 0.1rem 0.4rem;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.relatedSection {
+  width: 100%;
+  max-width: 720px;
+  padding: 2rem 1rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.relatedHeading {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: #333;
+}
+
+.relatedGrid {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.relatedCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.relatedCard:hover {
+  border-color: #bbb;
+  background: #fafafa;
+}
+
+.relatedName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.relatedCount {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.allTemplatesLink {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.allTemplatesLink a {
+  color: #555;
+  text-decoration: none;
+}
+
+.allTemplatesLink a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .heading {
+    font-size: 1.6rem;
+  }
+
+  .copyButton,
+  .signInCta {
+    width: 100%;
+    text-align: center;
+  }
+
+  .relatedGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .breadcrumb {
+    color: #aaa;
+  }
+
+  .breadcrumbLink {
+    color: #999;
+  }
+
+  .description {
+    color: #aaa;
+  }
+
+  .tag {
+    background: #2a2a2a;
+    color: #aaa;
+  }
+
+  .placesHeading {
+    color: #666;
+  }
+
+  .placeItem {
+    border-bottom-color: #2a2a2a;
+  }
+
+  .placeName {
+    color: #eee;
+  }
+
+  .placeCategory {
+    background: #2a2a2a;
+    color: #888;
+  }
+
+  .relatedSection {
+    border-top-color: #2a2a2a;
+  }
+
+  .relatedHeading {
+    color: #ddd;
+  }
+
+  .relatedCard {
+    border-color: #333;
+  }
+
+  .relatedCard:hover {
+    border-color: #555;
+    background: #1a1a1a;
+  }
+
+  .relatedName {
+    color: #eee;
+  }
+
+  .signInNote {
+    color: #666;
+  }
+}
