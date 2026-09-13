@@ -11,5 +11,6 @@
       "groupSlug": "all-minor-patch"
     }
   ],
-  "schedule": ["* 2-5 * * *"]
+  "schedule": ["* 2-5 * * *"],
+  "rebaseWhen": "conflicted"
 }
