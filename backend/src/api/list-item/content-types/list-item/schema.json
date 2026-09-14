@@ -29,6 +29,9 @@
     "category": {
       "type": "string"
     },
+    "area": {
+      "type": "string"
+    },
     "completed": {
       "type": "boolean",
       "default": false

@@ -1,3 +1,5 @@
+import { TEMPLATES } from './templates';
+
 export type SitemapEntry = {
   loc: string;
   changefreq: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
@@ -10,10 +12,17 @@ export type PublicListForSitemap = {
   username: string | null;
 };
 
+const TEMPLATE_DETAIL_PAGES: SitemapEntry[] = TEMPLATES.map((t) => ({
+  loc: `/templates/${t.id}`,
+  changefreq: 'monthly',
+  priority: '0.6',
+}));
+
 const STATIC_PAGES: SitemapEntry[] = [
   { loc: '/', changefreq: 'daily', priority: '1.0' },
   { loc: '/explore', changefreq: 'daily', priority: '0.9' },
   { loc: '/templates', changefreq: 'weekly', priority: '0.7' },
+  ...TEMPLATE_DETAIL_PAGES,
   { loc: '/pricing', changefreq: 'monthly', priority: '0.8' },
   { loc: '/register', changefreq: 'monthly', priority: '0.5' },
   { loc: '/login', changefreq: 'monthly', priority: '0.3' },
