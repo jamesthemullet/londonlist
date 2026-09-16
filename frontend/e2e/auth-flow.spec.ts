@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import type { Route, Request as PlaywrightRequest } from '@playwright/test';
 
 const GRAPHQL_URL = '**/graphql';
 
@@ -26,8 +27,8 @@ const MOCK_LIST = {
  * Use the special key '__me' to respond to the anonymous AppContext `me` query.
  */
 async function handleGraphql(
-  route: Parameters<Parameters<typeof import('@playwright/test').Page.prototype.route>[1]>[0],
-  request: Parameters<Parameters<typeof import('@playwright/test').Page.prototype.route>[1]>[1],
+  route: Route,
+  request: PlaywrightRequest,
   operations: Record<string, unknown>,
 ) {
   const body = request.postDataJSON() as { operationName?: string | null; query?: string } | null;
