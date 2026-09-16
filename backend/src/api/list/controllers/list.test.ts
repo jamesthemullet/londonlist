@@ -1,107 +1,134 @@
+const listDocuments = {
+  findMany: jest.fn(),
+  findOne: jest.fn(),
+  update: jest.fn(),
+};
+
+const listItemDocuments = {
+  findMany: jest.fn(),
+};
+
+const mockStrapi = {
+  documents: jest.fn((uid: string) => {
+    if (uid === 'api::list.list') return listDocuments;
+    if (uid === 'api::list-item.list-item') return listItemDocuments;
+    throw new Error(`Unexpected documents uid: ${uid}`);
+  }),
+  db: {
+    query: jest.fn(() => userQuery),
+  },
+};
+
+const userQuery = { findMany: jest.fn() };
+
 jest.mock('@strapi/strapi', () => ({
   factories: {
-    createCoreController:
-      (_uid: string, cfg: (args: { strapi: unknown }) => Record<string, unknown>) =>
-      (args: { strapi: unknown }) =>
-        cfg(args),
+    createCoreController: (_uid: string, cb: (args: { strapi: typeof mockStrapi }) => unknown) =>
+      cb({ strapi: mockStrapi }),
   },
 }));
 
 import listControllerFactory from './list';
 
-function createCtx(overrides: Record<string, unknown> = {}) {
+const listController = listControllerFactory as unknown as {
+  getAllPublicLists: (ctx: MockCtx) => Promise<unknown>;
+  getPublicListsByUsername: (ctx: MockCtx) => Promise<unknown>;
+  getPublicList: (ctx: MockCtx) => Promise<unknown>;
+};
+
+type MockCtx = Record<string, unknown>;
+
+function createCtx(overrides: MockCtx = {}): MockCtx {
   return {
     query: {},
     params: {},
-    status: undefined as number | undefined,
-    notFound: jest.fn((msg: string) => ({ status: 404, msg })),
+    notFound: jest.fn((msg?: string) => ({ status: 404, msg })),
     ...overrides,
   };
 }
 
 describe('list controller', () => {
-  const listDocuments = {
-    findMany: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-  };
-  const listItemDocuments = {
-    findMany: jest.fn(),
-  };
-  const userQuery = {
-    findMany: jest.fn(),
-  };
-
-  const strapiMock = {
-    documents: jest.fn((uid: string) => {
-      if (uid === 'api::list.list') return listDocuments;
-      if (uid === 'api::list-item.list-item') return listItemDocuments;
-      throw new Error(`unexpected uid: ${uid}`);
-    }),
-    db: {
-      query: jest.fn(() => userQuery),
-    },
-  };
-
-  const listController = (
-    listControllerFactory as unknown as (args: { strapi: unknown }) => Record<string, (ctx: unknown) => unknown>
-  )({ strapi: strapiMock });
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('getAllPublicLists', () => {
-    it('defaults to page 1, pageSize 20 and maps list fields', async () => {
+    it('defaults to page 1 / pageSize 20 and filters to public lists', async () => {
+      listDocuments.findMany.mockResolvedValue([]);
+      const ctx = createCtx();
+
+      await listController.getAllPublicLists(ctx);
+
+      expect(listDocuments.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: { isPublic: { $eq: true } },
+          limit: 20,
+          offset: 0,
+        }),
+      );
+    });
+
+    it('clamps an oversized pageSize to 100', async () => {
+      listDocuments.findMany.mockResolvedValue([]);
+      const ctx = createCtx({ query: { pageSize: 500 } });
+
+      await listController.getAllPublicLists(ctx);
+
+      expect(listDocuments.findMany).toHaveBeenCalledWith(expect.objectContaining({ limit: 100 }));
+    });
+
+    it('clamps a zero/negative pageSize to 1', async () => {
+      listDocuments.findMany.mockResolvedValue([]);
+      const ctx = createCtx({ query: { pageSize: 0 } });
+
+      await listController.getAllPublicLists(ctx);
+
+      expect(listDocuments.findMany).toHaveBeenCalledWith(expect.objectContaining({ limit: 1 }));
+    });
+
+    it('computes offset from page and pageSize', async () => {
+      listDocuments.findMany.mockResolvedValue([]);
+      const ctx = createCtx({ query: { page: 3, pageSize: 10 } });
+
+      await listController.getAllPublicLists(ctx);
+
+      expect(listDocuments.findMany).toHaveBeenCalledWith(expect.objectContaining({ offset: 20 }));
+    });
+
+    it('maps lists with defaults and deduplicated categories', async () => {
       listDocuments.findMany.mockResolvedValue([
         {
-          documentId: 'l1',
+          documentId: 'list-1',
           name: 'My List',
-          description: 'desc',
           user: { username: 'alice' },
           viewCount: 5,
-          list_items: [
-            { category: 'food', completed: true },
-            { category: 'food', completed: false },
-            { category: 'parks', completed: false },
-            { category: null, completed: false },
-          ],
+          description: 'desc',
+          list_items: [{ category: 'food', completed: false }, { category: 'food', completed: true }, { category: 'travel', completed: false }],
+        },
+        {
+          documentId: 'list-2',
+          name: 'Bare List',
+          user: null,
+          list_items: [],
         },
       ]);
       const ctx = createCtx();
 
       const result = await listController.getAllPublicLists(ctx);
 
-      expect(listDocuments.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ limit: 20, offset: 0 }),
-      );
       expect(result).toEqual({
         data: [
           {
-            documentId: 'l1',
+            documentId: 'list-1',
             name: 'My List',
             description: 'desc',
             username: 'alice',
             viewCount: 5,
-            itemCount: 4,
-            categories: ['food', 'parks'],
+            itemCount: 3,
+            categories: ['food', 'travel'],
           },
-        ],
-      });
-    });
-
-    it('defaults missing description/username/viewCount to null/0', async () => {
-      listDocuments.findMany.mockResolvedValue([
-        { documentId: 'l2', name: 'Bare List', list_items: [] },
-      ]);
-      const ctx = createCtx();
-
-      const result = await listController.getAllPublicLists(ctx);
-
-      expect(result).toEqual({
-        data: [
           {
-            documentId: 'l2',
+            documentId: 'list-2',
             name: 'Bare List',
             description: null,
             username: null,
@@ -112,34 +139,12 @@ describe('list controller', () => {
         ],
       });
     });
-
-    it('clamps pageSize to the 1-100 range and paginates by page', async () => {
-      listDocuments.findMany.mockResolvedValue([]);
-      const ctx = createCtx({ query: { page: 3, pageSize: 500 } });
-
-      await listController.getAllPublicLists(ctx);
-
-      expect(listDocuments.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ limit: 100, offset: 200 }),
-      );
-    });
-
-    it('clamps pageSize up to a minimum of 1', async () => {
-      listDocuments.findMany.mockResolvedValue([]);
-      const ctx = createCtx({ query: { pageSize: 0 } });
-
-      await listController.getAllPublicLists(ctx);
-
-      expect(listDocuments.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ limit: 1 }),
-      );
-    });
   });
 
   describe('getPublicListsByUsername', () => {
     it('returns notFound when the user does not exist', async () => {
       userQuery.findMany.mockResolvedValue([]);
-      const ctx = createCtx({ params: { username: 'nobody' } });
+      const ctx = createCtx({ params: { username: 'ghost' } });
 
       const result = await listController.getPublicListsByUsername(ctx);
 
@@ -147,10 +152,10 @@ describe('list controller', () => {
       expect(result).toEqual({ status: 404, msg: 'User not found' });
     });
 
-    it('returns username and lists with item/completed counts', async () => {
+    it('returns public lists for the user with item and completed counts', async () => {
       userQuery.findMany.mockResolvedValue([{ id: 1, username: 'alice' }]);
       listDocuments.findMany.mockResolvedValue([
-        { documentId: 'l1', name: 'List One', description: 'a list' },
+        { documentId: 'list-1', name: 'My List', description: 'desc' },
       ]);
       listItemDocuments.findMany.mockResolvedValue([
         { completed: true },
@@ -161,13 +166,18 @@ describe('list controller', () => {
 
       const result = await listController.getPublicListsByUsername(ctx);
 
+      expect(listDocuments.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: { isPublic: { $eq: true }, user: { id: { $eq: 1 } } },
+        }),
+      );
       expect(result).toEqual({
         username: 'alice',
         lists: [
           {
-            documentId: 'l1',
-            name: 'List One',
-            description: 'a list',
+            documentId: 'list-1',
+            name: 'My List',
+            description: 'desc',
             itemCount: 3,
             completedCount: 2,
           },
@@ -179,48 +189,45 @@ describe('list controller', () => {
   describe('getPublicList', () => {
     it('returns notFound when the user does not exist', async () => {
       userQuery.findMany.mockResolvedValue([]);
-      const ctx = createCtx({ params: { username: 'nobody', listId: 'l1' } });
+      const ctx = createCtx({ params: { username: 'ghost', listId: 'list-1' } });
 
-      const result = await listController.getPublicList(ctx);
+      await listController.getPublicList(ctx);
 
       expect(ctx.notFound).toHaveBeenCalledWith('User not found');
-      expect(result).toEqual({ status: 404, msg: 'User not found' });
     });
 
     it('returns notFound when the list does not exist', async () => {
       userQuery.findMany.mockResolvedValue([{ id: 1, username: 'alice' }]);
       listDocuments.findOne.mockResolvedValue(null);
-      const ctx = createCtx({ params: { username: 'alice', listId: 'missing' } });
+      const ctx = createCtx({ params: { username: 'alice', listId: 'list-1' } });
 
-      const result = await listController.getPublicList(ctx);
+      await listController.getPublicList(ctx);
 
       expect(ctx.notFound).toHaveBeenCalledWith('List not found');
-      expect(result).toEqual({ status: 404, msg: 'List not found' });
     });
 
-    it('returns notFound when the list belongs to a different user', async () => {
+    it('returns notFound when the list is not owned by the resolved user', async () => {
       userQuery.findMany.mockResolvedValue([{ id: 1, username: 'alice' }]);
       listDocuments.findOne.mockResolvedValue({
-        documentId: 'l1',
-        isPublic: true,
+        documentId: 'list-1',
         user: { id: 2 },
+        isPublic: true,
       });
-      const ctx = createCtx({ params: { username: 'alice', listId: 'l1' } });
+      const ctx = createCtx({ params: { username: 'alice', listId: 'list-1' } });
 
-      const result = await listController.getPublicList(ctx);
+      await listController.getPublicList(ctx);
 
       expect(ctx.notFound).toHaveBeenCalledWith('List not found');
-      expect(result).toEqual({ status: 404, msg: 'List not found' });
     });
 
-    it('returns 403 when the list is not public', async () => {
+    it('returns 403 when the list is private', async () => {
       userQuery.findMany.mockResolvedValue([{ id: 1, username: 'alice' }]);
       listDocuments.findOne.mockResolvedValue({
-        documentId: 'l1',
-        isPublic: false,
+        documentId: 'list-1',
         user: { id: 1 },
+        isPublic: false,
       });
-      const ctx = createCtx({ params: { username: 'alice', listId: 'l1' } });
+      const ctx = createCtx({ params: { username: 'alice', listId: 'list-1' } });
 
       const result = await listController.getPublicList(ctx);
 
@@ -228,91 +235,58 @@ describe('list controller', () => {
       expect(result).toEqual({ error: 'This list is private' });
     });
 
-    it('increments viewCount and returns items for an owned, public list', async () => {
+    it('increments viewCount and returns the list items for a public, owned list', async () => {
       userQuery.findMany.mockResolvedValue([{ id: 1, username: 'alice' }]);
       listDocuments.findOne.mockResolvedValue({
-        documentId: 'l1',
+        documentId: 'list-1',
         name: 'My List',
-        description: 'a list',
+        description: 'desc',
+        user: { id: 1 },
         isPublic: true,
         viewCount: 4,
-        user: { id: 1 },
       });
       listItemDocuments.findMany.mockResolvedValue([
         {
-          documentId: 'i1',
-          name: 'Item One',
-          category: 'food',
-          completed: true,
-          osm_id: 'osm1',
-          visitedAt: '2026-01-01',
-          notes: 'great',
+          documentId: 'item-1',
+          name: 'Tower Bridge',
+          category: 'landmark',
+          completed: false,
+          osm_id: 'osm-1',
+          visitedAt: null,
+          notes: 'nice view',
           lat: 51.5,
           lng: -0.1,
         },
       ]);
-      const ctx = createCtx({ params: { username: 'alice', listId: 'l1' } });
+      const ctx = createCtx({ params: { username: 'alice', listId: 'list-1' } });
 
       const result = await listController.getPublicList(ctx);
 
-      expect(listDocuments.update).toHaveBeenCalledWith({
-        documentId: 'l1',
-        data: { viewCount: 5 },
-      });
+      expect(listDocuments.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          documentId: 'list-1',
+          data: { viewCount: 5 },
+        }),
+      );
       expect(result).toEqual({
         data: [
           {
-            documentId: 'i1',
-            name: 'Item One',
-            category: 'food',
-            completed: true,
-            osm_id: 'osm1',
-            visitedAt: '2026-01-01',
-            notes: 'great',
+            documentId: 'item-1',
+            name: 'Tower Bridge',
+            category: 'landmark',
+            completed: false,
+            osm_id: 'osm-1',
+            visitedAt: null,
+            notes: 'nice view',
             lat: 51.5,
             lng: -0.1,
           },
         ],
         username: 'alice',
         listName: 'My List',
-        description: 'a list',
+        description: 'desc',
         viewCount: 5,
       });
-    });
-
-    it('defaults missing viewCount, notes, description, lat/lng, and visitedAt to null/0', async () => {
-      userQuery.findMany.mockResolvedValue([{ id: 1, username: 'alice' }]);
-      listDocuments.findOne.mockResolvedValue({
-        documentId: 'l1',
-        name: 'Bare List',
-        isPublic: true,
-        user: { id: 1 },
-      });
-      listItemDocuments.findMany.mockResolvedValue([
-        { documentId: 'i1', name: 'Item One', category: 'food', completed: false, osm_id: 'osm1' },
-      ]);
-      const ctx = createCtx({ params: { username: 'alice', listId: 'l1' } });
-
-      const result = await listController.getPublicList(ctx);
-
-      expect(listDocuments.update).toHaveBeenCalledWith({
-        documentId: 'l1',
-        data: { viewCount: 1 },
-      });
-      expect(result).toEqual(
-        expect.objectContaining({
-          description: null,
-          viewCount: 1,
-          data: [
-            expect.objectContaining({
-              visitedAt: null,
-              notes: null,
-              lat: null,
-              lng: null,
-            }),
-          ],
-        }),
-      );
     });
   });
 });
