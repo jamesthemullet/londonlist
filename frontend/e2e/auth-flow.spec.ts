@@ -97,7 +97,7 @@ test.describe('Auth flow — register', () => {
     await page.getByLabel('Password').fill('securepass123');
     await page.locator('#main-content').getByRole('button', { name: 'Sign Up' }).click();
 
-    await expect(page.getByRole('alert')).toContainText('Error:', { timeout: 5000 });
+    await expect(page.locator('#main-content').getByText(/Error:/)).toBeVisible({ timeout: 5000 });
     await expect(page).toHaveURL(/\/register/);
   });
 });
@@ -142,7 +142,7 @@ test.describe('Auth flow — login', () => {
     await page.getByLabel('Password').fill('wrongpassword');
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page.getByRole('alert')).toContainText('Error:', { timeout: 5000 });
+    await expect(page.locator('#main-content').getByRole('alert')).toContainText('Error:', { timeout: 5000 });
     await expect(page).toHaveURL(/\/login/);
   });
 
