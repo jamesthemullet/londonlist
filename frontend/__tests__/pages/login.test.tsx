@@ -121,7 +121,7 @@ describe('LoginRoute — error state', () => {
 });
 
 describe('LoginRoute — successful login', () => {
-  it('calls setUser and redirects to / after a successful login', async () => {
+  it('calls setUser and redirects to /my-list after a successful login', async () => {
     const fakeUser = { id: '1', documentId: 'doc-1', username: 'alice', email: 'alice@test.com' };
     const mockLogin = jest.fn().mockResolvedValue({
       data: { login: { jwt: 'test-jwt', user: fakeUser } },
@@ -136,7 +136,7 @@ describe('LoginRoute — successful login', () => {
 
     await waitFor(() => {
       expect(mockSetUser).toHaveBeenCalledWith(fakeUser);
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockPush).toHaveBeenCalledWith('/my-list');
     });
   });
 
