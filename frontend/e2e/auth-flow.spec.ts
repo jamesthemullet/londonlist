@@ -107,10 +107,11 @@ test.describe('Auth flow — login', () => {
     await context.clearCookies();
   });
 
-  test('happy path: valid credentials authenticate and redirect to home', async ({ page }) => {
+  test('happy path: valid credentials authenticate and redirect to /my-list', async ({ page }) => {
     await page.route(GRAPHQL_URL, (route, request) =>
       handleGraphql(route, request, {
         Login: { login: { jwt: 'fake_jwt_token', user: MOCK_USER } },
+        GetMyLists: { myLists: [MOCK_LIST] },
       }),
     );
 
@@ -119,7 +120,7 @@ test.describe('Auth flow — login', () => {
     await page.getByLabel('Password').fill('securepass123');
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page).toHaveURL(/^http:\/\/localhost:3000\/$/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/my-list/, { timeout: 5000 });
   });
 
   test('shows error message for invalid credentials', async ({ page }) => {
