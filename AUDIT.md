@@ -39,7 +39,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 - [ ] `pages/list/[username]/[listId].tsx` — on a hard/direct navigation (full page load, not client-side routing) the Leaflet map and its To Do/Done legend fail to render entirely, leaving an empty gap, while the list below loads fine; reproduced twice on fresh reloads. This breaks the primary list-sharing use case (opening a shared link directly) (found: 2026-09-01)
 - [ ] Header auth state (Log In/Sign Up vs. My List/email/Log Out) flickers inconsistently across consecutive reloads of the same URL on `/login`, `/register`, `/reset-password`, and hard-navigated list pages for the same unchanged session — suggests the client-side auth check races with hydration rather than reading a reliable source of truth (found: 2026-09-01)
-- [ ] Logged-in users can still fully access and submit `/login`, `/register`, `/reset-password` — no redirect to their list occurs; minor UX confusion, not a security issue (found: 2026-09-01)
+- [x] Logged-in users can still fully access and submit `/login`, `/register`, `/reset-password` — no redirect to their list occurs; minor UX confusion, not a security issue (found: 2026-09-01) (fixed: 2026-09-17 — `/login` and `/register` already redirected; added the same already-logged-in redirect to `frontend/pages/reset-password.tsx`, preserving access to the set-new-password form when a reset `code` is present)
 
 ## 6. Security
 
