@@ -1,3 +1,9 @@
+if (process.env.NODE_ENV === 'production' && !process.env.FRONTEND_URL) {
+  throw new Error(
+    'FRONTEND_URL must be set in production — refusing to start with a CORS config that would fall back to http://localhost:3000',
+  );
+}
+
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000')
   .split(',')
   .map((s: string) => s.trim());
