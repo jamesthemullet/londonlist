@@ -119,7 +119,7 @@ test.describe('Auth flow — login', () => {
     await page.getByLabel('Password').fill('securepass123');
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page).toHaveURL(/^http:\/\/localhost:3000\/$/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/my-list$/, { timeout: 5000 });
   });
 
   test('shows error message for invalid credentials', async ({ page }) => {
