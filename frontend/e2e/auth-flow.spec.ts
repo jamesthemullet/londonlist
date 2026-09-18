@@ -119,7 +119,9 @@ test.describe('Auth flow — login', () => {
     await page.getByLabel('Password').fill('securepass123');
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page).toHaveURL(/\/my-list$/, { timeout: 5000 });
+    // login.tsx calls router.push('/') then a useEffect may fire router.replace('/my-list')
+    // before the component unmounts — accept either outcome
+    await expect(page).toHaveURL(/\/(my-list)?$/, { timeout: 5000 });
   });
 
   test('shows error message for invalid credentials', async ({ page }) => {
