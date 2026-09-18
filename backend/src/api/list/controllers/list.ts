@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import { findUserByUsername } from '../../../lib/find-user-by-username';
 
 function isOwnedBy(doc: unknown, userId: number): boolean {
   return ((doc as { user?: { id: number } | null } | null)?.user?.id) === userId;
@@ -46,9 +47,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
   async getPublicListsByUsername(ctx) {
     const { username } = ctx.params;
 
-    const [user] = await strapi.db.query('plugin::users-permissions.user').findMany({
-      where: { username },
-    });
+    const user = await findUserByUsername(strapi, username);
 
     if (!user) {
       return ctx.notFound('User not found');
@@ -84,9 +83,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
   async getPublicList(ctx) {
     const { username, listId } = ctx.params;
 
-    const [user] = await strapi.db.query('plugin::users-permissions.user').findMany({
-      where: { username },
-    });
+    const user = await findUserByUsername(strapi, username);
 
     if (!user) {
       return ctx.notFound('User not found');
