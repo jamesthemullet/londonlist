@@ -7,6 +7,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## Run log
 
 - 2026-09-01 — initial audit: 34 findings (5 test coverage, 5 SEO, 4 responsive/UX, 5 security, 5 README/alignment, 7 code quality, 3 performance)
+- 2026-09-19 — housekeeping pass: checked off 5 findings already fixed in code (login/reset-password titles, pricing OG tags, GraphQL playground config, meta.tsx commented code); fixed Leaflet map CSS loading on hard navigation
 
 ## 1. Test coverage — unit gaps and e2e
 
@@ -32,18 +33,18 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 4. SEO / metadata
 
-- [ ] `frontend/pages/login.tsx` and `reset-password.tsx` have no `<Head>`/title override, falling back to the generic "London List" title — add short per-page titles (e.g. "Log in — London List") for browser tab/history clarity (found: 2026-09-01)
-- [ ] `frontend/pages/pricing.tsx:117-123` has a `<title>` but no meta description or OG tags, unlike every other content page — add them for consistency (found: 2026-09-01)
+- [x] `frontend/pages/login.tsx` and `reset-password.tsx` have no `<Head>`/title override, falling back to the generic "London List" title — add short per-page titles (e.g. "Log in — London List") for browser tab/history clarity (found: 2026-09-01) (fixed: 2026-09-19 — both pages already had `<Head>` with per-page title and meta description; finding was stale)
+- [x] `frontend/pages/pricing.tsx:117-123` has a `<title>` but no meta description or OG tags, unlike every other content page — add them for consistency (found: 2026-09-01) (fixed: 2026-09-19 — pricing.tsx already had full `<Head>` with description, OG and Twitter card tags; finding was stale)
 
 ## 5. Responsive / UX
 
-- [ ] `pages/list/[username]/[listId].tsx` — on a hard/direct navigation (full page load, not client-side routing) the Leaflet map and its To Do/Done legend fail to render entirely, leaving an empty gap, while the list below loads fine; reproduced twice on fresh reloads. This breaks the primary list-sharing use case (opening a shared link directly) (found: 2026-09-01)
+- [x] `pages/list/[username]/[listId].tsx` — on a hard/direct navigation (full page load, not client-side routing) the Leaflet map and its To Do/Done legend fail to render entirely, leaving an empty gap, while the list below loads fine; reproduced twice on fresh reloads. This breaks the primary list-sharing use case (opening a shared link directly) (found: 2026-09-01) (fixed: 2026-09-19 — moved `import 'leaflet/dist/leaflet.css'` to `_app.tsx` so it is in the initial CSS bundle on hard navigation; added a loading placeholder to the `dynamic()` import to fill the container while the map chunk loads; added `min-height: 320px` to `.mapContainer` to prevent the empty gap)
 - [ ] Header auth state (Log In/Sign Up vs. My List/email/Log Out) flickers inconsistently across consecutive reloads of the same URL on `/login`, `/register`, `/reset-password`, and hard-navigated list pages for the same unchanged session — suggests the client-side auth check races with hydration rather than reading a reliable source of truth (found: 2026-09-01)
 - [x] Logged-in users can still fully access and submit `/login`, `/register`, `/reset-password` — no redirect to their list occurs; minor UX confusion, not a security issue (found: 2026-09-01) (fixed: 2026-09-17 — `/login` and `/register` already redirected; added the same already-logged-in redirect to `frontend/pages/reset-password.tsx`, preserving access to the set-new-password form when a reset `code` is present)
 
 ## 6. Security
 
-- [ ] `backend/config/env/production/plugins.js:6-11` sets `playgroundAlways: true` and `apolloServer.introspection: true`, exposing the full GraphQL schema and an interactive query UI at `/graphql` in production — set `playgroundAlways: false` and `introspection: env('NODE_ENV') !== 'production'` (found: 2026-09-01)
+- [x] `backend/config/env/production/plugins.js:6-11` sets `playgroundAlways: true` and `apolloServer.introspection: true`, exposing the full GraphQL schema and an interactive query UI at `/graphql` in production — set `playgroundAlways: false` and `introspection: env('NODE_ENV') !== 'production'` (found: 2026-09-01) (fixed: 2026-09-19 — file already had `playgroundAlways: false` and `introspection: false`; finding was stale)
 - [ ] `backend/config/middlewares.ts:1,15,19` — CORS falls back to `http://localhost:3000` and to `allowedOrigins[0]` if `FRONTEND_URL` is unset in production; add a startup assertion so a misconfigured prod deploy fails loudly instead of silently allowing localhost (found: 2026-09-01)
 - [ ] Backend `yarn audit` reports 29 issues (8 High, 12 Moderate, 9 Low), all transitive via `@strapi/strapi > ... > browserslist` (advisories 1153171/1153172, unbounded memory growth / prototype-write crash from untrusted `browserslist-stats.json`) — build-tool-time only, not runtime-reachable from user input, but track for resolution via a Strapi/browserslist upgrade (found: 2026-09-01)
 
@@ -60,4 +61,4 @@ audit adds new findings to the bottom of each section and leaves checked items a
 - [ ] `FREE_LIST_LIMIT = 3` / `FREE_ITEM_LIMIT = 20` are independently declared in `backend/src/index.ts:11-12` and `frontend/pages/my-list.tsx:71-72` and can silently drift — centralize via a shared config/API endpoint (found: 2026-09-01)
 - [ ] `GET_MY_LISTS`/`CREATE_MY_LIST`/`UPDATE_MY_LIST` in `frontend/pages/my-list.tsx:28-63` all request the same list fields (`documentId, name, description, isPublic, viewCount`) — extract to a shared Apollo fragment (found: 2026-09-01)
 - [x] `SITE_URL` fallback is copy-pasted across 7 files; 6 correctly fall back to `https://londonlist.vercel.app` but `frontend/pages/list/[username]/[listId].tsx:18` falls back to `https://londonlist.co.uk` — a domain the project does not own. Fix the one-line mismatch and consider extracting `SITE_URL` to one shared constant module (also surfaced independently by the browser audit: share buttons on the list page build links using `londonlist.co.uk`) (found: 2026-09-01) (fixed: 2026-09-15 — `list/[username]/[listId].tsx` fallback was already correct by the time of this fix; the same copy-pasted mismatch had reappeared in `frontend/pages/templates/[id].tsx:13`, a page added after this finding was logged, and was corrected there)
-- [ ] `frontend/components/meta/meta.tsx:3-23` has a 21-line commented-out `seoProps` type block no longer referenced anywhere — delete it (found: 2026-09-01)
+- [x] `frontend/components/meta/meta.tsx:3-23` has a 21-line commented-out `seoProps` type block no longer referenced anywhere — delete it (found: 2026-09-01) (fixed: 2026-09-19 — no commented-out code exists in the file; finding was stale)
