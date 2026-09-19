@@ -135,6 +135,17 @@
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid #ddd;
+  min-height: 320px;
+}
+
+.mapLoader {
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  color: #888;
+  font-size: 0.9rem;
 }
 
 .mapLegend {
