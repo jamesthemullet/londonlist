@@ -876,6 +876,46 @@ describe('CopyListButton', () => {
       expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
     });
   });
+
+  it('shows an upgrade prompt when the free list limit is reached', async () => {
+    const limitError = Object.assign(new Error('Free plan limit reached'), {
+      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    });
+    const createListMock = jest.fn().mockRejectedValue(limitError);
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([jest.fn(), {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("You've reached the 3-list limit on the free plan."),
+      ).toBeInTheDocument();
+    });
+
+    const upgradeLink = screen.getByRole('link', { name: 'Upgrade to Pro to copy this list →' });
+    expect(upgradeLink).toHaveAttribute('href', '/pricing');
+  });
+
+  it('shows a generic error rather than the upgrade prompt for non-limit errors', async () => {
+    const otherError = Object.assign(new Error('Server error'), {
+      graphQLErrors: [{ extensions: { code: 'INTERNAL_SERVER_ERROR' } }],
+    });
+    const createListMock = jest.fn().mockRejectedValue(otherError);
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([jest.fn(), {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/Upgrade to Pro/)).not.toBeInTheDocument();
+  });
 });
 
 describe('PublicListPage — copy list integration', () => {
