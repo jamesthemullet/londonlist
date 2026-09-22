@@ -203,6 +203,28 @@
   color: #c0392b;
 }
 
+.copyLimitReached {
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #fdf4ff;
+  border: 1px solid #e4b3f8;
+}
+
+.copyLimitMessage {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  color: #4a1a6e;
+  font-weight: 500;
+}
+
+.copyLimitUpgradeLink {
+  font-size: 0.9rem;
+  color: #c724b1;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .conversionBanner {
   position: fixed;
   bottom: 0;

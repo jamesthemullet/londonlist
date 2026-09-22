@@ -131,7 +131,7 @@ type CopyListButtonProps = {
 
 export function CopyListButton({ items, listName }: CopyListButtonProps) {
   const authHeader = useAuthHeader();
-  const [copyState, setCopyState] = useState<'idle' | 'copying' | 'done' | 'error'>('idle');
+  const [copyState, setCopyState] = useState<'idle' | 'copying' | 'done' | 'error' | 'limit_reached'>('idle');
   const [createMyList] = useMutation<{ createMyList: { documentId: string } }>(CREATE_MY_LIST);
   const [createListItem] = useMutation(COPY_LIST_ITEM);
 
@@ -156,8 +156,14 @@ export function CopyListButton({ items, listName }: CopyListButtonProps) {
         });
       }
       setCopyState('done');
-    } catch {
-      setCopyState('error');
+    } catch (err) {
+      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
+      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
+      if (code === 'FREE_LIST_LIMIT_REACHED') {
+        setCopyState('limit_reached');
+      } else {
+        setCopyState('error');
+      }
     }
   }
 
@@ -167,6 +173,19 @@ export function CopyListButton({ items, listName }: CopyListButtonProps) {
         List copied!{' '}
         <Link href="/my-list" className={styles.copySuccessLink}>
           View your lists →
+        </Link>
+      </div>
+    );
+  }
+
+  if (copyState === 'limit_reached') {
+    return (
+      <div className={styles.copyLimitReached}>
+        <p className={styles.copyLimitMessage}>
+          You've reached the 3-list limit on the free plan.
+        </p>
+        <Link href="/pricing" className={styles.copyLimitUpgradeLink}>
+          Upgrade to Pro to copy this list →
         </Link>
       </div>
     );
