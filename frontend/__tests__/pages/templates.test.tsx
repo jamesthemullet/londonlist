@@ -16,6 +16,18 @@ jest.mock('../../hooks/use-auth-header', () => ({
   useAuthHeader: () => ({}),
 }));
 
+jest.mock('../../components/upgrade-modal/upgrade-modal', () => ({
+  __esModule: true,
+  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
+    isOpen ? (
+      <div data-testid="upgrade-modal">
+        <button type="button" onClick={onClose}>
+          Close modal
+        </button>
+      </div>
+    ) : null,
+}));
+
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
 }));
@@ -252,6 +264,44 @@ describe('TemplateCard — logged-in user', () => {
     await waitFor(() => {
       expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
     });
+  });
+
+  it('shows upgrade modal when FREE_LIST_LIMIT_REACHED error is returned', async () => {
+    const createMyListFn = jest.fn().mockRejectedValue({
+      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    });
+    setupMocks({
+      user: { username: 'alice', isPro: false },
+      createMyListFn,
+    });
+
+    render(<TemplateCard template={SAMPLE_TEMPLATE} />);
+    fireEvent.click(screen.getByRole('button', { name: /\+ copy to my lists/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/something went wrong/i)).not.toBeInTheDocument();
+  });
+
+  it('dismisses upgrade modal when closed', async () => {
+    const createMyListFn = jest.fn().mockRejectedValue({
+      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    });
+    setupMocks({
+      user: { username: 'alice', isPro: false },
+      createMyListFn,
+    });
+
+    render(<TemplateCard template={SAMPLE_TEMPLATE} />);
+    fireEvent.click(screen.getByRole('button', { name: /\+ copy to my lists/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /close modal/i }));
+    expect(screen.queryByTestId('upgrade-modal')).not.toBeInTheDocument();
   });
 });
 
