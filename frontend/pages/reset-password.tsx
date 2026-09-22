@@ -3,10 +3,11 @@ import { useMutation } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../components/core/button/button';
 import Form from '../components/core/form/form';
 import styles from '../components/core/form/form.module.css';
+import { useAppContext } from '../context/AppContext';
 
 const REQUEST_RESET_MUTATION = gql`
   mutation forgotPassword($email: String!) {
@@ -32,8 +33,15 @@ const RESET_PASSWORD_MUTATION = gql`
 `;
 
 export default function ResetPasswordPage() {
-  const { query } = useRouter();
+  const { query, replace } = useRouter();
+  const { user, initialized } = useAppContext();
   const code = typeof query.code === 'string' ? query.code : null;
+
+  useEffect(() => {
+    if (initialized && user && !code) {
+      replace('/my-list');
+    }
+  }, [initialized, user, code, replace]);
 
   if (code) {
     return (
