@@ -1,13 +1,16 @@
 import { renderHook } from '@testing-library/react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { usePlanLimits } from './use-plan-limits';
 
 jest.mock('@apollo/client', () => ({
   gql: (strings: TemplateStringsArray) => strings,
+}));
+
+jest.mock('@apollo/client/react', () => ({
   useQuery: jest.fn(),
 }));
 
-const mockUseQuery = useQuery as jest.Mock;
+const mockUseQuery = useQuery as unknown as jest.Mock;
 
 afterEach(() => {
   jest.resetAllMocks();
