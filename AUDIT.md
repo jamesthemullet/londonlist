@@ -49,7 +49,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 7. README / feature alignment
 
-- [ ] `frontend/README.md` is unmodified `create-next-app` boilerplate — doesn't describe London List, its map/list features, or the Strapi backend it depends on (found: 2026-09-01)
+- [x] `frontend/README.md` is unmodified `create-next-app` boilerplate — doesn't describe London List, its map/list features, or the Strapi backend it depends on (found: 2026-09-01) (fixed: 2026-09-23)
 - [ ] `backend/README.md` is unmodified default Strapi boilerplate — doesn't describe London List's actual content types or how it fits the frontend (found: 2026-09-01)
 - [ ] The `attraction` Strapi content type (`backend/src/api/attraction/` — full schema, controller, route, service) appears to have no corresponding GraphQL query/usage anywhere in `frontend/` — confirm whether it's still needed or should be removed/wired up (found: 2026-09-01)
 
