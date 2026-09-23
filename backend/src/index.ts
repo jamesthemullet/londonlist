@@ -1,3 +1,5 @@
+import { FREE_LIST_LIMIT, FREE_ITEM_LIMIT } from './lib/plan-limits';
+
 function isOwnedBy(doc: unknown, userId: number): boolean {
   return ((doc as { user?: { id: number } | null } | null)?.user?.id) === userId;
 }
@@ -7,9 +9,6 @@ function requireUser(context: { state?: { user?: unknown } }) {
   if (!user) throw new Error('Forbidden access');
   return user;
 }
-
-const FREE_LIST_LIMIT = 3;
-const FREE_ITEM_LIMIT = 20;
 
 export default {
   register({ strapi }) {
@@ -34,6 +33,10 @@ export default {
           lat: Float
           lng: Float
         }
+        type PlanLimits {
+          freeListLimit: Int!
+          freeItemLimit: Int!
+        }
         extend type UsersPermissionsMe {
           isPro: Boolean
         }
@@ -42,6 +45,7 @@ export default {
           place(osm_id: String!): PublicPlace
           placesByArea(area: String!): [PublicPlace]
           relatedPlaces(osm_id: String!, limit: Int): [PublicPlace!]!
+          planLimits: PlanLimits!
         }
         extend type Mutation {
           createMyList(name: String!, description: String): ListEntity
@@ -51,6 +55,11 @@ export default {
       `,
       resolvers: {
         Query: {
+          planLimits: {
+            resolve() {
+              return { freeListLimit: FREE_LIST_LIMIT, freeItemLimit: FREE_ITEM_LIMIT };
+            },
+          },
           place: {
             async resolve(_parent, args) {
               const [item] = await strapi.documents('api::list-item.list-item').findMany({
