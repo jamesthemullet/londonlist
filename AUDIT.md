@@ -44,7 +44,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## 6. Security
 
 - [ ] `backend/config/env/production/plugins.js:6-11` sets `playgroundAlways: true` and `apolloServer.introspection: true`, exposing the full GraphQL schema and an interactive query UI at `/graphql` in production — set `playgroundAlways: false` and `introspection: env('NODE_ENV') !== 'production'` (found: 2026-09-01)
-- [ ] `backend/config/middlewares.ts:1,15,19` — CORS falls back to `http://localhost:3000` and to `allowedOrigins[0]` if `FRONTEND_URL` is unset in production; add a startup assertion so a misconfigured prod deploy fails loudly instead of silently allowing localhost (found: 2026-09-01)
+- [x] `backend/config/middlewares.ts:1,15,19` — CORS falls back to `http://localhost:3000` and to `allowedOrigins[0]` if `FRONTEND_URL` is unset in production; add a startup assertion so a misconfigured prod deploy fails loudly instead of silently allowing localhost (found: 2026-09-01) (fixed: 2026-09-24 — added `backend/src/lib/assert-frontend-url.ts`, called from `backend/config/middlewares.ts`, which throws at startup when `NODE_ENV=production` and `FRONTEND_URL` is unset)
 - [ ] Backend `yarn audit` reports 29 issues (8 High, 12 Moderate, 9 Low), all transitive via `@strapi/strapi > ... > browserslist` (advisories 1153171/1153172, unbounded memory growth / prototype-write crash from untrusted `browserslist-stats.json`) — build-tool-time only, not runtime-reachable from user input, but track for resolution via a Strapi/browserslist upgrade (found: 2026-09-01)
 
 ## 7. README / feature alignment
