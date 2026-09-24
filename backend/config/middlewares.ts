@@ -1,3 +1,7 @@
+import { assertFrontendUrlConfigured } from '../src/lib/assert-frontend-url';
+
+assertFrontendUrlConfigured();
+
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000')
   .split(',')
   .map((s: string) => s.trim());
