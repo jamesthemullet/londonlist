@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 import Loader from '../Loader';
@@ -8,6 +9,7 @@ import ProgressBar from '../progress-bar/progress-bar';
 import StreakBadge from '../streak-badge/streak-badge';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import { useStreak } from '../../hooks/use-streak';
+import { buildCsvContent, downloadCsv, sanitizeFilename } from '../../lib/export-list';
 import styles from './my-list.module.css';
 import type { MapItem } from '../map/list-map';
 
@@ -96,9 +98,10 @@ type Props = {
   listId: string;
   listName: string;
   shareUrl?: string;
+  isPro?: boolean;
 };
 
-export default function MyList({ listId, listName, shareUrl }: Props) {
+export default function MyList({ listId, listName, shareUrl, isPro = false }: Props) {
   const authHeader = useAuthHeader();
   const [showMap, setShowMap] = useState(true);
   const [celebrationMilestone, setCelebrationMilestone] = useState<Milestone | null>(null);
@@ -288,6 +291,27 @@ export default function MyList({ listId, listName, shareUrl }: Props) {
           </ul>
         </section>
       )}
+      <div className={styles.exportRow}>
+        {isPro ? (
+          <button
+            type="button"
+            className={styles.exportButton}
+            onClick={() => {
+              const csv = buildCsvContent(items, listName);
+              downloadCsv(csv, `${sanitizeFilename(listName)}.csv`);
+            }}
+          >
+            Export as CSV
+          </button>
+        ) : (
+          <p className={styles.exportLocked}>
+            <Link href="/pricing" className={styles.exportUpgradeLink}>
+              Upgrade to Pro
+            </Link>{' '}
+            to export your list as a CSV file.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

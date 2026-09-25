@@ -1,4 +1,5 @@
-import { render, screen, act } from '@testing-library/react';
+import React from 'react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import MyList from '../../../components/my-list/my-list';
 
@@ -17,6 +18,23 @@ jest.mock('../../../hooks/use-auth-header', () => ({
 
 jest.mock('../../../hooks/use-streak', () => ({
   useStreak: () => ({ streak: 0, atRisk: false }),
+}));
+
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
+    <a href={href} className={className}>{children}</a>
+  ),
+}));
+
+const mockBuildCsvContent = jest.fn(() => 'csv-content');
+const mockDownloadCsv = jest.fn();
+const mockSanitizeFilename = jest.fn((name: string) => name.toLowerCase().replace(/\s+/g, '-'));
+
+jest.mock('../../../lib/export-list', () => ({
+  buildCsvContent: (...args: any[]) => mockBuildCsvContent.apply(null, args),
+  downloadCsv: (...args: any[]) => mockDownloadCsv.apply(null, args),
+  sanitizeFilename: (...args: any[]) => mockSanitizeFilename.apply(null, args),
 }));
 
 jest.mock('next/dynamic', () => (fn: () => Promise<unknown>) => {
@@ -199,5 +217,51 @@ describe('MyList — milestone celebration', () => {
     });
 
     expect(screen.queryByTestId('milestone-celebration')).not.toBeInTheDocument();
+  });
+});
+
+describe('MyList — CSV export', () => {
+  const items = [
+    makeItem({ documentId: 'a', name: 'British Museum', completed: false }),
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseMutation.mockReturnValue(NOOP_MUTATION);
+    mockBuildCsvContent.mockReturnValue('csv-content');
+    mockSanitizeFilename.mockImplementation((name: string) =>
+      name.toLowerCase().replace(/\s+/g, '-'),
+    );
+  });
+
+  it('shows upgrade prompt for free users', () => {
+    setupQuery(items);
+    render(<MyList listId="list-1" listName="My List" isPro={false} />);
+    expect(screen.getByText(/Upgrade to Pro/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Export as CSV/i })).not.toBeInTheDocument();
+  });
+
+  it('shows export button for Pro users', () => {
+    setupQuery(items);
+    render(<MyList listId="list-1" listName="My List" isPro={true} />);
+    expect(screen.getByRole('button', { name: /Export as CSV/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Upgrade to Pro/)).not.toBeInTheDocument();
+  });
+
+  it('clicking export builds CSV and triggers download', () => {
+    setupQuery(items);
+    render(<MyList listId="list-1" listName="My List" isPro={true} />);
+    fireEvent.click(screen.getByRole('button', { name: /Export as CSV/i }));
+    expect(mockBuildCsvContent).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ name: 'British Museum' })]),
+      'My List',
+    );
+    expect(mockDownloadCsv).toHaveBeenCalledWith('csv-content', 'my-list.csv');
+  });
+
+  it('defaults to free (no export button) when isPro is not passed', () => {
+    setupQuery(items);
+    render(<MyList listId="list-1" listName="My List" />);
+    expect(screen.queryByRole('button', { name: /Export as CSV/i })).not.toBeInTheDocument();
   });
 });

@@ -23,6 +23,7 @@ const PRO_FEATURES = [
   'Unlimited lists',
   'View counts on each public list',
   'Aggregate view analytics across all lists',
+  'Export any list as a CSV file',
   'Early access to new features',
   'Priority support',
 ];

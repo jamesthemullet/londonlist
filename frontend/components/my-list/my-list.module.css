@@ -238,3 +238,36 @@
   color: #888;
   margin: 0.5rem 0;
 }
+
+.exportRow {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.exportButton {
+  font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+  background: none;
+  color: #c724b1;
+  border: 1px solid #c724b1;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.exportButton:hover {
+  background: #c724b1;
+  color: #fff;
+}
+
+.exportLocked {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+}
+
+.exportUpgradeLink {
+  color: #c724b1;
+  text-decoration: underline;
+}

@@ -519,6 +519,7 @@ export default function MyListPage() {
               <MyList
                 listId={activeList.documentId}
                 listName={activeList.name}
+                isPro={user?.isPro ?? false}
                 shareUrl={
                   activeList.isPublic && user?.username
                     ? `${SITE_URL}/list/${user.username}/${activeList.documentId}`
