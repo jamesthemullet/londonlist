@@ -32,9 +32,9 @@ const mockDownloadCsv = jest.fn();
 const mockSanitizeFilename = jest.fn((name: string) => name.toLowerCase().replace(/\s+/g, '-'));
 
 jest.mock('../../../lib/export-list', () => ({
-  buildCsvContent: (...args) => mockBuildCsvContent(...args),
-  downloadCsv: (...args) => mockDownloadCsv(...args),
-  sanitizeFilename: (...args) => mockSanitizeFilename(...args),
+  buildCsvContent: (...args: any[]) => mockBuildCsvContent.apply(null, args),
+  downloadCsv: (...args: any[]) => mockDownloadCsv.apply(null, args),
+  sanitizeFilename: (...args: any[]) => mockSanitizeFilename.apply(null, args),
 }));
 
 jest.mock('next/dynamic', () => (fn: () => Promise<unknown>) => {
