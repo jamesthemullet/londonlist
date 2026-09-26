@@ -1,34 +1,59 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# London List — frontend
 
-## Getting Started
+The Next.js (React, TypeScript) frontend for London List: build a to-do list of places to
+see and do in London, plot them on a map, and share your list with others.
 
-First, run the development server:
+This app is a GraphQL client only — all content, authentication and Stripe billing logic
+live in the [Strapi backend](../backend) (`../backend`). The frontend cannot run
+meaningfully on its own; start the backend first.
+
+## Features
+
+- Search for places across London and add them to a personal list
+- Track progress (to do / done) on each list item
+- View your list plotted on a Leaflet map, with a to-do/done legend
+- Public/private list visibility and sharing by username
+- Explore other public lists, sorted by recency or view count
+- List templates and area guides
+- Stripe-powered Pro subscription (`pages/pricing.tsx`, `components/upgrade-modal`)
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 18+
+- yarn
+- The [backend](../backend) running locally (Strapi + GraphQL API)
+
+### Install and run
 
 ```bash
-npm run dev
-# or
+yarn install
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App: http://localhost:3000
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### Environment variables
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+| Variable | Description |
+|---|---|
+| `STRAPI_URL` | Base URL of the Strapi backend (defaults to `http://127.0.0.1:1337`) |
+| `NEXT_PUBLIC_SITE_URL` | Public site URL, used for canonical links and share URLs |
+| `NEXT_PUBLIC_BOOKING_AFFILIATE_ID` | Affiliate ID for Booking.com links |
+| `NEXT_PUBLIC_OPENTABLE_AFFILIATE_ID` | Affiliate ID for OpenTable links |
+| `NEXT_PUBLIC_VIATOR_AFFILIATE_ID` | Affiliate ID for Viator links |
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+## Scripts
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+| Command | Description |
+|---|---|
+| `yarn dev` | Start the Next.js dev server |
+| `yarn build` | Production build |
+| `yarn start` | Start the production server |
+| `yarn lint` | Lint with Biome |
+| `yarn ts-check` | Type-check with `tsc --noEmit` |
+| `yarn check` | Run lint and type-check |
+| `yarn test` | Run unit tests (Jest + React Testing Library) |
+| `yarn test:coverage` | Run unit tests with coverage |
+| `yarn test:e2e` | Run end-to-end tests (Playwright) |
