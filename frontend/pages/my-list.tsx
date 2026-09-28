@@ -28,42 +28,43 @@ type MyListsData = {
   myLists: List[];
 };
 
+const LIST_FIELDS_FRAGMENT = gql`
+  fragment ListFields on List {
+    documentId
+    name
+    description
+    isPublic
+    viewCount
+  }
+`;
+
 export const GET_MY_LISTS = gql`
   query GetMyLists {
     myLists {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
       itemCount
       completedCount
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const CREATE_MY_LIST = gql`
   mutation CreateMyList($name: String!) {
     createMyList(name: $name) {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const UPDATE_MY_LIST = gql`
   mutation UpdateMyList($documentId: ID!, $name: String, $isPublic: Boolean, $description: String) {
     updateMyList(documentId: $documentId, name: $name, isPublic: $isPublic, description: $description) {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const DELETE_MY_LIST = gql`
