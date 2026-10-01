@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import { findUserByUsername } from '../../../lib/find-user-by-username';
 
 export default factories.createCoreController('api::list-setting.list-setting', ({ strapi }) => ({
   async find(ctx) {
@@ -22,9 +23,7 @@ export default factories.createCoreController('api::list-setting.list-setting', 
   async getPublicList(ctx) {
     const { username } = ctx.params;
 
-    const [user] = await strapi.db.query('plugin::users-permissions.user').findMany({
-      where: { username },
-    });
+    const user = await findUserByUsername(strapi, username);
 
     if (!user) {
       return ctx.notFound('User not found');

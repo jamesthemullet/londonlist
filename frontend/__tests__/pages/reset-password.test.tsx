@@ -16,6 +16,10 @@ jest.mock('next/router', () => ({
   useRouter: jest.fn(),
 }));
 
+jest.mock('../../context/AppContext', () => ({
+  useAppContext: jest.fn(),
+}));
+
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -23,20 +27,25 @@ jest.mock('next/link', () => ({
   ),
 }));
 
+import { useAppContext } from '../../context/AppContext';
 const mockUseMutation = useMutation as jest.Mock;
 const mockUseRouter = useRouter as jest.Mock;
+const mockUseAppContext = useAppContext as jest.Mock;
+const mockReplace = jest.fn();
 
 function setupForgotPasswordRoute() {
-  mockUseRouter.mockReturnValue({ query: {} });
+  mockUseRouter.mockReturnValue({ query: {}, replace: mockReplace });
 }
 
 function setupSetNewPasswordRoute(code = 'test-reset-code') {
-  mockUseRouter.mockReturnValue({ query: { code } });
+  mockUseRouter.mockReturnValue({ query: { code }, replace: mockReplace });
 }
 
 beforeEach(() => {
+  mockReplace.mockReset();
   setupForgotPasswordRoute();
   mockUseMutation.mockReturnValue([jest.fn(), { loading: false, error: null }]);
+  mockUseAppContext.mockReturnValue({ user: null, initialized: true });
 });
 
 afterEach(() => {
@@ -71,6 +80,38 @@ describe('ForgotPassword — rendering', () => {
   it('submit button is initially disabled when email is empty', () => {
     render(<ResetPasswordPage />);
     expect(screen.getByRole('button', { name: 'Reset Password' })).toBeDisabled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ForgotPassword — already logged-in redirect
+// ---------------------------------------------------------------------------
+
+describe('ForgotPassword — already logged-in redirect', () => {
+  it('redirects to /my-list when user is already logged in and auth is initialised', async () => {
+    mockUseAppContext.mockReturnValue({ user: { id: '1', username: 'alice' }, initialized: true });
+    render(<ResetPasswordPage />);
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/my-list');
+    });
+  });
+
+  it('does not redirect when initialized is false', () => {
+    mockUseAppContext.mockReturnValue({ user: { id: '1', username: 'alice' }, initialized: false });
+    render(<ResetPasswordPage />);
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('does not redirect when user is null', () => {
+    render(<ResetPasswordPage />);
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('does not redirect a logged-in user away from the set-new-password form when a code is present', () => {
+    setupSetNewPasswordRoute();
+    mockUseAppContext.mockReturnValue({ user: { id: '1', username: 'alice' }, initialized: true });
+    render(<ResetPasswordPage />);
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 });
 
