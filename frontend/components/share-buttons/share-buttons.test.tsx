@@ -41,6 +41,21 @@ describe('ShareButtons', () => {
     expect(waLink).toHaveAttribute('href', expect.stringContaining(encodeURIComponent(TEST_URL)));
   });
 
+  it('renders a Facebook share link', () => {
+    render(<ShareButtons url={TEST_URL} title={TEST_TITLE} />);
+    const fbLink = screen.getByRole('link', { name: /share on facebook/i });
+    expect(fbLink).toHaveAttribute('href', expect.stringContaining('facebook.com/sharer/sharer.php'));
+    expect(fbLink).toHaveAttribute('href', expect.stringContaining(encodeURIComponent(TEST_URL)));
+  });
+
+  it('renders a Pinterest share link', () => {
+    render(<ShareButtons url={TEST_URL} title={TEST_TITLE} />);
+    const pinLink = screen.getByRole('link', { name: /share on pinterest/i });
+    expect(pinLink).toHaveAttribute('href', expect.stringContaining('pinterest.com/pin/create/button'));
+    expect(pinLink).toHaveAttribute('href', expect.stringContaining(encodeURIComponent(TEST_URL)));
+    expect(pinLink).toHaveAttribute('href', expect.stringContaining(encodeURIComponent(TEST_TITLE)));
+  });
+
   it('social links open in a new tab with noopener', () => {
     render(<ShareButtons url={TEST_URL} title={TEST_TITLE} />);
     const links = screen.getAllByRole('link');
