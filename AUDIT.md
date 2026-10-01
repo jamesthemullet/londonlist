@@ -16,7 +16,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 - [x] `frontend/components/upgrade-modal/upgrade-modal.tsx` is at 94.44% stmts / 85.71% funcs, uncovered line 49 — add a test for the untested branch/callback (Stripe-adjacent UI) (found: 2026-09-01) (fixed: 2026-09-01)
 - [x] Add unit tests for `backend/src/api/list/controllers/list.ts` (140 lines of custom ownership/visibility logic, currently untested) (found: 2026-09-01) (fixed: 2026-09-04)
 - [x] Add unit tests for `backend/src/api/account/controllers/account.ts` and `backend/src/api/list-setting/controllers/list-setting.ts` (custom logic, currently untested) (found: 2026-09-01) (fixed: 2026-09-07)
-- [ ] No e2e spec covers register → login → reset-password happy path — add `frontend/e2e/auth-flow.spec.ts` (existing specs `auth.spec.ts`/`public-pages.spec.ts` only test logged-out redirects and form validation, not a real submit) (found: 2026-09-01)
+- [x] No e2e spec covers register → login → reset-password happy path — add `frontend/e2e/auth-flow.spec.ts` (existing specs `auth.spec.ts`/`public-pages.spec.ts` only test logged-out redirects and form validation, not a real submit) (found: 2026-09-01) (fixed: 2026-09-17 — `frontend/e2e/auth-flow.spec.ts` already existed on `main` covering register/login/forgot-password happy paths with mocked GraphQL responses; verified all 7 specs pass via `yarn test:e2e`)
 - [ ] No e2e spec covers personal list building (add/remove item, visibility toggle) — add `frontend/e2e/my-list-management.spec.ts` for `pages/my-list.tsx` / `components/list-visibility-toggle` (found: 2026-09-01)
 - [ ] No e2e spec covers the Leaflet map (`components/map/list-map.tsx`) — add `frontend/e2e/list-map.spec.ts` for pin rendering and click-through to a detail page (found: 2026-09-01)
 - [ ] No e2e spec covers the Stripe upgrade/checkout trigger (`components/upgrade-modal`, `pages/pricing.tsx`) — add `frontend/e2e/upgrade-checkout.spec.ts` covering the modal trigger and redirect to Stripe Checkout (can stop at the redirect boundary) (found: 2026-09-01)
@@ -45,13 +45,13 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## 6. Security
 
 - [x] `backend/config/env/production/plugins.js:6-11` sets `playgroundAlways: true` and `apolloServer.introspection: true`, exposing the full GraphQL schema and an interactive query UI at `/graphql` in production — set `playgroundAlways: false` and `introspection: env('NODE_ENV') !== 'production'` (found: 2026-09-01) (fixed: 2026-09-19 — file already had `playgroundAlways: false` and `introspection: false`; finding was stale)
-- [ ] `backend/config/middlewares.ts:1,15,19` — CORS falls back to `http://localhost:3000` and to `allowedOrigins[0]` if `FRONTEND_URL` is unset in production; add a startup assertion so a misconfigured prod deploy fails loudly instead of silently allowing localhost (found: 2026-09-01)
+- [x] `backend/config/middlewares.ts:1,15,19` — CORS falls back to `http://localhost:3000` and to `allowedOrigins[0]` if `FRONTEND_URL` is unset in production; add a startup assertion so a misconfigured prod deploy fails loudly instead of silently allowing localhost (found: 2026-09-01) (fixed: 2026-09-16)
 - [ ] Backend `yarn audit` reports 29 issues (8 High, 12 Moderate, 9 Low), all transitive via `@strapi/strapi > ... > browserslist` (advisories 1153171/1153172, unbounded memory growth / prototype-write crash from untrusted `browserslist-stats.json`) — build-tool-time only, not runtime-reachable from user input, but track for resolution via a Strapi/browserslist upgrade (found: 2026-09-01)
 
 ## 7. README / feature alignment
 
 - [ ] `frontend/README.md` is unmodified `create-next-app` boilerplate — doesn't describe London List, its map/list features, or the Strapi backend it depends on (found: 2026-09-01)
-- [ ] `backend/README.md` is unmodified default Strapi boilerplate — doesn't describe London List's actual content types or how it fits the frontend (found: 2026-09-01)
+- [x] `backend/README.md` is unmodified default Strapi boilerplate — doesn't describe London List's actual content types or how it fits the frontend (found: 2026-09-01) (fixed: 2026-09-27)
 - [ ] The `attraction` Strapi content type (`backend/src/api/attraction/` — full schema, controller, route, service) appears to have no corresponding GraphQL query/usage anywhere in `frontend/` — confirm whether it's still needed or should be removed/wired up (found: 2026-09-01)
 
 ## 8. Code quality
