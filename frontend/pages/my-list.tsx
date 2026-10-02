@@ -26,6 +26,10 @@ type List = {
 
 type MyListsData = {
   myLists: List[];
+  planLimits: {
+    freeListLimit: number;
+    freeItemLimit: number;
+  };
 };
 
 export const GET_MY_LISTS = gql`
@@ -38,6 +42,10 @@ export const GET_MY_LISTS = gql`
       viewCount
       itemCount
       completedCount
+    }
+    planLimits {
+      freeListLimit
+      freeItemLimit
     }
   }
 `;
@@ -199,6 +207,8 @@ export default function MyListPage() {
   });
 
   const lists = data?.myLists ?? [];
+  const freeListLimit = data?.planLimits?.freeListLimit ?? FREE_LIST_LIMIT;
+  const freeItemLimit = data?.planLimits?.freeItemLimit ?? FREE_ITEM_LIMIT;
 
   useEffect(() => {
     if (!listsLoading && lists.length === 0 && initialized && user && !hasAutoCreated.current) {
@@ -228,7 +238,7 @@ export default function MyListPage() {
   }, [isRenaming]);
 
   const activeList = lists.find((l) => l.documentId === activeListId) ?? null;
-  const isAtListLimit = !user?.isPro && lists.length >= FREE_LIST_LIMIT;
+  const isAtListLimit = !user?.isPro && lists.length >= freeListLimit;
   const activeItemCount = activeList?.itemCount ?? 0;
 
   const handleOpenNewList = () => {
@@ -367,9 +377,9 @@ export default function MyListPage() {
           >
             <p className={styles.upgradeBannerText}>
               <span className={styles.listCount}>
-                {lists.length}/{FREE_LIST_LIMIT} lists used
+                {lists.length}/{freeListLimit} lists used
               </span>
-              {lists.length >= FREE_LIST_LIMIT ? (
+              {lists.length >= freeListLimit ? (
                 <>
                   {' '}— Unlock unlimited lists with <strong>London List Pro</strong>.{' '}
                   <Link href="/pricing" className={styles.upgradeBannerLink}>
@@ -378,7 +388,7 @@ export default function MyListPage() {
                 </>
               ) : (
                 <>
-                  {' '}({FREE_LIST_LIMIT - lists.length} remaining on the free plan —{' '}
+                  {' '}({freeListLimit - lists.length} remaining on the free plan —{' '}
                   <Link href="/pricing" className={styles.upgradeBannerLink}>
                     upgrade for unlimited
                   </Link>
@@ -511,7 +521,7 @@ export default function MyListPage() {
                 listId={activeList.documentId}
                 itemCount={activeItemCount}
                 isPro={user?.isPro ?? false}
-                freeItemLimit={FREE_ITEM_LIMIT}
+                freeItemLimit={freeItemLimit}
                 onLimitReached={() => setShowUpgradeModal(true)}
               />
             </section>
