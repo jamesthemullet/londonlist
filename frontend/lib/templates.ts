@@ -10,6 +10,7 @@ export type Template = {
   description: string;
   tags: string[];
   items: TemplateItem[];
+  proOnly?: boolean;
 };
 
 export const TEMPLATES: Template[] = [
@@ -147,6 +148,42 @@ export const TEMPLATES: Template[] = [
       { osm_id: 'way/36168209', name: 'V&A Museum of Childhood', category: 'museum' },
       { osm_id: 'way/27392445', name: 'Diana Memorial Playground', category: 'park' },
       { osm_id: 'relation/1546042', name: 'Kew Gardens', category: 'park' },
+    ],
+  },
+  {
+    id: 'london-date-night',
+    name: 'London Date Night',
+    description:
+      "Romantic cocktail bars, intimate dining, and candlelit jazz — London's best spots for a memorable evening for two.",
+    tags: ['romance', 'bars', 'dining'],
+    proOnly: true,
+    items: [
+      { osm_id: 'way/27376082', name: "Ronnie Scott's Jazz Club", category: 'bar' },
+      { osm_id: 'way/27428571', name: 'Sketch London', category: 'restaurant' },
+      { osm_id: 'way/27376060', name: 'Koko Camden', category: 'entertainment' },
+      { osm_id: 'way/27428575', name: 'Experimental Cocktail Club', category: 'bar' },
+      { osm_id: 'way/27428576', name: 'Hide Restaurant', category: 'restaurant' },
+      { osm_id: 'way/27428577', name: 'Brasserie Zédel', category: 'restaurant' },
+      { osm_id: 'way/27402138', name: 'The Jazz Cafe', category: 'bar' },
+      { osm_id: 'way/27428580', name: 'Quaglino\'s', category: 'restaurant' },
+    ],
+  },
+  {
+    id: 'london-literary-trail',
+    name: 'London Literary Trail',
+    description:
+      "Walk in the footsteps of Dickens, Woolf, Conan Doyle, and Orwell — bookshops, pubs, and haunts that shaped English literature.",
+    tags: ['books', 'history', 'culture'],
+    proOnly: true,
+    items: [
+      { osm_id: 'way/27200492', name: 'Daunt Books Marylebone', category: 'attraction' },
+      { osm_id: 'way/27200494', name: 'Foyles Charing Cross Road', category: 'attraction' },
+      { osm_id: 'way/27200495', name: 'Charles Dickens Museum', category: 'museum' },
+      { osm_id: 'way/27200496', name: 'The Sherlock Holmes Museum', category: 'museum' },
+      { osm_id: 'way/27200497', name: 'George Orwell\'s Canonbury Square flat', category: 'attraction' },
+      { osm_id: 'way/27200498', name: 'The British Library', category: 'attraction' },
+      { osm_id: 'way/27200499', name: 'Ye Olde Cheshire Cheese', category: 'pub' },
+      { osm_id: 'way/27200500', name: 'Persephone Books', category: 'attraction' },
     ],
   },
 ];

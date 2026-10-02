@@ -27,6 +27,13 @@ jest.mock('next/dynamic', () => () => {
   return MockListMap;
 });
 
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
+    <a href={href} className={className}>{children}</a>
+  ),
+}));
+
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 
@@ -406,5 +413,60 @@ describe('MyList — map toggle', () => {
     render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.queryByRole('button', { name: /show map|hide map/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('MyList — empty state template shortcut', () => {
+  it('shows the template shortcut section when the list is empty', () => {
+    mockUseMutation.mockReturnValue([jest.fn(), {}]);
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    expect(screen.getByText(/or start from a curated template/i)).toBeInTheDocument();
+  });
+
+  it('shows 3 featured template links when list is empty', () => {
+    mockUseMutation.mockReturnValue([jest.fn(), {}]);
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    const templateLinks = screen
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('href')?.startsWith('/templates/'));
+    expect(templateLinks).toHaveLength(3);
+  });
+
+  it('shows "Browse all starter lists" link when list is empty', () => {
+    mockUseMutation.mockReturnValue([jest.fn(), {}]);
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    expect(screen.getByRole('link', { name: /browse all starter lists/i })).toBeInTheDocument();
+  });
+
+  it('template shortcut links point to /templates/:id', () => {
+    mockUseMutation.mockReturnValue([jest.fn(), {}]);
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [] }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    const templateLinks = screen
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('href')?.startsWith('/templates/'));
+    templateLinks.forEach((link) => {
+      expect(link.getAttribute('href')).toMatch(/^\/templates\/[a-z0-9-]+$/);
+    });
+  });
+
+  it('does not show the template shortcut when the list has items', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    expect(screen.queryByText(/or start from a curated template/i)).not.toBeInTheDocument();
   });
 });

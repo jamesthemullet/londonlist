@@ -141,10 +141,13 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
 }
 
 export default function TemplateDetailPage({ template, relatedTemplates }: Props) {
+  const { user, initialized } = useAppContext();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const jsonLd = buildTemplateJsonLd(template, SITE_URL);
   const pageTitle = `${template.name} — London Starter List`;
   const canonicalUrl = `${SITE_URL}/templates/${template.id}`;
+
+  const isLocked = template.proOnly && initialized && !(user?.isPro);
 
   return (
     <>
@@ -179,7 +182,12 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
         </nav>
 
         <div className={styles.hero}>
-          <h1 className={styles.heading}>{template.name}</h1>
+          <h1 className={styles.heading}>
+            {template.name}
+            {template.proOnly && (
+              <span className={styles.proBadge} aria-hidden="true">Pro</span>
+            )}
+          </h1>
           <p className={styles.description}>{template.description}</p>
           <div className={styles.tags}>
             {template.tags.map((tag) => (
@@ -190,7 +198,27 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
           </div>
         </div>
 
-        <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
+        {isLocked ? (
+          <section className={styles.proGate} aria-label="Pro feature required">
+            <p className={styles.proGateText}>
+              This is a Pro-exclusive template. Upgrade to copy it to your lists.
+            </p>
+            <button
+              type="button"
+              className={styles.proGateButton}
+              onClick={() => setShowUpgradeModal(true)}
+            >
+              Upgrade to Pro
+            </button>
+            <p className={styles.proGateNote}>
+              <Link href="/pricing" className={styles.proGateLink}>
+                See all Pro features →
+              </Link>
+            </p>
+          </section>
+        ) : (
+          <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
+        )}
 
         <section className={styles.placesSection}>
           <h2 className={styles.placesHeading}>
@@ -198,7 +226,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
           </h2>
           <ul className={styles.placeList} aria-label="Places in this list">
             {template.items.map((item, index) => (
-              <li key={item.osm_id} className={styles.placeItem}>
+              <li key={item.osm_id} className={`${styles.placeItem}${isLocked ? ` ${styles.placeItemBlurred}` : ''}`}>
                 <span className={styles.placeNumber} aria-hidden="true">
                   {index + 1}
                 </span>
@@ -213,7 +241,9 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
           </ul>
         </section>
 
-        <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
+        {!isLocked && (
+          <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
+        )}
       </main>
 
       {relatedTemplates.length > 0 && (

@@ -120,19 +120,41 @@ function CopyButton({ template, onLimitReached }: CopyButtonProps) {
 
 type TemplateCardProps = {
   template: Template;
+  isPro?: boolean;
+  onUpgradeClick?: () => void;
 };
 
-export function TemplateCard({ template }: TemplateCardProps) {
+export function TemplateCard({ template, isPro = false, onUpgradeClick }: TemplateCardProps) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const handleUpgrade = () => {
+    if (onUpgradeClick) {
+      onUpgradeClick();
+    } else {
+      setShowUpgradeModal(true);
+    }
+  };
+
+  const isLocked = template.proOnly && !isPro;
 
   return (
     <>
-      <article className={styles.card} aria-label={template.name}>
+      <article
+        className={`${styles.card}${isLocked ? ` ${styles.cardLocked}` : ''}`}
+        aria-label={template.name}
+      >
         <div className={styles.cardHeader}>
           <h2 className={styles.cardTitle}>
-            <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
-              {template.name}
-            </Link>
+            {isLocked ? (
+              <span className={styles.cardTitleLocked}>{template.name}</span>
+            ) : (
+              <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
+                {template.name}
+              </Link>
+            )}
+            {template.proOnly && (
+              <span className={styles.proBadge} aria-hidden="true">Pro</span>
+            )}
           </h2>
           <p className={styles.cardDescription}>{template.description}</p>
         </div>
@@ -149,7 +171,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
           <p className={styles.placesHeading}>{template.items.length} places</p>
           <ul className={styles.placeList} aria-label="Places in this list">
             {template.items.slice(0, 5).map((item: TemplateItem) => (
-              <li key={item.osm_id} className={styles.placeItem}>
+              <li key={item.osm_id} className={`${styles.placeItem}${isLocked ? ` ${styles.placeItemBlurred}` : ''}`}>
                 {item.name}
               </li>
             ))}
@@ -161,7 +183,24 @@ export function TemplateCard({ template }: TemplateCardProps) {
           </ul>
         </div>
 
-        <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
+        {isLocked ? (
+          <div className={styles.cardFooter}>
+            <button
+              type="button"
+              className={styles.proUpgradeButton}
+              onClick={handleUpgrade}
+            >
+              Unlock with Pro
+            </button>
+            <p className={styles.proUpgradeNote}>
+              <Link href="/pricing" className={styles.proUpgradeLink}>
+                See what&apos;s included →
+              </Link>
+            </p>
+          </div>
+        ) : (
+          <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
+        )}
       </article>
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
@@ -169,6 +208,13 @@ export function TemplateCard({ template }: TemplateCardProps) {
 }
 
 export default function TemplatesPage() {
+  const { user } = useAppContext();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isPro = user?.isPro ?? false;
+
+  const freeTemplates = TEMPLATES.filter((t) => !t.proOnly);
+  const proTemplates = TEMPLATES.filter((t) => t.proOnly);
+
   const ogTitle = 'London Starter Lists — London List';
   const ogDescription =
     'Ready-made London itineraries curated by locals. Copy one to your account and start exploring.';
@@ -199,13 +245,40 @@ export default function TemplatesPage() {
         </div>
 
         <ul className={styles.grid} aria-label="Template lists">
-          {TEMPLATES.map((template) => (
+          {freeTemplates.map((template) => (
             <li key={template.id} className={styles.gridItem}>
-              <TemplateCard template={template} />
+              <TemplateCard template={template} isPro={isPro} />
             </li>
           ))}
         </ul>
+
+        {proTemplates.length > 0 && (
+          <section className={styles.proSection} aria-label="Pro templates">
+            <div className={styles.proSectionHeader}>
+              <h2 className={styles.proSectionHeading}>
+                <span className={styles.proBadgeLarge}>Pro</span> Exclusive Templates
+              </h2>
+              <p className={styles.proSectionSubheading}>
+                {isPro
+                  ? 'Your Pro plan includes these exclusive curated itineraries.'
+                  : 'Upgrade to Pro to unlock these specially curated itineraries.'}
+              </p>
+            </div>
+            <ul className={styles.grid} aria-label="Pro template lists">
+              {proTemplates.map((template) => (
+                <li key={template.id} className={styles.gridItem}>
+                  <TemplateCard
+                    template={template}
+                    isPro={isPro}
+                    onUpgradeClick={() => setShowUpgradeModal(true)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
   );
 }

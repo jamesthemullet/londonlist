@@ -115,6 +115,30 @@ describe('TemplatesPage — rendering', () => {
     render(<TemplatesPage />);
     expect(document.querySelector('title')?.textContent).toMatch(/starter lists/i);
   });
+
+  it('shows Pro Exclusive Templates section when proOnly templates exist', () => {
+    const hasProTemplates = TEMPLATES.some((t) => t.proOnly);
+    if (!hasProTemplates) return;
+    setupMocks();
+    render(<TemplatesPage />);
+    expect(screen.getByRole('region', { name: /pro templates/i })).toBeInTheDocument();
+  });
+
+  it('free user sees "Unlock with Pro" on proOnly templates', () => {
+    const proTemplate = TEMPLATES.find((t) => t.proOnly);
+    if (!proTemplate) return;
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplatesPage />);
+    expect(screen.getAllByRole('button', { name: /unlock with pro/i }).length).toBeGreaterThan(0);
+  });
+
+  it('Pro user does not see "Unlock with Pro" on proOnly templates', () => {
+    const proTemplate = TEMPLATES.find((t) => t.proOnly);
+    if (!proTemplate) return;
+    setupMocks({ user: { username: 'alice', isPro: true } });
+    render(<TemplatesPage />);
+    expect(screen.queryByRole('button', { name: /unlock with pro/i })).not.toBeInTheDocument();
+  });
 });
 
 describe('TemplateCard — logged-out visitor', () => {
@@ -305,6 +329,66 @@ describe('TemplateCard — logged-in user', () => {
   });
 });
 
+describe('TemplateCard — proOnly behavior', () => {
+  const PRO_TEMPLATE: Template = {
+    id: 'pro-test',
+    name: 'Pro Test Template',
+    description: 'A Pro-only template.',
+    tags: ['pro'],
+    items: [{ osm_id: 'way/1', name: 'Place One', category: 'museum' }],
+    proOnly: true,
+  };
+
+  it('shows "Pro" badge on proOnly template', () => {
+    setupMocks({ user: null });
+    render(<TemplateCard template={PRO_TEMPLATE} />);
+    expect(screen.getByText('Pro')).toBeInTheDocument();
+  });
+
+  it('shows "Unlock with Pro" button for free user on proOnly template', () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplateCard template={PRO_TEMPLATE} isPro={false} />);
+    expect(screen.getByRole('button', { name: /unlock with pro/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /copy to my lists/i })).not.toBeInTheDocument();
+  });
+
+  it('shows copy button for Pro user on proOnly template', () => {
+    setupMocks({ user: { username: 'alice', isPro: true } });
+    render(<TemplateCard template={PRO_TEMPLATE} isPro={true} />);
+    expect(screen.getByRole('button', { name: /copy to my lists/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /unlock with pro/i })).not.toBeInTheDocument();
+  });
+
+  it('renders place items in locked proOnly template', () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplateCard template={PRO_TEMPLATE} isPro={false} />);
+    expect(screen.getByText('Place One')).toBeInTheDocument();
+  });
+
+  it('calls onUpgradeClick when "Unlock with Pro" is clicked', () => {
+    const onUpgradeClick = jest.fn();
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplateCard template={PRO_TEMPLATE} isPro={false} onUpgradeClick={onUpgradeClick} />);
+    fireEvent.click(screen.getByRole('button', { name: /unlock with pro/i }));
+    expect(onUpgradeClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens upgrade modal when "Unlock with Pro" clicked and no onUpgradeClick provided', async () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplateCard template={PRO_TEMPLATE} isPro={false} />);
+    fireEvent.click(screen.getByRole('button', { name: /unlock with pro/i }));
+    await waitFor(() => {
+      expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    });
+  });
+
+  it('does not show proOnly badge on regular template', () => {
+    setupMocks({ user: null });
+    render(<TemplateCard template={SAMPLE_TEMPLATE} />);
+    expect(screen.queryByText('Pro')).not.toBeInTheDocument();
+  });
+});
+
 describe('TEMPLATES data', () => {
   it('exports at least one template', () => {
     expect(TEMPLATES.length).toBeGreaterThan(0);
@@ -327,5 +411,18 @@ describe('TEMPLATES data', () => {
         expect(item.name).toBeTruthy();
       }
     }
+  });
+
+  it('proOnly field is boolean when present', () => {
+    for (const t of TEMPLATES) {
+      if ('proOnly' in t) {
+        expect(typeof t.proOnly).toBe('boolean');
+      }
+    }
+  });
+
+  it('has at least one free template and at least one Pro template', () => {
+    expect(TEMPLATES.some((t) => !t.proOnly)).toBe(true);
+    expect(TEMPLATES.some((t) => t.proOnly)).toBe(true);
   });
 });

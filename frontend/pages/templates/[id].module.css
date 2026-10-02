@@ -265,13 +265,77 @@
   text-decoration: underline;
 }
 
+.proBadge {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  background: #7c3aed;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.placeItemBlurred {
+  filter: blur(4px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.proGate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: #f9f6ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 10px;
+}
+
+.proGateText {
+  font-size: 0.95rem;
+  color: #4c1d95;
+  margin: 0;
+}
+
+.proGateButton {
+  padding: 0.75rem 1.5rem;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+
+.proGateButton:hover {
+  background: #6d28d9;
+}
+
+.proGateNote {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.proGateLink {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+
 @media (max-width: 600px) {
   .heading {
     font-size: 1.6rem;
   }
 
   .copyButton,
-  .signInCta {
+  .signInCta,
+  .proGateButton {
     width: 100%;
     text-align: center;
   }
@@ -339,5 +403,14 @@
 
   .signInNote {
     color: #666;
+  }
+
+  .proGate {
+    background: #1a0f2e;
+    border-color: #3b1d6e;
+  }
+
+  .proGateText {
+    color: #c4b5fd;
   }
 }
