@@ -8,6 +8,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 - 2026-09-01 — initial audit: 34 findings (5 test coverage, 5 SEO, 4 responsive/UX, 5 security, 5 README/alignment, 7 code quality, 3 performance)
 - 2026-09-19 — housekeeping pass: checked off 5 findings already fixed in code (login/reset-password titles, pricing OG tags, GraphQL playground config, meta.tsx commented code); fixed Leaflet map CSS loading on hard navigation
+- 2026-10-02 — housekeeping pass: marked my-list-management e2e as fixed (spec existed from PR #387); marked museum page accessibility as N/A (page removed from codebase); replaced frontend README boilerplate
 
 ## 1. Test coverage — unit gaps and e2e
 
@@ -17,14 +18,14 @@ audit adds new findings to the bottom of each section and leaves checked items a
 - [x] Add unit tests for `backend/src/api/list/controllers/list.ts` (140 lines of custom ownership/visibility logic, currently untested) (found: 2026-09-01) (fixed: 2026-09-04)
 - [x] Add unit tests for `backend/src/api/account/controllers/account.ts` and `backend/src/api/list-setting/controllers/list-setting.ts` (custom logic, currently untested) (found: 2026-09-01) (fixed: 2026-09-07)
 - [x] No e2e spec covers register → login → reset-password happy path — add `frontend/e2e/auth-flow.spec.ts` (existing specs `auth.spec.ts`/`public-pages.spec.ts` only test logged-out redirects and form validation, not a real submit) (found: 2026-09-01) (fixed: 2026-09-17 — `frontend/e2e/auth-flow.spec.ts` already existed on `main` covering register/login/forgot-password happy paths with mocked GraphQL responses; verified all 7 specs pass via `yarn test:e2e`)
-- [ ] No e2e spec covers personal list building (add/remove item, visibility toggle) — add `frontend/e2e/my-list-management.spec.ts` for `pages/my-list.tsx` / `components/list-visibility-toggle` (found: 2026-09-01)
+- [x] No e2e spec covers personal list building (add/remove item, visibility toggle) — add `frontend/e2e/my-list-management.spec.ts` for `pages/my-list.tsx` / `components/list-visibility-toggle` (found: 2026-09-01) (fixed: 2026-10-02 — `frontend/e2e/my-list-management.spec.ts` already existed from PR #387; finding was stale)
 - [ ] No e2e spec covers the Leaflet map (`components/map/list-map.tsx`) — add `frontend/e2e/list-map.spec.ts` for pin rendering and click-through to a detail page (found: 2026-09-01)
 - [ ] No e2e spec covers the Stripe upgrade/checkout trigger (`components/upgrade-modal`, `pages/pricing.tsx`) — add `frontend/e2e/upgrade-checkout.spec.ts` covering the modal trigger and redirect to Stripe Checkout (can stop at the redirect boundary) (found: 2026-09-01)
 
 ## 2. Accessibility
 
 - [x] List page (`pages/list/[username]/[listId].tsx`) `<h1>` renders as a bare number (e.g. "2") when no descriptive list name is set — screen-reader users navigating by heading get no context; default to something like "Untitled list" when name is empty (found: 2026-09-01) (fixed: 2026-09-09)
-- [ ] `pages/museum/[id].tsx` error state ("Error Loading Exhibitions") has no heading semantics, no retry action, and no link back to Explore when the GraphQL query fails — see also item under Responsive/UX below (found: 2026-09-01)
+- [x] `pages/museum/[id].tsx` error state ("Error Loading Exhibitions") has no heading semantics, no retry action, and no link back to Explore when the GraphQL query fails — see also item under Responsive/UX below (found: 2026-09-01) (N/A: 2026-10-02 — `pages/museum/[id].tsx` no longer exists in the codebase; page was removed)
 
 ## 3. Performance
 
@@ -50,7 +51,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 7. README / feature alignment
 
-- [ ] `frontend/README.md` is unmodified `create-next-app` boilerplate — doesn't describe London List, its map/list features, or the Strapi backend it depends on (found: 2026-09-01)
+- [x] `frontend/README.md` is unmodified `create-next-app` boilerplate — doesn't describe London List, its map/list features, or the Strapi backend it depends on (found: 2026-09-01) (fixed: 2026-10-02)
 - [x] `backend/README.md` is unmodified default Strapi boilerplate — doesn't describe London List's actual content types or how it fits the frontend (found: 2026-09-01) (fixed: 2026-09-27)
 - [ ] The `attraction` Strapi content type (`backend/src/api/attraction/` — full schema, controller, route, service) appears to have no corresponding GraphQL query/usage anywhere in `frontend/` — confirm whether it's still needed or should be removed/wired up (found: 2026-09-01)
 
