@@ -303,4 +303,139 @@ test.describe('My list management', () => {
 
     await expect(page).not.toHaveURL(/\/my-list/, { timeout: 5000 });
   });
+
+  test('can add a place to the list', async ({ page }) => {
+    const photonFeature = {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [-0.1276, 51.5072] },
+      properties: {
+        osm_id: 12345,
+        osm_type: 'N',
+        name: 'Trafalgar Square',
+        city: 'London',
+        osm_key: 'tourism',
+        osm_value: 'attraction',
+      },
+    };
+
+    await page.route('https://photon.komoot.io/api/**', (route) =>
+      route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ features: [photonFeature] }),
+      }),
+    );
+
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, {
+        __me: MOCK_USER,
+        GetMyLists: { myLists: [MOCK_LIST] },
+        GetMyList: { listItems: [] },
+        CreateListItem: {
+          createListItem: { documentId: 'item_abc123', name: 'Trafalgar Square' },
+        },
+      }),
+    );
+    await page.context().addCookies([
+      { name: 'token', value: 'fake_token', url: 'http://localhost:3000' },
+    ]);
+
+    await page.goto('/my-list');
+    await expect(page.getByRole('tab', { name: 'My List' })).toBeVisible({ timeout: 5000 });
+
+    await page.getByLabel('Search for a place in London').fill('Trafalgar Square');
+
+    const addButton = page.getByRole('button', { name: '+ Add to list' });
+    await expect(addButton).toBeVisible({ timeout: 5000 });
+    await addButton.click();
+
+    await expect(page.getByRole('button', { name: 'Added ✓' })).toBeVisible({ timeout: 5000 });
+  });
+
+  test('can remove an item from the list', async ({ page }) => {
+    const item = {
+      documentId: 'item_abc123',
+      name: 'Trafalgar Square',
+      category: 'attraction',
+      completed: false,
+      osm_id: 'node/12345',
+      visitedAt: null,
+      notes: null,
+      lat: 51.5072,
+      lng: -0.1276,
+    };
+    let deleted = false;
+
+    await page.route(GRAPHQL_URL, async (route, request) => {
+      const body = request.postDataJSON() as { operationName?: string } | null;
+      const op = body?.operationName ?? null;
+
+      if (op === 'DeleteListItem') {
+        deleted = true;
+        await route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { deleteListItem: { documentId: item.documentId } } }),
+        });
+      } else if (op === 'GetMyList') {
+        await route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { listItems: deleted ? [] : [item] } }),
+        });
+      } else {
+        await handleGraphql(route, request, {
+          __me: MOCK_USER,
+          GetMyLists: { myLists: [MOCK_LIST] },
+        });
+      }
+    });
+    await page.context().addCookies([
+      { name: 'token', value: 'fake_token', url: 'http://localhost:3000' },
+    ]);
+
+    await page.goto('/my-list');
+    await expect(page.getByRole('tab', { name: 'My List' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Trafalgar Square')).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole('button', { name: 'Remove Trafalgar Square' }).click();
+
+    await expect(page.getByText('Your list is empty.')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('toggling list visibility shows the share link', async ({ page }) => {
+    let isPublic = false;
+
+    await page.route(GRAPHQL_URL, async (route, request) => {
+      const body = request.postDataJSON() as { operationName?: string } | null;
+      const op = body?.operationName ?? null;
+
+      if (op === 'UpdateMyList') {
+        isPublic = true;
+        await route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { updateMyList: { ...MOCK_LIST, isPublic } } }),
+        });
+      } else if (op === 'GetMyLists') {
+        await route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { myLists: [{ ...MOCK_LIST, isPublic }] } }),
+        });
+      } else if (op === 'GetMyList') {
+        await route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { listItems: [] } }),
+        });
+      } else {
+        await handleGraphql(route, request, { __me: MOCK_USER });
+      }
+    });
+    await page.context().addCookies([
+      { name: 'token', value: 'fake_token', url: 'http://localhost:3000' },
+    ]);
+
+    await page.goto('/my-list');
+    await expect(page.getByRole('tab', { name: 'My List' })).toBeVisible({ timeout: 5000 });
+
+    await page.getByText(/Make .* public/).first().click();
+
+    await expect(page.getByText('Share your list:')).toBeVisible({ timeout: 5000 });
+  });
 });
