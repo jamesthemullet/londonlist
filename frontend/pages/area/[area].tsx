@@ -1,6 +1,7 @@
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import BookingLinks from "../../components/booking-links/booking-links";
 import { useAppContext } from "../../context/AppContext";
 import { AREA_META, decodeAreaSlug } from "../../lib/area-meta";
 import styles from "./area.module.css";
@@ -171,6 +172,7 @@ export default function AreaPage({
 									{grouped[category].map((place) => (
 										<li key={place.osm_id} className={styles.placeItem}>
 											<span className={styles.placeName}>{place.name}</span>
+											<BookingLinks name={place.name} category={place.category} />
 										</li>
 									))}
 								</ul>

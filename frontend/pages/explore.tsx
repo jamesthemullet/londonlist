@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import styles from './explore.module.css';
 
-export type SortOption = 'most-places' | 'fewest-places' | 'alphabetical';
+export type SortOption = 'most-places' | 'fewest-places' | 'alphabetical' | 'most-viewed';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
@@ -16,6 +16,7 @@ type PublicList = {
   description?: string | null;
   username: string | null;
   itemCount: number;
+  viewCount?: number;
   categories: string[];
 };
 
@@ -59,6 +60,9 @@ export function sortLists(lists: PublicList[], sortBy: SortOption): PublicList[]
   }
   if (sortBy === 'fewest-places') {
     return copy.sort((a, b) => a.itemCount - b.itemCount);
+  }
+  if (sortBy === 'most-viewed') {
+    return copy.sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
   }
   return copy.sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -146,6 +150,7 @@ export default function ExplorePage({ lists }: Props) {
             <option value="most-places">Most places</option>
             <option value="fewest-places">Fewest places</option>
             <option value="alphabetical">A–Z</option>
+            <option value="most-viewed">Most viewed</option>
           </select>
         </div>
 
@@ -202,6 +207,11 @@ export default function ExplorePage({ lists }: Props) {
                     {list.itemCount > 0 && (
                       <span className={styles.itemCount}>
                         {list.itemCount} {list.itemCount === 1 ? 'place' : 'places'}
+                      </span>
+                    )}
+                    {(list.viewCount ?? 0) > 0 && (
+                      <span className={styles.viewCount}>
+                        {list.viewCount?.toLocaleString()} {list.viewCount === 1 ? 'view' : 'views'}
                       </span>
                     )}
                     {list.categories.length > 0 && (

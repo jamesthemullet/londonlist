@@ -151,6 +151,12 @@
   margin-top: 0.125rem;
 }
 
+.viewCount {
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 0.125rem;
+}
+
 .categoryList {
   font-size: 0.75rem;
   color: #888;
