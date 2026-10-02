@@ -34,6 +34,10 @@ export default {
           lat: Float
           lng: Float
         }
+        type PlanLimits {
+          freeListLimit: Int!
+          freeItemLimit: Int!
+        }
         extend type UsersPermissionsMe {
           isPro: Boolean
         }
@@ -42,6 +46,7 @@ export default {
           place(osm_id: String!): PublicPlace
           placesByArea(area: String!): [PublicPlace]
           relatedPlaces(osm_id: String!, limit: Int): [PublicPlace!]!
+          planLimits: PlanLimits!
         }
         extend type Mutation {
           createMyList(name: String!, description: String): ListEntity
@@ -169,6 +174,11 @@ export default {
                 filters: { user: { id: { $eq: user.id } } },
                 sort: args.sort ?? 'createdAt:desc',
               });
+            },
+          },
+          planLimits: {
+            resolve() {
+              return { freeListLimit: FREE_LIST_LIMIT, freeItemLimit: FREE_ITEM_LIMIT };
             },
           },
           listSettings: {
