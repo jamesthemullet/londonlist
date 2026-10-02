@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import Loader from '../Loader';
 import MilestoneCelebration from '../milestone-celebration/milestone-celebration';
@@ -8,6 +9,7 @@ import ProgressBar from '../progress-bar/progress-bar';
 import StreakBadge from '../streak-badge/streak-badge';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import { useStreak } from '../../hooks/use-streak';
+import { TEMPLATES } from '../../lib/templates';
 import styles from './my-list.module.css';
 import type { MapItem } from '../map/list-map';
 
@@ -172,10 +174,28 @@ export default function MyList({ listId, listName, shareUrl }: Props) {
   if (loading && !data) return <Loader />;
   if (error) return <p>Error loading your list.</p>;
 
+  const featuredTemplates = TEMPLATES.filter((t) => !t.proOnly).slice(0, 3);
+
   if (items.length === 0) {
     return (
       <div className={styles.empty}>
         <p>Your list is empty. Search for places above and add them!</p>
+        <div className={styles.templateShortcut}>
+          <p className={styles.templateShortcutHeading}>Or start from a curated template:</p>
+          <ul className={styles.templateShortcutList}>
+            {featuredTemplates.map((t) => (
+              <li key={t.id}>
+                <Link href={`/templates/${t.id}`} className={styles.templateShortcutLink}>
+                  {t.name}
+                  <span className={styles.templateShortcutCount}>{t.items.length} places</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link href="/templates" className={styles.templateShortcutAll}>
+            Browse all starter lists →
+          </Link>
+        </div>
       </div>
     );
   }

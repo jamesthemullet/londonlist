@@ -6,6 +6,66 @@
 .empty {
   color: #888;
   font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.templateShortcut {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #f8f8f8;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.templateShortcutHeading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #555;
+  margin: 0;
+}
+
+.templateShortcutList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.templateShortcutLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.75rem;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #222;
+  font-size: 0.875rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.templateShortcutLink:hover {
+  border-color: #bbb;
+  background: #fafafa;
+}
+
+.templateShortcutCount {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.templateShortcutAll {
+  font-size: 0.8rem;
+  color: #666;
+  text-decoration: underline;
+  align-self: flex-start;
 }
 
 .sectionHeading {
