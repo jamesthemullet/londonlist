@@ -3,6 +3,7 @@ import { useMutation } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
+import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import { TEMPLATES } from '../lib/templates';
@@ -32,9 +33,10 @@ const CREATE_LIST_ITEM = gql`
 
 type CopyButtonProps = {
   template: Template;
+  onLimitReached: () => void;
 };
 
-function CopyButton({ template }: CopyButtonProps) {
+function CopyButton({ template, onLimitReached }: CopyButtonProps) {
   const { user } = useAppContext();
   const authHeader = useAuthHeader();
   const [copyState, setCopyState] = useState<'idle' | 'copying' | 'done' | 'error'>('idle');
@@ -62,8 +64,15 @@ function CopyButton({ template }: CopyButtonProps) {
         });
       }
       setCopyState('done');
-    } catch {
-      setCopyState('error');
+    } catch (err) {
+      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
+      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
+      if (code === 'FREE_LIST_LIMIT_REACHED') {
+        setCopyState('idle');
+        onLimitReached();
+      } else {
+        setCopyState('error');
+      }
     }
   }
 
@@ -114,43 +123,48 @@ type TemplateCardProps = {
 };
 
 export function TemplateCard({ template }: TemplateCardProps) {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
   return (
-    <article className={styles.card} aria-label={template.name}>
-      <div className={styles.cardHeader}>
-        <h2 className={styles.cardTitle}>
-          <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
-            {template.name}
-          </Link>
-        </h2>
-        <p className={styles.cardDescription}>{template.description}</p>
-      </div>
+    <>
+      <article className={styles.card} aria-label={template.name}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>
+            <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
+              {template.name}
+            </Link>
+          </h2>
+          <p className={styles.cardDescription}>{template.description}</p>
+        </div>
 
-      <div className={styles.tags}>
-        {template.tags.map((tag) => (
-          <span key={tag} className={styles.tag}>
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      <div className={styles.places}>
-        <p className={styles.placesHeading}>{template.items.length} places</p>
-        <ul className={styles.placeList} aria-label="Places in this list">
-          {template.items.slice(0, 5).map((item: TemplateItem) => (
-            <li key={item.osm_id} className={styles.placeItem}>
-              {item.name}
-            </li>
+        <div className={styles.tags}>
+          {template.tags.map((tag) => (
+            <span key={tag} className={styles.tag}>
+              {tag}
+            </span>
           ))}
-          {template.items.length > 5 && (
-            <li className={styles.placeItem}>
-              +{template.items.length - 5} more
-            </li>
-          )}
-        </ul>
-      </div>
+        </div>
 
-      <CopyButton template={template} />
-    </article>
+        <div className={styles.places}>
+          <p className={styles.placesHeading}>{template.items.length} places</p>
+          <ul className={styles.placeList} aria-label="Places in this list">
+            {template.items.slice(0, 5).map((item: TemplateItem) => (
+              <li key={item.osm_id} className={styles.placeItem}>
+                {item.name}
+              </li>
+            ))}
+            {template.items.length > 5 && (
+              <li className={styles.placeItem}>
+                +{template.items.length - 5} more
+              </li>
+            )}
+          </ul>
+        </div>
+
+        <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
+      </article>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+    </>
   );
 }
 
