@@ -7,6 +7,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## Run log
 
 - 2026-09-01 — initial audit: 34 findings (5 test coverage, 5 SEO, 4 responsive/UX, 5 security, 5 README/alignment, 7 code quality, 3 performance)
+- 2026-09-19 — housekeeping pass: checked off 5 findings already fixed in code (login/reset-password titles, pricing OG tags, GraphQL playground config, meta.tsx commented code); fixed Leaflet map CSS loading on hard navigation
 
 ## 1. Test coverage — unit gaps and e2e
 
@@ -15,10 +16,10 @@ audit adds new findings to the bottom of each section and leaves checked items a
 - [x] `frontend/components/upgrade-modal/upgrade-modal.tsx` is at 94.44% stmts / 85.71% funcs, uncovered line 49 — add a test for the untested branch/callback (Stripe-adjacent UI) (found: 2026-09-01) (fixed: 2026-09-01)
 - [x] Add unit tests for `backend/src/api/list/controllers/list.ts` (140 lines of custom ownership/visibility logic, currently untested) (found: 2026-09-01) (fixed: 2026-09-04)
 - [x] Add unit tests for `backend/src/api/account/controllers/account.ts` and `backend/src/api/list-setting/controllers/list-setting.ts` (custom logic, currently untested) (found: 2026-09-01) (fixed: 2026-09-07)
-- [ ] No e2e spec covers register → login → reset-password happy path — add `frontend/e2e/auth-flow.spec.ts` (existing specs `auth.spec.ts`/`public-pages.spec.ts` only test logged-out redirects and form validation, not a real submit) (found: 2026-09-01)
+- [x] No e2e spec covers register → login → reset-password happy path — add `frontend/e2e/auth-flow.spec.ts` (existing specs `auth.spec.ts`/`public-pages.spec.ts` only test logged-out redirects and form validation, not a real submit) (found: 2026-09-01) (fixed: 2026-09-17 — `frontend/e2e/auth-flow.spec.ts` already existed on `main` covering register/login/forgot-password happy paths with mocked GraphQL responses; verified all 7 specs pass via `yarn test:e2e`)
 - [ ] No e2e spec covers personal list building (add/remove item, visibility toggle) — add `frontend/e2e/my-list-management.spec.ts` for `pages/my-list.tsx` / `components/list-visibility-toggle` (found: 2026-09-01)
 - [ ] No e2e spec covers the Leaflet map (`components/map/list-map.tsx`) — add `frontend/e2e/list-map.spec.ts` for pin rendering and click-through to a detail page (found: 2026-09-01)
-- [ ] No e2e spec covers the Stripe upgrade/checkout trigger (`components/upgrade-modal`, `pages/pricing.tsx`) — add `frontend/e2e/upgrade-checkout.spec.ts` covering the modal trigger and redirect to Stripe Checkout (can stop at the redirect boundary) (found: 2026-09-01)
+- [x] No e2e spec covers the Stripe upgrade/checkout trigger (`components/upgrade-modal`, `pages/pricing.tsx`) — add `frontend/e2e/upgrade-checkout.spec.ts` covering the modal trigger and redirect to Stripe Checkout (can stop at the redirect boundary) (found: 2026-09-01) (fixed: 2026-09-26)
 
 ## 2. Accessibility
 
@@ -32,32 +33,32 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 4. SEO / metadata
 
-- [ ] `frontend/pages/login.tsx` and `reset-password.tsx` have no `<Head>`/title override, falling back to the generic "London List" title — add short per-page titles (e.g. "Log in — London List") for browser tab/history clarity (found: 2026-09-01)
-- [ ] `frontend/pages/pricing.tsx:117-123` has a `<title>` but no meta description or OG tags, unlike every other content page — add them for consistency (found: 2026-09-01)
+- [x] `frontend/pages/login.tsx` and `reset-password.tsx` have no `<Head>`/title override, falling back to the generic "London List" title — add short per-page titles (e.g. "Log in — London List") for browser tab/history clarity (found: 2026-09-01) (fixed: 2026-09-19 — both pages already had `<Head>` with per-page title and meta description; finding was stale)
+- [x] `frontend/pages/pricing.tsx:117-123` has a `<title>` but no meta description or OG tags, unlike every other content page — add them for consistency (found: 2026-09-01) (fixed: 2026-09-19 — pricing.tsx already had full `<Head>` with description, OG and Twitter card tags; finding was stale)
 
 ## 5. Responsive / UX
 
-- [ ] `pages/list/[username]/[listId].tsx` — on a hard/direct navigation (full page load, not client-side routing) the Leaflet map and its To Do/Done legend fail to render entirely, leaving an empty gap, while the list below loads fine; reproduced twice on fresh reloads. This breaks the primary list-sharing use case (opening a shared link directly) (found: 2026-09-01)
+- [x] `pages/list/[username]/[listId].tsx` — on a hard/direct navigation (full page load, not client-side routing) the Leaflet map and its To Do/Done legend fail to render entirely, leaving an empty gap, while the list below loads fine; reproduced twice on fresh reloads. This breaks the primary list-sharing use case (opening a shared link directly) (found: 2026-09-01) (fixed: 2026-09-19 — moved `import 'leaflet/dist/leaflet.css'` to `_app.tsx` so it is in the initial CSS bundle on hard navigation; added a loading placeholder to the `dynamic()` import to fill the container while the map chunk loads; added `min-height: 320px` to `.mapContainer` to prevent the empty gap)
 - [ ] Header auth state (Log In/Sign Up vs. My List/email/Log Out) flickers inconsistently across consecutive reloads of the same URL on `/login`, `/register`, `/reset-password`, and hard-navigated list pages for the same unchanged session — suggests the client-side auth check races with hydration rather than reading a reliable source of truth (found: 2026-09-01)
 - [x] Logged-in users can still fully access and submit `/login`, `/register`, `/reset-password` — no redirect to their list occurs; minor UX confusion, not a security issue (found: 2026-09-01) (fixed: 2026-09-17 — `/login` and `/register` already redirected; added the same already-logged-in redirect to `frontend/pages/reset-password.tsx`, preserving access to the set-new-password form when a reset `code` is present)
 
 ## 6. Security
 
-- [ ] `backend/config/env/production/plugins.js:6-11` sets `playgroundAlways: true` and `apolloServer.introspection: true`, exposing the full GraphQL schema and an interactive query UI at `/graphql` in production — set `playgroundAlways: false` and `introspection: env('NODE_ENV') !== 'production'` (found: 2026-09-01)
+- [x] `backend/config/env/production/plugins.js:6-11` sets `playgroundAlways: true` and `apolloServer.introspection: true`, exposing the full GraphQL schema and an interactive query UI at `/graphql` in production — set `playgroundAlways: false` and `introspection: env('NODE_ENV') !== 'production'` (found: 2026-09-01) (fixed: 2026-09-19 — file already had `playgroundAlways: false` and `introspection: false`; finding was stale)
 - [x] `backend/config/middlewares.ts:1,15,19` — CORS falls back to `http://localhost:3000` and to `allowedOrigins[0]` if `FRONTEND_URL` is unset in production; add a startup assertion so a misconfigured prod deploy fails loudly instead of silently allowing localhost (found: 2026-09-01) (fixed: 2026-09-16)
 - [ ] Backend `yarn audit` reports 29 issues (8 High, 12 Moderate, 9 Low), all transitive via `@strapi/strapi > ... > browserslist` (advisories 1153171/1153172, unbounded memory growth / prototype-write crash from untrusted `browserslist-stats.json`) — build-tool-time only, not runtime-reachable from user input, but track for resolution via a Strapi/browserslist upgrade (found: 2026-09-01)
 
 ## 7. README / feature alignment
 
-- [ ] `frontend/README.md` is unmodified `create-next-app` boilerplate — doesn't describe London List, its map/list features, or the Strapi backend it depends on (found: 2026-09-01)
-- [ ] `backend/README.md` is unmodified default Strapi boilerplate — doesn't describe London List's actual content types or how it fits the frontend (found: 2026-09-01)
+- [x] `frontend/README.md` is unmodified `create-next-app` boilerplate — doesn't describe London List, its map/list features, or the Strapi backend it depends on (found: 2026-09-01) (fixed: 2026-09-23)
+- [x] `backend/README.md` is unmodified default Strapi boilerplate — doesn't describe London List's actual content types or how it fits the frontend (found: 2026-09-01) (fixed: 2026-09-27)
 - [ ] The `attraction` Strapi content type (`backend/src/api/attraction/` — full schema, controller, route, service) appears to have no corresponding GraphQL query/usage anywhere in `frontend/` — confirm whether it's still needed or should be removed/wired up (found: 2026-09-01)
 
 ## 8. Code quality
 
 - [ ] `backend/src/api/account/controllers/account.ts:3,15,21`, `backend/src/api/list/controllers/list.ts` (9 occurrences incl. `as unknown as never` at line 114), and `backend/src/api/stripe/controllers/stripe.ts:28,33,62,67,82,97` rely on repeated inline `as {...}` casts of `ctx.state.user`/`ctx.request.body` instead of Strapi's generated types — introduce a shared `AuthenticatedUser` type and typed body helper (one small PR per file) (found: 2026-09-01)
 - [x] Identical `strapi.db.query('plugin::users-permissions.user').findMany({ where: { username } })` lookup is duplicated in `backend/src/api/list/controllers/list.ts:49,87` and `backend/src/api/list-setting/controllers/list-setting.ts:25` — extract to a shared `findUserByUsername` service helper (found: 2026-09-01) (fixed: 2026-09-18 — extracted to `backend/src/lib/find-user-by-username.ts` with unit tests; both controllers updated)
-- [ ] `FREE_LIST_LIMIT = 3` / `FREE_ITEM_LIMIT = 20` are independently declared in `backend/src/index.ts:11-12` and `frontend/pages/my-list.tsx:71-72` and can silently drift — centralize via a shared config/API endpoint (found: 2026-09-01)
+- [x] `FREE_LIST_LIMIT = 3` / `FREE_ITEM_LIMIT = 20` are independently declared in `backend/src/index.ts:11-12` and `frontend/pages/my-list.tsx:71-72` and can silently drift — centralize via a shared config/API endpoint (found: 2026-09-01) (fixed: 2026-09-23 — extracted to `backend/src/lib/plan-limits.ts`; backend exposes a `planLimits` GraphQL query; frontend uses a `usePlanLimits` hook that fetches from it, falling back to defaults while loading)
 - [ ] `GET_MY_LISTS`/`CREATE_MY_LIST`/`UPDATE_MY_LIST` in `frontend/pages/my-list.tsx:28-63` all request the same list fields (`documentId, name, description, isPublic, viewCount`) — extract to a shared Apollo fragment (found: 2026-09-01)
 - [x] `SITE_URL` fallback is copy-pasted across 7 files; 6 correctly fall back to `https://londonlist.vercel.app` but `frontend/pages/list/[username]/[listId].tsx:18` falls back to `https://londonlist.co.uk` — a domain the project does not own. Fix the one-line mismatch and consider extracting `SITE_URL` to one shared constant module (also surfaced independently by the browser audit: share buttons on the list page build links using `londonlist.co.uk`) (found: 2026-09-01) (fixed: 2026-09-15 — `list/[username]/[listId].tsx` fallback was already correct by the time of this fix; the same copy-pasted mismatch had reappeared in `frontend/pages/templates/[id].tsx:13`, a page added after this finding was logged, and was corrected there)
-- [ ] `frontend/components/meta/meta.tsx:3-23` has a 21-line commented-out `seoProps` type block no longer referenced anywhere — delete it (found: 2026-09-01)
+- [x] `frontend/components/meta/meta.tsx:3-23` has a 21-line commented-out `seoProps` type block no longer referenced anywhere — delete it (found: 2026-09-01) (fixed: 2026-09-19 — no commented-out code exists in the file; finding was stale)
