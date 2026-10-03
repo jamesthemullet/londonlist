@@ -1,57 +1,45 @@
-# 🚀 Getting started with Strapi
+# London List — Backend
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html) (CLI) which lets you scaffold and manage your project in seconds.
+[Strapi 5](https://strapi.io) CMS powering London List, exposing a GraphQL API for the
+[Next.js frontend](../frontend). It stores places to see and do in London, user accounts and
+lists, and handles Stripe-backed Pro subscriptions.
 
-### `develop`
+## Content types (`src/api`)
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-develop)
+- `attraction`, `exhibition`, `museum` — places and events users can search for and add to a list.
+- `list`, `list-item`, `list-setting` — a user's personal to-do list, its items, and per-list
+  settings (visibility, etc.).
+- `account` — custom account-management endpoints layered on top of the built-in
+  `users-permissions` plugin.
+- `stripe` — checkout, billing portal, and webhook handling for Pro subscriptions.
 
-```
+GraphQL is served at `/graphql` via `@strapi/plugin-graphql`; see `config/env/production/plugins.js`
+for the production GraphQL config.
+
+## Getting started
+
+```bash
+npm install
 npm run develop
-# or
-yarn develop
 ```
 
-### `start`
+Strapi admin panel: [http://localhost:1337/admin](http://localhost:1337/admin)
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-start)
+Requires a `.env` with database credentials and the app/API keys Strapi generates on first run,
+plus Stripe keys for the `stripe` API to work.
 
-```
-npm run start
-# or
-yarn start
-```
+## Scripts
 
-### `build`
+| Command | Description |
+|---|---|
+| `npm run develop` | Start with autoReload enabled |
+| `npm run start` | Start with autoReload disabled |
+| `npm run build` | Build the admin panel |
+| `npm run lint` | Run Biome lint |
+| `npm run check` | Run Biome checks |
+| `npm test` | Run tests (Jest) |
 
-Build your admin panel. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-build)
+## Deployment
 
-```
-npm run build
-# or
-yarn build
-```
-
-## ⚙️ Deployment
-
-Strapi gives you many possible deployment options for your project. Find the one that suits you on the [deployment section of the documentation](https://docs.strapi.io/developer-docs/latest/setup-deployment-guides/deployment.html).
-
-## 📚 Learn more
-
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://docs.strapi.io) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
-
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
-
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+See the [Strapi deployment documentation](https://docs.strapi.io/developer-docs/latest/setup-deployment-guides/deployment.html)
+for general guidance. Production-specific config lives under `config/env/production/`.
