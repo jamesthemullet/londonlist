@@ -102,6 +102,22 @@ describe('Layout — structure', () => {
   });
 });
 
+describe('Layout — Navigation (initializing)', () => {
+  it('hides Log In and Sign Up while auth is initializing', () => {
+    mockUseAppContext.mockReturnValue({ user: null, setUser: jest.fn(), initialized: false });
+    render(<Layout>x</Layout>);
+    expect(screen.queryByRole('link', { name: /log in/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /sign up/i })).not.toBeInTheDocument();
+  });
+
+  it('hides My List and Log Out while auth is initializing', () => {
+    mockUseAppContext.mockReturnValue({ user: null, setUser: jest.fn(), initialized: false });
+    render(<Layout>x</Layout>);
+    expect(screen.queryByRole('link', { name: /my list/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /log out/i })).not.toBeInTheDocument();
+  });
+});
+
 describe('Layout — Navigation (logged out)', () => {
   it('shows Log In and Sign Up links when user is null', () => {
     render(<Layout>x</Layout>);
