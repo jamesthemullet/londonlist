@@ -24,7 +24,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## 2. Accessibility
 
 - [x] List page (`pages/list/[username]/[listId].tsx`) `<h1>` renders as a bare number (e.g. "2") when no descriptive list name is set — screen-reader users navigating by heading get no context; default to something like "Untitled list" when name is empty (found: 2026-09-01) (fixed: 2026-09-09)
-- [ ] `pages/museum/[id].tsx` error state ("Error Loading Exhibitions") has no heading semantics, no retry action, and no link back to Explore when the GraphQL query fails — see also item under Responsive/UX below (found: 2026-09-01)
+- [x] `pages/museum/[id].tsx` error state ("Error Loading Exhibitions") has no heading semantics, no retry action, and no link back to Explore when the GraphQL query fails — see also item under Responsive/UX below (found: 2026-09-01) (fixed: 2026-10-04 — finding is moot: `pages/museum/[id].tsx` was deleted as unreachable dead code in commit `b0c527f` (2026-09-12, "Remove orphaned museum page and its tests"), which also dropped this exact line from `AUDIT.md`; a later merge of a stale branch re-introduced the line even though the page it describes no longer exists. Confirmed via `git log --diff-filter=D -- frontend/pages/museum*` and a repo-wide search for `museum`/`Error Loading Exhibitions`, both showing no trace of the page or its error state in the current codebase)
 
 ## 3. Performance
 
