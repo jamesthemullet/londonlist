@@ -46,7 +46,10 @@ export default function UpgradeModal({ isOpen, onClose }: Props) {
         className={styles.dialog}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+          e.stopPropagation();
+        }}
       >
         <button
           type="button"

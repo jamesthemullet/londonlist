@@ -17,6 +17,10 @@ jest.mock('../../hooks/use-auth-header', () => ({
   useAuthHeader: () => ({}),
 }));
 
+jest.mock('../../hooks/use-plan-limits', () => ({
+  usePlanLimits: () => ({ freeListLimit: 3, freeItemLimit: 20 }),
+}));
+
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
 }));

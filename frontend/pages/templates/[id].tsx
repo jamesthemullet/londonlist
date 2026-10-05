@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
 import type { GetStaticPaths, GetStaticProps } from 'next';
+import UpgradeModal from '../../components/upgrade-modal/upgrade-modal';
 import { TEMPLATES } from '../../lib/templates';
 import type { Template } from '../../lib/templates';
 import { useAppContext } from '../../context/AppContext';
@@ -54,9 +55,10 @@ export function buildTemplateJsonLd(template: Template, siteUrl: string): object
 
 type CopyButtonProps = {
   template: Template;
+  onLimitReached: () => void;
 };
 
-export function CopyButton({ template }: CopyButtonProps) {
+export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
   const { user } = useAppContext();
   const authHeader = useAuthHeader();
   const [copyState, setCopyState] = useState<'idle' | 'copying' | 'done' | 'error'>('idle');
@@ -84,8 +86,15 @@ export function CopyButton({ template }: CopyButtonProps) {
         });
       }
       setCopyState('done');
-    } catch {
-      setCopyState('error');
+    } catch (err) {
+      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
+      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
+      if (code === 'FREE_LIST_LIMIT_REACHED') {
+        setCopyState('idle');
+        onLimitReached();
+      } else {
+        setCopyState('error');
+      }
     }
   }
 
@@ -132,6 +141,7 @@ export function CopyButton({ template }: CopyButtonProps) {
 }
 
 export default function TemplateDetailPage({ template, relatedTemplates }: Props) {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const jsonLd = buildTemplateJsonLd(template, SITE_URL);
   const pageTitle = `${template.name} — London Starter List`;
   const canonicalUrl = `${SITE_URL}/templates/${template.id}`;
@@ -180,7 +190,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
           </div>
         </div>
 
-        <CopyButton template={template} />
+        <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
 
         <section className={styles.placesSection}>
           <h2 className={styles.placesHeading}>
@@ -203,7 +213,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
           </ul>
         </section>
 
-        <CopyButton template={template} />
+        <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
       </main>
 
       {relatedTemplates.length > 0 && (
@@ -226,6 +236,8 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
           </p>
         </section>
       )}
+
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
   );
 }

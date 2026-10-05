@@ -29,6 +29,46 @@ const PRO_FEATURES = [
 
 type BillingPeriod = 'monthly' | 'annual';
 
+export function buildPricingJsonLd(siteUrl: string): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'London List',
+    description:
+      'Build your London bucket list. Track places to visit, create curated lists, and share your London adventures.',
+    url: siteUrl,
+    applicationCategory: 'WebApplication',
+    operatingSystem: 'Web',
+    offers: [
+      {
+        '@type': 'Offer',
+        name: 'Free',
+        price: '0',
+        priceCurrency: 'GBP',
+        description: 'Up to 3 lists, place search, progress tracking, and sharing.',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Pro — Monthly',
+        price: '3.99',
+        priceCurrency: 'GBP',
+        billingIncrement: 'P1M',
+        description:
+          'Unlimited lists, view analytics, early access and priority support.',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Pro — Annual',
+        price: '39.99',
+        priceCurrency: 'GBP',
+        billingIncrement: 'P1Y',
+        description:
+          'Unlimited lists, view analytics, early access and priority support. Save 2 months vs monthly.',
+      },
+    ],
+  };
+}
+
 export default function PricingPage() {
   const { user, setUser } = useAppContext();
   const router = useRouter();
@@ -128,6 +168,8 @@ export default function PricingPage() {
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Pricing — London List" />
         <meta name="twitter:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildPricingJsonLd(SITE_URL)) }} />
       </Head>
       <main className={styles.main}>
         <div className={styles.hero}>
