@@ -9,6 +9,15 @@ import { Button } from '../components/core/button/button';
 import { useAppContext } from '../context/AppContext';
 import styles from './register.module.css';
 
+const COPY_PUBLIC_LIST = gql`
+  mutation CopyPublicList($sourceDocumentId: ID!, $sourceUsername: String!) {
+    copyPublicList(sourceDocumentId: $sourceDocumentId, sourceUsername: $sourceUsername) {
+      documentId
+      name
+    }
+  }
+`;
+
 type RegisterMutationData = {
   register: {
     jwt: string;
@@ -64,6 +73,7 @@ export default function RegisterRoute() {
     RegisterMutationData,
     RegisterMutationVariables
   >(REGISTER_MUTATION);
+  const [copyPublicListMutation] = useMutation(COPY_PUBLIC_LIST);
 
   const isUsernameValid = USERNAME_PATTERN.test(formData.username);
   const isEmailValid = isValidEmail(formData.email);
@@ -79,10 +89,27 @@ export default function RegisterRoute() {
     });
     if (data?.register.user) {
       setUser(data.register.user);
-      Cookie.set('token', data.register.jwt, {
+      const jwt = data.register.jwt;
+      Cookie.set('token', jwt, {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
       });
+
+      const ref = router.query?.ref;
+      const srcUsername = router.query?.srcUsername as string | undefined;
+      const srcListId = router.query?.srcListId as string | undefined;
+
+      if (ref === 'copy-list' && srcUsername && srcListId) {
+        try {
+          await copyPublicListMutation({
+            variables: { sourceDocumentId: srcListId, sourceUsername: srcUsername },
+            context: { headers: { Authorization: `Bearer ${jwt}` } },
+          });
+        } catch {
+          // Copy failed; proceed to my-list anyway so the user can start fresh
+        }
+      }
+
       router.push('/my-list');
     }
   };

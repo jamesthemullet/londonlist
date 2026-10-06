@@ -510,7 +510,14 @@ export default function PublicListPage({ pageState, listData, username, listId, 
               ? "Sign up free to copy this list and track your own London adventures."
               : "Build your own London bucket list — it’s free."}
           </p>
-          <Link href="/register?ref=copy-list" className={styles.conversionCta}>
+          <Link
+            href={
+              items.length > 0
+                ? `/register?ref=copy-list&srcUsername=${encodeURIComponent(username)}&srcListId=${encodeURIComponent(listId)}`
+                : '/register'
+            }
+            className={styles.conversionCta}
+          >
             {items.length > 0 ? "Copy this list" : "Create your list"}
           </Link>
         </aside>
