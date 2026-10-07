@@ -211,7 +211,7 @@ describe('PublicListPage — conversion banner', () => {
     expect(screen.getByText("Copy alice's list")).toBeInTheDocument();
   });
 
-  it('links the conversion CTA to /register with the copy ref when list has items', () => {
+  it('links the conversion CTA to /register with copy-list params when list has items', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
 
     render(
@@ -219,7 +219,10 @@ describe('PublicListPage — conversion banner', () => {
     );
 
     const cta = screen.getByRole('link', { name: 'Copy this list' });
-    expect(cta).toHaveAttribute('href', '/register?ref=copy-list');
+    expect(cta).toHaveAttribute(
+      'href',
+      '/register?ref=copy-list&srcUsername=alice&srcListId=list-abc',
+    );
   });
 
   it('does not show the conversion banner when the visitor is logged in', () => {
@@ -965,7 +968,10 @@ describe('PublicListPage — copy list integration', () => {
     );
 
     const ctaLink = screen.getByRole('link', { name: 'Copy this list' });
-    expect(ctaLink).toHaveAttribute('href', '/register?ref=copy-list');
+    expect(ctaLink).toHaveAttribute(
+      'href',
+      '/register?ref=copy-list&srcUsername=alice&srcListId=list-abc',
+    );
   });
 
   it('shows generic CTA for unauthenticated users when list is empty', () => {
