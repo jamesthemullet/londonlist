@@ -8,6 +8,7 @@ import ListVisibilityToggle from '../components/list-visibility-toggle/list-visi
 import MyList from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
+import WelcomeChecklist from '../components/welcome-checklist/welcome-checklist';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import { usePlanLimits } from '../hooks/use-plan-limits';
@@ -165,6 +166,7 @@ export default function MyListPage() {
   const [copied, setCopied] = useState(false);
   const [createListError, setCreateListError] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [checklistDismissed, setChecklistDismissed] = useState(false);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -174,6 +176,24 @@ export default function MyListPage() {
       router.push('/login');
     }
   }, [initialized, user, router]);
+
+  useEffect(() => {
+    try {
+      const dismissed = localStorage.getItem('onboarding-checklist-dismissed');
+      if (dismissed === '1') setChecklistDismissed(true);
+    } catch {
+      // localStorage not available (private browsing, etc.)
+    }
+  }, []);
+
+  const handleChecklistDismiss = () => {
+    setChecklistDismissed(true);
+    try {
+      localStorage.setItem('onboarding-checklist-dismissed', '1');
+    } catch {
+      // localStorage not available
+    }
+  };
 
   const { freeListLimit, freeItemLimit } = usePlanLimits();
 
@@ -360,6 +380,16 @@ export default function MyListPage() {
         <h1 className={styles.heading}>My Lists</h1>
 
         <ProStatsCard lists={lists} isPro={user?.isPro ?? false} />
+
+        {!checklistDismissed && (
+          <WelcomeChecklist
+            hasAddedPlace={lists.some((l) => l.itemCount > 0)}
+            hasPublicList={lists.some((l) => l.isPublic)}
+            hasMultipleLists={lists.length > 1}
+            isPro={user?.isPro ?? false}
+            onDismiss={handleChecklistDismiss}
+          />
+        )}
 
         {!user?.isPro && (
           <aside
