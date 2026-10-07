@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import PricingPage from '../../pages/pricing';
+import PricingPage, { buildPricingJsonLd } from '../../pages/pricing';
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -219,6 +219,51 @@ describe('PricingPage — CTAs for authenticated users', () => {
     fireEvent.click(screen.getByRole('button', { name: /manage subscription/i }));
 
     expect(await screen.findByText(/something went wrong opening the billing portal/i)).toBeInTheDocument();
+  });
+});
+
+describe('buildPricingJsonLd', () => {
+  const SITE_URL = 'https://londonlist.vercel.app';
+
+  it('returns a SoftwareApplication schema', () => {
+    const ld = buildPricingJsonLd(SITE_URL) as Record<string, unknown>;
+    expect(ld['@context']).toBe('https://schema.org');
+    expect(ld['@type']).toBe('SoftwareApplication');
+  });
+
+  it('sets the app url to the provided siteUrl', () => {
+    const ld = buildPricingJsonLd('https://example.com') as Record<string, unknown>;
+    expect(ld.url).toBe('https://example.com');
+  });
+
+  it('includes three Offer objects (Free, Pro Monthly, Pro Annual)', () => {
+    const ld = buildPricingJsonLd(SITE_URL) as Record<string, unknown>;
+    const offers = ld.offers as Record<string, unknown>[];
+    expect(offers).toHaveLength(3);
+    expect(offers.every((o) => o['@type'] === 'Offer')).toBe(true);
+  });
+
+  it('Free offer has price 0 GBP', () => {
+    const offers = (buildPricingJsonLd(SITE_URL) as Record<string, unknown>).offers as Record<string, unknown>[];
+    const free = offers.find((o) => o.name === 'Free');
+    expect(free?.price).toBe('0');
+    expect(free?.priceCurrency).toBe('GBP');
+  });
+
+  it('Pro monthly offer has price 3.99 GBP with monthly billing increment', () => {
+    const offers = (buildPricingJsonLd(SITE_URL) as Record<string, unknown>).offers as Record<string, unknown>[];
+    const monthly = offers.find((o) => o.name === 'Pro — Monthly');
+    expect(monthly?.price).toBe('3.99');
+    expect(monthly?.priceCurrency).toBe('GBP');
+    expect(monthly?.billingIncrement).toBe('P1M');
+  });
+
+  it('Pro annual offer has price 39.99 GBP with annual billing increment', () => {
+    const offers = (buildPricingJsonLd(SITE_URL) as Record<string, unknown>).offers as Record<string, unknown>[];
+    const annual = offers.find((o) => o.name === 'Pro — Annual');
+    expect(annual?.price).toBe('39.99');
+    expect(annual?.priceCurrency).toBe('GBP');
+    expect(annual?.billingIncrement).toBe('P1Y');
   });
 });
 

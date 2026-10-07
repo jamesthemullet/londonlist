@@ -27,6 +27,13 @@ jest.mock('next/dynamic', () => () => {
   return MockListMap;
 });
 
+jest.mock('../booking-links/booking-links', () => ({
+  __esModule: true,
+  default: ({ name, category }: { name: string; category: string | null }) => (
+    <div data-testid="booking-links" data-name={name} data-category={category ?? ''} />
+  ),
+}));
+
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 
@@ -406,5 +413,51 @@ describe('MyList — map toggle', () => {
     render(<MyList listId="list-1" listName="My List" />);
 
     expect(screen.queryByRole('button', { name: /show map|hide map/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('MyList — booking links', () => {
+  it('renders BookingLinks for each incomplete item', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    const bookingLinks = screen.getAllByTestId('booking-links');
+    expect(bookingLinks).toHaveLength(TODO_ITEMS.length);
+  });
+
+  it('passes the item name and category to BookingLinks', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: TODO_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    const [firstLinks] = screen.getAllByTestId('booking-links');
+    expect(firstLinks).toHaveAttribute('data-name', 'British Museum');
+    expect(firstLinks).toHaveAttribute('data-category', 'museum');
+  });
+
+  it('does not render BookingLinks for completed items', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    expect(screen.queryByTestId('booking-links')).not.toBeInTheDocument();
+  });
+
+  it('renders BookingLinks only for incomplete items when list has a mix', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({
+      loading: false,
+      data: { listItems: [...TODO_ITEMS, ...DONE_ITEMS] },
+      error: undefined,
+    });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    const bookingLinks = screen.getAllByTestId('booking-links');
+    expect(bookingLinks).toHaveLength(TODO_ITEMS.length);
   });
 });

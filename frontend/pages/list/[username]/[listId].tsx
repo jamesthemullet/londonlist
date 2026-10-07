@@ -13,7 +13,10 @@ import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
 
-const ListMap = dynamic(() => import('../../../components/map/list-map'), { ssr: false });
+const ListMap = dynamic(() => import('../../../components/map/list-map'), {
+  ssr: false,
+  loading: () => <div className={styles.mapLoader} role="status" aria-label="Map loading">Loading map…</div>,
+});
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
@@ -507,7 +510,14 @@ export default function PublicListPage({ pageState, listData, username, listId, 
               ? "Sign up free to copy this list and track your own London adventures."
               : "Build your own London bucket list — it’s free."}
           </p>
-          <Link href="/register?ref=copy-list" className={styles.conversionCta}>
+          <Link
+            href={
+              items.length > 0
+                ? `/register?ref=copy-list&srcUsername=${encodeURIComponent(username)}&srcListId=${encodeURIComponent(listId)}`
+                : '/register'
+            }
+            className={styles.conversionCta}
+          >
             {items.length > 0 ? "Copy this list" : "Create your list"}
           </Link>
         </aside>
