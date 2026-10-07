@@ -6,6 +6,7 @@ import Loader from '../Loader';
 import MilestoneCelebration from '../milestone-celebration/milestone-celebration';
 import ProgressBar from '../progress-bar/progress-bar';
 import StreakBadge from '../streak-badge/streak-badge';
+import BookingLinks from '../booking-links/booking-links';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import { useStreak } from '../../hooks/use-streak';
 import styles from './my-list.module.css';
@@ -391,6 +392,7 @@ export function ListItemRow({ item, onToggle, onDelete, onSaveNotes }: ListItemR
           )}
         </div>
       )}
+      {!item.completed && <BookingLinks name={item.name} category={item.category} />}
     </li>
   );
 }
