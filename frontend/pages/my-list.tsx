@@ -1,16 +1,17 @@
 import { gql } from '@apollo/client';
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
-import MyList from '../components/my-list/my-list';
+import MyList, { GET_MY_LIST } from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import { usePlanLimits } from '../hooks/use-plan-limits';
+import { buildCsvString, triggerCsvDownload } from '../lib/export-csv';
 import styles from './my-list.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
@@ -165,6 +166,7 @@ export default function MyListPage() {
   const [copied, setCopied] = useState(false);
   const [createListError, setCreateListError] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const newListInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -198,6 +200,18 @@ export default function MyListPage() {
     context: { headers: authHeader },
     refetchQueries: [{ query: GET_MY_LISTS, context: { headers: authHeader } }],
   });
+
+  const [fetchListItemsForExport] = useLazyQuery<{
+    listItems: Array<{
+      name: string;
+      category: string | null;
+      completed: boolean;
+      visitedAt: string | null;
+      notes: string | null;
+      lat: number | null;
+      lng: number | null;
+    }>;
+  }>(GET_MY_LIST, { context: { headers: authHeader } });
 
   const lists = data?.myLists ?? [];
 
@@ -326,6 +340,25 @@ export default function MyListPage() {
 
   const handleCancelDelete = () => {
     setIsConfirmingDelete(false);
+  };
+
+  const handleExportCsv = async () => {
+    if (!activeList) return;
+    if (!user?.isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const result = await fetchListItemsForExport({
+        variables: { listDocumentId: activeList.documentId },
+      });
+      const items = result.data?.listItems ?? [];
+      const csv = buildCsvString(items, activeList.name);
+      triggerCsvDownload(csv, activeList.name);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleCopyLink = async () => {
@@ -655,6 +688,15 @@ export default function MyListPage() {
               <div className={styles.listActions}>
                 <button type="button" className={styles.actionButton} onClick={handleOpenRename}>
                   Rename list
+                </button>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={handleExportCsv}
+                  disabled={isExporting}
+                  aria-label={user?.isPro ? 'Export list as CSV' : 'Export list as CSV — Pro feature'}
+                >
+                  {isExporting ? 'Exporting…' : user?.isPro ? 'Export as CSV' : 'Export as CSV ✦'}
                 </button>
                 {lists.length > 1 && (
                   <button

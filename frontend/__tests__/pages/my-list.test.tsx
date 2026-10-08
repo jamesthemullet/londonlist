@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
-import { useQuery, useMutation } from '@apollo/client/react';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client/react';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../context/AppContext';
 import MyListPage from '../../pages/my-list';
@@ -7,6 +7,7 @@ import MyListPage from '../../pages/my-list';
 jest.mock('@apollo/client/react', () => ({
   useQuery: jest.fn(),
   useMutation: jest.fn(),
+  useLazyQuery: jest.fn(),
 }));
 
 jest.mock('@apollo/client', () => ({
@@ -63,6 +64,7 @@ jest.mock('../../components/upgrade-modal/upgrade-modal', () => ({
 
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
+const mockUseLazyQuery = useLazyQuery as unknown as jest.Mock;
 const mockUseAppContext = useAppContext as jest.Mock;
 const mockUseRouter = useRouter as jest.Mock;
 
@@ -108,6 +110,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockUseRouter.mockReturnValue(MOCK_ROUTER);
   mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+  mockUseLazyQuery.mockReturnValue([jest.fn(), {}]);
 });
 
 describe('MyListPage — auth', () => {
