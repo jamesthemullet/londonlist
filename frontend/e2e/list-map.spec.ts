@@ -69,7 +69,7 @@ test.describe('Leaflet list map', () => {
         await expect(popup).toContainText('○ To do');
         return;
       }
-      await page.keyboard.press('Escape');
+      await page.locator('.leaflet-container').click({ position: { x: 5, y: 5 } });
       await expect(popup).toBeHidden({ timeout: 3000 });
     }
     throw new Error('Tate Modern marker not found');
@@ -92,7 +92,7 @@ test.describe('Leaflet list map', () => {
         await expect(popup).toContainText('✓ Done');
         return;
       }
-      await page.keyboard.press('Escape');
+      await page.locator('.leaflet-container').click({ position: { x: 5, y: 5 } });
       await expect(popup).toBeHidden({ timeout: 3000 });
     }
     throw new Error('Borough Market marker not found');
