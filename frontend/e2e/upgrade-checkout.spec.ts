@@ -12,6 +12,7 @@ const MOCK_USER = {
 };
 
 const makeMockList = (n: number) => ({
+  __typename: 'List',
   documentId: `list_${n}`,
   name: `List ${n}`,
   description: null,
