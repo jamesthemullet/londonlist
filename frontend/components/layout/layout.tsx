@@ -13,7 +13,7 @@ const crimsonText = Crimson_Text({ weight: '400', subsets: ['latin'] });
 import styles from './layout.module.css';
 
 function Navigation() {
-  const { user, setUser } = useAppContext();
+  const { user, setUser, initialized } = useAppContext();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -71,7 +71,9 @@ function Navigation() {
           ref={menuRef}
           className={`${styles.navMenu} ${menuOpen ? styles.navMenuOpen : ''}`}
         >
-          {user ? (
+          {!initialized ? (
+            <div className={styles.navLinks} aria-hidden="true" />
+          ) : user ? (
             <div className={styles.navLinks}>
               <Link href="/my-list" onClick={() => setMenuOpen(false)}>My List</Link>
               <Link href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
