@@ -32,7 +32,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
 export default function TestListMapPage() {
   return (
-    <main style={{ padding: '16px' }}>
+    <main style={{ padding: '16px', width: '100%' }}>
       <ListMap items={TEST_ITEMS} />
     </main>
   );
