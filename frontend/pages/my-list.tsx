@@ -27,10 +27,6 @@ type List = {
 
 type MyListsData = {
   myLists: List[];
-  planLimits: {
-    freeListLimit: number;
-    freeItemLimit: number;
-  };
 };
 
 const LIST_FIELDS_FRAGMENT = gql`
@@ -49,10 +45,6 @@ export const GET_MY_LISTS = gql`
       ...ListFields
       itemCount
       completedCount
-    }
-    planLimits {
-      freeListLimit
-      freeItemLimit
     }
   }
   ${LIST_FIELDS_FRAGMENT}
@@ -208,8 +200,6 @@ export default function MyListPage() {
   });
 
   const lists = data?.myLists ?? [];
-  const freeListLimit = data?.planLimits?.freeListLimit ?? FREE_LIST_LIMIT;
-  const freeItemLimit = data?.planLimits?.freeItemLimit ?? FREE_ITEM_LIMIT;
 
   useEffect(() => {
     if (!listsLoading && lists.length === 0 && initialized && user && !hasAutoCreated.current) {
