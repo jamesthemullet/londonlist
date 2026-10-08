@@ -52,7 +52,7 @@ beforeEach(() => {
   mockReplace.mockReset();
   mockSetUser.mockReset();
   mockCookieSet.mockReset();
-  mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace });
+  mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace, query: {} });
   mockUseAppContext.mockReturnValue({ user: null, setUser: mockSetUser, initialized: true });
   mockUseMutation.mockReturnValue([jest.fn(), { loading: false, error: null }]);
 });
@@ -273,5 +273,85 @@ describe('RegisterRoute — already logged-in redirect', () => {
   it('does not redirect when user is null', () => {
     render(<RegisterRoute />);
     expect(mockReplace).not.toHaveBeenCalled();
+  });
+});
+
+describe('RegisterRoute — copy-list flow', () => {
+  const fakeUser = {
+    id: '1',
+    documentId: 'doc-1',
+    username: 'londonexplorer',
+    email: 'bob@test.com',
+    isPro: false,
+  };
+
+  it('calls copyPublicList mutation when ref=copy-list params are present', async () => {
+    const mockMutationFn = jest.fn()
+      .mockResolvedValueOnce({ data: { register: { jwt: 'reg-jwt', user: fakeUser } } })
+      .mockResolvedValueOnce({ data: {} });
+
+    mockUseMutation.mockReturnValue([mockMutationFn, { loading: false, error: null }]);
+
+    mockUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: mockReplace,
+      query: { ref: 'copy-list', srcUsername: 'alice', srcListId: 'list-abc' },
+    });
+
+    render(<RegisterRoute />);
+
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
+
+    await waitFor(() => {
+      expect(mockMutationFn).toHaveBeenCalledWith({
+        variables: { sourceDocumentId: 'list-abc', sourceUsername: 'alice' },
+        context: { headers: { Authorization: 'Bearer reg-jwt' } },
+      });
+    });
+  });
+
+  it('still redirects to /my-list if the copy mutation fails', async () => {
+    const mockMutationFn = jest.fn()
+      .mockResolvedValueOnce({ data: { register: { jwt: 'reg-jwt', user: fakeUser } } })
+      .mockRejectedValueOnce(new Error('List is private'));
+
+    mockUseMutation.mockReturnValue([mockMutationFn, { loading: false, error: null }]);
+
+    mockUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: mockReplace,
+      query: { ref: 'copy-list', srcUsername: 'alice', srcListId: 'list-abc' },
+    });
+
+    render(<RegisterRoute />);
+
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/my-list');
+    });
+  });
+
+  it('does not call copyPublicList when ref is not copy-list', async () => {
+    const mockMutationFn = jest.fn().mockResolvedValue({
+      data: { register: { jwt: 'reg-jwt', user: fakeUser } },
+    });
+
+    mockUseMutation.mockReturnValue([mockMutationFn, { loading: false, error: null }]);
+
+    render(<RegisterRoute />);
+
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/my-list');
+    });
+    expect(mockMutationFn).toHaveBeenCalledTimes(1);
+    expect(mockMutationFn).toHaveBeenCalledWith({
+      variables: { username: 'londonexplorer', email: 'bob@test.com', password: 'password123' },
+    });
   });
 });
