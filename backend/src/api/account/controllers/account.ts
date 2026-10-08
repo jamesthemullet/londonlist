@@ -1,9 +1,9 @@
+import { requireAuth } from '../../../lib/auth';
+
 export default {
   async deleteAccount(ctx) {
-    const user = ctx.state.user as { id: number } | undefined;
-    if (!user) {
-      return ctx.unauthorized('Authentication required');
-    }
+    const user = requireAuth(ctx);
+    if (!user) return;
 
     const lists = await strapi.db.query('api::list.list').findMany({
       where: { user: { id: user.id } },
