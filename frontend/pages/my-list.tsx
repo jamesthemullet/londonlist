@@ -211,7 +211,7 @@ export default function MyListPage() {
       lat: number | null;
       lng: number | null;
     }>;
-  }>(GET_MY_LIST, { context: { headers: authHeader } });
+  }>(GET_MY_LIST);
 
   const lists = data?.myLists ?? [];
 
@@ -352,6 +352,7 @@ export default function MyListPage() {
     try {
       const result = await fetchListItemsForExport({
         variables: { listDocumentId: activeList.documentId },
+        context: { headers: authHeader },
       });
       const items = result.data?.listItems ?? [];
       const csv = buildCsvString(items, activeList.name);
