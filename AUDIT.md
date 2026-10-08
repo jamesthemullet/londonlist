@@ -51,7 +51,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 - [x] `frontend/README.md` is unmodified `create-next-app` boilerplate — doesn't describe London List, its map/list features, or the Strapi backend it depends on (found: 2026-09-01) (fixed: 2026-09-23)
 - [x] `backend/README.md` is unmodified default Strapi boilerplate — doesn't describe London List's actual content types or how it fits the frontend (found: 2026-09-01) (fixed: 2026-09-27)
-- [ ] The `attraction` Strapi content type (`backend/src/api/attraction/` — full schema, controller, route, service) appears to have no corresponding GraphQL query/usage anywhere in `frontend/` — confirm whether it's still needed or should be removed/wired up (found: 2026-09-01)
+- [x] The `attraction` Strapi content type (`backend/src/api/attraction/` — full schema, controller, route, service) appears to have no corresponding GraphQL query/usage anywhere in `frontend/` — confirm whether it's still needed or should be removed/wired up (found: 2026-09-01) (fixed: 2026-10-08 — confirmed no frontend usage and no custom backend logic; deleted `backend/src/api/attraction/` entirely)
 
 ## 8. Code quality
 
