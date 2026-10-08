@@ -61,11 +61,11 @@ export default function ListMap({ items }: Props) {
   const LONDON_CENTER: [number, number] = [51.5074, -0.1278];
 
   return (
+    <div aria-label="Map showing list places">
     <MapContainer
       center={LONDON_CENTER}
       zoom={12}
       style={{ height: '320px', width: '100%', borderRadius: '8px' }}
-      aria-label="Map showing list places"
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -89,5 +89,6 @@ export default function ListMap({ items }: Props) {
       ))}
       <FitBounds items={items} />
     </MapContainer>
+    </div>
   );
 }
