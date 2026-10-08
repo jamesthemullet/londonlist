@@ -10,6 +10,7 @@ import PlaceSearch from '../components/search/place-search';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
+import { usePlanLimits } from '../hooks/use-plan-limits';
 import styles from './my-list.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
@@ -32,14 +33,20 @@ type MyListsData = {
   };
 };
 
+const LIST_FIELDS_FRAGMENT = gql`
+  fragment ListFields on List {
+    documentId
+    name
+    description
+    isPublic
+    viewCount
+  }
+`;
+
 export const GET_MY_LISTS = gql`
   query GetMyLists {
     myLists {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
       itemCount
       completedCount
     }
@@ -48,30 +55,25 @@ export const GET_MY_LISTS = gql`
       freeItemLimit
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const CREATE_MY_LIST = gql`
   mutation CreateMyList($name: String!) {
     createMyList(name: $name) {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const UPDATE_MY_LIST = gql`
   mutation UpdateMyList($documentId: ID!, $name: String, $isPublic: Boolean, $description: String) {
     updateMyList(documentId: $documentId, name: $name, isPublic: $isPublic, description: $description) {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const DELETE_MY_LIST = gql`
@@ -79,9 +81,6 @@ const DELETE_MY_LIST = gql`
     deleteMyList(documentId: $documentId)
   }
 `;
-
-const FREE_LIST_LIMIT = 3;
-const FREE_ITEM_LIMIT = 20;
 
 function ProStatsCard({ lists, isPro }: { lists: List[]; isPro: boolean }) {
   const publicLists = lists.filter((l) => l.isPublic);
@@ -183,6 +182,8 @@ export default function MyListPage() {
       router.push('/login');
     }
   }, [initialized, user, router]);
+
+  const { freeListLimit, freeItemLimit } = usePlanLimits();
 
   const { data, loading: listsLoading } = useQuery<MyListsData>(GET_MY_LISTS, {
     context: { headers: authHeader },
