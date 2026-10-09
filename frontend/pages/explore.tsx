@@ -18,6 +18,7 @@ type PublicList = {
   itemCount: number;
   viewCount?: number;
   categories: string[];
+  isFeatured?: boolean;
 };
 
 type Props = {
@@ -195,8 +196,13 @@ export default function ExplorePage({ lists }: Props) {
                 <li key={list.documentId}>
                   <Link
                     href={`/list/${list.username}/${list.documentId}`}
-                    className={styles.card}
+                    className={list.isFeatured ? `${styles.card} ${styles.cardFeatured}` : styles.card}
                   >
+                    {list.isFeatured && (
+                      <span className={styles.featuredBadge} aria-hidden="true">
+                        Featured
+                      </span>
+                    )}
                     <span className={styles.listName}>{list.name}</span>
                     {list.description && (
                       <span className={styles.listDescription}>{list.description}</span>
@@ -224,6 +230,18 @@ export default function ExplorePage({ lists }: Props) {
               ))}
             </ul>
           </>
+        )}
+
+        {initialized && user && !user.isPro && (
+          <aside className={styles.proNudge}>
+            <p className={styles.proNudgeText}>
+              Want your lists to stand out?{' '}
+              <Link href="/pricing?ref=explore-nudge" className={styles.proNudgeLink}>
+                Upgrade to Pro
+              </Link>{' '}
+              to get a Featured badge on all your public lists.
+            </p>
+          </aside>
         )}
       </main>
     </>

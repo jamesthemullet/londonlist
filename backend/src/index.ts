@@ -182,6 +182,11 @@ export default {
               });
             },
           },
+          planLimits: {
+            resolve() {
+              return { freeListLimit: FREE_LIST_LIMIT, freeItemLimit: FREE_ITEM_LIMIT };
+            },
+          },
           listSettings: {
             async resolve(_parent, _args, context) {
               const user = requireUser(context);
