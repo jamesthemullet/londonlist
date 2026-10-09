@@ -252,3 +252,52 @@
 .backLink:hover {
   color: #111;
 }
+
+.cardFeatured {
+  border-color: #c8a400;
+  background: #fffdf0;
+}
+
+.cardFeatured:hover {
+  border-color: #a08200;
+  background: #fffbe6;
+}
+
+.featuredBadge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7a5c00;
+  background: #fef3c0;
+  border: 1px solid #d4a800;
+  border-radius: 4px;
+  padding: 0.1rem 0.45rem;
+  align-self: flex-start;
+  margin-bottom: 0.1rem;
+}
+
+.proNudge {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.875rem 1.25rem;
+  background: #f8fafc;
+}
+
+.proNudgeText {
+  font-size: 0.875rem;
+  color: #555;
+  margin: 0;
+}
+
+.proNudgeLink {
+  font-weight: 600;
+  color: #1a56db;
+  text-decoration: underline;
+}
+
+.proNudgeLink:hover {
+  color: #1239ab;
+}

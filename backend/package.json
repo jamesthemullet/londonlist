@@ -45,7 +45,7 @@
     "ajv": ">=8.18.0",
     "markdown-it": ">=14.1.1",
     "picomatch": ">=2.3.2",
-    "handlebars": ">=4.7.9",
+    "handlebars": ">=4.7.10",
     "undici": ">=6.21.1 <8.0.0",
     "@koa/router/path-to-regexp": "^8.0.0",
     "lodash": ">=4.18.0",
@@ -60,7 +60,11 @@
     "sharp": ">=0.35.0",
     "postcss": ">=8.5.18",
     "brace-expansion": ">=5.0.8",
-    "ip-address": ">=10.3.1"
+    "ip-address": ">=10.3.1",
+    "axios": ">=1.20.0",
+    "browserslist": ">=4.28.7",
+    "@graphql-tools/utils": ">=12.0.1",
+    "webpack-dev-middleware": ">=7.4.6 <8.0.0"
   },
   "author": {
     "name": "A Strapi developer"

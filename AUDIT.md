@@ -7,7 +7,6 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## Run log
 
 - 2026-09-01 — initial audit: 34 findings (5 test coverage, 5 SEO, 4 responsive/UX, 5 security, 5 README/alignment, 7 code quality, 3 performance)
-- 2026-09-19 — housekeeping pass: checked off 5 findings already fixed in code (login/reset-password titles, pricing OG tags, GraphQL playground config, meta.tsx commented code); fixed Leaflet map CSS loading on hard navigation
 
 ## 1. Test coverage — unit gaps and e2e
 
@@ -24,7 +23,8 @@ audit adds new findings to the bottom of each section and leaves checked items a
 ## 2. Accessibility
 
 - [x] List page (`pages/list/[username]/[listId].tsx`) `<h1>` renders as a bare number (e.g. "2") when no descriptive list name is set — screen-reader users navigating by heading get no context; default to something like "Untitled list" when name is empty (found: 2026-09-01) (fixed: 2026-09-09)
-- [ ] `pages/museum/[id].tsx` error state ("Error Loading Exhibitions") has no heading semantics, no retry action, and no link back to Explore when the GraphQL query fails — see also item under Responsive/UX below (found: 2026-09-01)
+- [x] `pages/museum/[id].tsx` error state ("Error Loading Exhibitions") has no heading semantics, no retry action, and no link back to Explore when the GraphQL query fails — see also item under Responsive/UX below (found: 2026-09-01) (fixed: 2026-10-04 — finding is moot: `pages/museum/[id].tsx` was deleted as unreachable dead code in commit `b0c527f` (2026-09-12, "Remove orphaned museum page and its tests"), which also dropped this exact line from `AUDIT.md`; a later merge of a stale branch re-introduced the line even though the page it describes no longer exists. Confirmed via `git log --diff-filter=D -- frontend/pages/museum*` and a repo-wide search for `museum`/`Error Loading Exhibitions`, both showing no trace of the page or its error state in the current codebase)
+- [x] `pages/museum/[id].tsx` error state ("Error Loading Exhibitions") has no heading semantics, no retry action, and no link back to Explore when the GraphQL query fails — see also item under Responsive/UX below (found: 2026-09-01) (fixed: page no longer exists as of 2026-10-02 re-check; finding is moot)
 
 ## 3. Performance
 
@@ -33,8 +33,8 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 4. SEO / metadata
 
-- [x] `frontend/pages/login.tsx` and `reset-password.tsx` have no `<Head>`/title override, falling back to the generic "London List" title — add short per-page titles (e.g. "Log in — London List") for browser tab/history clarity (found: 2026-09-01) (fixed: 2026-09-19 — both pages already had `<Head>` with per-page title and meta description; finding was stale)
-- [x] `frontend/pages/pricing.tsx:117-123` has a `<title>` but no meta description or OG tags, unlike every other content page — add them for consistency (found: 2026-09-01) (fixed: 2026-09-19 — pricing.tsx already had full `<Head>` with description, OG and Twitter card tags; finding was stale)
+- [x] `frontend/pages/login.tsx` and `reset-password.tsx` have no `<Head>`/title override, falling back to the generic "London List" title — add short per-page titles (e.g. "Log in — London List") for browser tab/history clarity (found: 2026-09-01) (fixed: already present when re-checked 2026-10-02)
+- [x] `frontend/pages/pricing.tsx:117-123` has a `<title>` but no meta description or OG tags, unlike every other content page — add them for consistency (found: 2026-09-01) (fixed: already present when re-checked 2026-10-02)
 
 ## 5. Responsive / UX
 
@@ -44,9 +44,9 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 6. Security
 
-- [x] `backend/config/env/production/plugins.js:6-11` sets `playgroundAlways: true` and `apolloServer.introspection: true`, exposing the full GraphQL schema and an interactive query UI at `/graphql` in production — set `playgroundAlways: false` and `introspection: env('NODE_ENV') !== 'production'` (found: 2026-09-01) (fixed: 2026-09-19 — file already had `playgroundAlways: false` and `introspection: false`; finding was stale)
-- [x] `backend/config/middlewares.ts:1,15,19` — CORS falls back to `http://localhost:3000` and to `allowedOrigins[0]` if `FRONTEND_URL` is unset in production; add a startup assertion so a misconfigured prod deploy fails loudly instead of silently allowing localhost (found: 2026-09-01) (fixed: 2026-09-16)
-- [ ] Backend `yarn audit` reports 29 issues (8 High, 12 Moderate, 9 Low), all transitive via `@strapi/strapi > ... > browserslist` (advisories 1153171/1153172, unbounded memory growth / prototype-write crash from untrusted `browserslist-stats.json`) — build-tool-time only, not runtime-reachable from user input, but track for resolution via a Strapi/browserslist upgrade (found: 2026-09-01)
+- [x] `backend/config/env/production/plugins.js:6-11` sets `playgroundAlways: true` and `apolloServer.introspection: true`, exposing the full GraphQL schema and an interactive query UI at `/graphql` in production — set `playgroundAlways: false` and `introspection: env('NODE_ENV') !== 'production'` (found: 2026-09-01) (fixed: already `playgroundAlways: false` and `introspection: false` when re-checked 2026-10-02)
+- [x] `backend/config/middlewares.ts:1,15,19` — CORS falls back to `http://localhost:3000` and to `allowedOrigins[0]` if `FRONTEND_URL` is unset in production; add a startup assertion so a misconfigured prod deploy fails loudly instead of silently allowing localhost (found: 2026-09-01) (fixed: `bootstrap` function in `backend/src/index.ts:399-404` already throws when `NODE_ENV === 'production'` and `FRONTEND_URL` is not set, when re-checked 2026-10-02)
+- [x] Backend `yarn audit` reports 29 issues (8 High, 12 Moderate, 9 Low), all transitive via `@strapi/strapi > ... > browserslist` (advisories 1153171/1153172, unbounded memory growth / prototype-write crash from untrusted `browserslist-stats.json`) — build-tool-time only, not runtime-reachable from user input, but track for resolution via a Strapi/browserslist upgrade (found: 2026-09-01) (fixed: 2026-10-08 — finding is moot: commit `43c9786` ("Fix high-severity yarn audit findings", 2026-10-07) added a `browserslist: ">=4.28.7"` yarn resolution to `backend/package.json`, independently of this checklist. Confirmed via `yarn audit --json` that zero advisories now name `browserslist` as the affected module; the 19 advisories remaining are unrelated transitive issues in `handlebars`, `qs`, `sprintf-js`, `braces`, `yaml`, `stream-json`, `postcss-selector-parser`, `dompurify`, `@babel/core`, `uuid`, and `@apollo/server`)
 
 ## 7. README / feature alignment
 
@@ -56,9 +56,9 @@ audit adds new findings to the bottom of each section and leaves checked items a
 
 ## 8. Code quality
 
-- [ ] `backend/src/api/account/controllers/account.ts:3,15,21`, `backend/src/api/list/controllers/list.ts` (9 occurrences incl. `as unknown as never` at line 114), and `backend/src/api/stripe/controllers/stripe.ts:28,33,62,67,82,97` rely on repeated inline `as {...}` casts of `ctx.state.user`/`ctx.request.body` instead of Strapi's generated types — introduce a shared `AuthenticatedUser` type and typed body helper (one small PR per file) (found: 2026-09-01)
+- [x] `backend/src/api/account/controllers/account.ts:3,15,21`, `backend/src/api/list/controllers/list.ts` (9 occurrences incl. `as unknown as never` at line 114), and `backend/src/api/stripe/controllers/stripe.ts:28,33,62,67,82,97` rely on repeated inline `as {...}` casts of `ctx.state.user`/`ctx.request.body` instead of Strapi's generated types — introduce a shared `AuthenticatedUser` type and typed body helper (one small PR per file) (found: 2026-09-01) (fixed: 2026-10-03 — added `backend/src/lib/auth.ts` with `AuthenticatedUser` type and `requireAuth` helper; updated account, stripe, and list-setting controllers; `as unknown as never` in list.ts kept with its existing comment explaining the Strapi type-generation lag)
 - [x] Identical `strapi.db.query('plugin::users-permissions.user').findMany({ where: { username } })` lookup is duplicated in `backend/src/api/list/controllers/list.ts:49,87` and `backend/src/api/list-setting/controllers/list-setting.ts:25` — extract to a shared `findUserByUsername` service helper (found: 2026-09-01) (fixed: 2026-09-18 — extracted to `backend/src/lib/find-user-by-username.ts` with unit tests; both controllers updated)
 - [x] `FREE_LIST_LIMIT = 3` / `FREE_ITEM_LIMIT = 20` are independently declared in `backend/src/index.ts:11-12` and `frontend/pages/my-list.tsx:71-72` and can silently drift — centralize via a shared config/API endpoint (found: 2026-09-01) (fixed: 2026-09-23 — extracted to `backend/src/lib/plan-limits.ts`; backend exposes a `planLimits` GraphQL query; frontend uses a `usePlanLimits` hook that fetches from it, falling back to defaults while loading)
 - [x] `GET_MY_LISTS`/`CREATE_MY_LIST`/`UPDATE_MY_LIST` in `frontend/pages/my-list.tsx:28-63` all request the same list fields (`documentId, name, description, isPublic, viewCount`) — extract to a shared Apollo fragment (found: 2026-09-01)
 - [x] `SITE_URL` fallback is copy-pasted across 7 files; 6 correctly fall back to `https://londonlist.vercel.app` but `frontend/pages/list/[username]/[listId].tsx:18` falls back to `https://londonlist.co.uk` — a domain the project does not own. Fix the one-line mismatch and consider extracting `SITE_URL` to one shared constant module (also surfaced independently by the browser audit: share buttons on the list page build links using `londonlist.co.uk`) (found: 2026-09-01) (fixed: 2026-09-15 — `list/[username]/[listId].tsx` fallback was already correct by the time of this fix; the same copy-pasted mismatch had reappeared in `frontend/pages/templates/[id].tsx:13`, a page added after this finding was logged, and was corrected there)
-- [x] `frontend/components/meta/meta.tsx:3-23` has a 21-line commented-out `seoProps` type block no longer referenced anywhere — delete it (found: 2026-09-01) (fixed: 2026-09-19 — no commented-out code exists in the file; finding was stale)
+- [x] `frontend/components/meta/meta.tsx:3-23` has a 21-line commented-out `seoProps` type block no longer referenced anywhere — delete it (found: 2026-09-01) (fixed: already clean when re-checked 2026-10-02)
