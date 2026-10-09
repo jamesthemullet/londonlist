@@ -10,9 +10,10 @@ import PlaceSearch from '../components/search/place-search';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
+import { usePlanLimits } from '../hooks/use-plan-limits';
 import styles from './my-list.module.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.co.uk';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 type List = {
   documentId: string;
@@ -28,42 +29,43 @@ type MyListsData = {
   myLists: List[];
 };
 
+const LIST_FIELDS_FRAGMENT = gql`
+  fragment ListFields on List {
+    documentId
+    name
+    description
+    isPublic
+    viewCount
+  }
+`;
+
 export const GET_MY_LISTS = gql`
   query GetMyLists {
     myLists {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
       itemCount
       completedCount
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const CREATE_MY_LIST = gql`
   mutation CreateMyList($name: String!) {
     createMyList(name: $name) {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const UPDATE_MY_LIST = gql`
   mutation UpdateMyList($documentId: ID!, $name: String, $isPublic: Boolean, $description: String) {
     updateMyList(documentId: $documentId, name: $name, isPublic: $isPublic, description: $description) {
-      documentId
-      name
-      description
-      isPublic
-      viewCount
+      ...ListFields
     }
   }
+  ${LIST_FIELDS_FRAGMENT}
 `;
 
 const DELETE_MY_LIST = gql`
@@ -71,9 +73,6 @@ const DELETE_MY_LIST = gql`
     deleteMyList(documentId: $documentId)
   }
 `;
-
-const FREE_LIST_LIMIT = 3;
-const FREE_ITEM_LIMIT = 20;
 
 function ProStatsCard({ lists, isPro }: { lists: List[]; isPro: boolean }) {
   const publicLists = lists.filter((l) => l.isPublic);
@@ -176,6 +175,8 @@ export default function MyListPage() {
     }
   }, [initialized, user, router]);
 
+  const { freeListLimit, freeItemLimit } = usePlanLimits();
+
   const { data, loading: listsLoading } = useQuery<MyListsData>(GET_MY_LISTS, {
     context: { headers: authHeader },
     skip: !initialized || !user,
@@ -228,7 +229,7 @@ export default function MyListPage() {
   }, [isRenaming]);
 
   const activeList = lists.find((l) => l.documentId === activeListId) ?? null;
-  const isAtListLimit = !user?.isPro && lists.length >= FREE_LIST_LIMIT;
+  const isAtListLimit = !user?.isPro && lists.length >= freeListLimit;
   const activeItemCount = activeList?.itemCount ?? 0;
 
   const handleOpenNewList = () => {
@@ -367,9 +368,9 @@ export default function MyListPage() {
           >
             <p className={styles.upgradeBannerText}>
               <span className={styles.listCount}>
-                {lists.length}/{FREE_LIST_LIMIT} lists used
+                {lists.length}/{freeListLimit} lists used
               </span>
-              {lists.length >= FREE_LIST_LIMIT ? (
+              {lists.length >= freeListLimit ? (
                 <>
                   {' '}— Unlock unlimited lists with <strong>London List Pro</strong>.{' '}
                   <Link href="/pricing" className={styles.upgradeBannerLink}>
@@ -378,7 +379,7 @@ export default function MyListPage() {
                 </>
               ) : (
                 <>
-                  {' '}({FREE_LIST_LIMIT - lists.length} remaining on the free plan —{' '}
+                  {' '}({freeListLimit - lists.length} remaining on the free plan —{' '}
                   <Link href="/pricing" className={styles.upgradeBannerLink}>
                     upgrade for unlimited
                   </Link>
@@ -511,7 +512,7 @@ export default function MyListPage() {
                 listId={activeList.documentId}
                 itemCount={activeItemCount}
                 isPro={user?.isPro ?? false}
-                freeItemLimit={FREE_ITEM_LIMIT}
+                freeItemLimit={freeItemLimit}
                 onLimitReached={() => setShowUpgradeModal(true)}
               />
             </section>

@@ -1,3 +1,6 @@
+import { FREE_LIST_LIMIT, FREE_ITEM_LIMIT } from './lib/plan-limits';
+import { findUserByUsername } from './lib/find-user-by-username';
+
 function isOwnedBy(doc: unknown, userId: number): boolean {
   return ((doc as { user?: { id: number } | null } | null)?.user?.id) === userId;
 }
@@ -7,9 +10,6 @@ function requireUser(context: { state?: { user?: unknown } }) {
   if (!user) throw new Error('Forbidden access');
   return user;
 }
-
-const FREE_LIST_LIMIT = 3;
-const FREE_ITEM_LIMIT = 20;
 
 export default {
   register({ strapi }) {
@@ -26,20 +26,133 @@ export default {
           itemCount: Int
           completedCount: Int
         }
+        type PublicPlace {
+          osm_id: String!
+          name: String!
+          category: String
+          area: String
+          lat: Float
+          lng: Float
+        }
+        type PlanLimits {
+          freeListLimit: Int!
+          freeItemLimit: Int!
+        }
         extend type UsersPermissionsMe {
           isPro: Boolean
         }
         extend type Query {
           myLists: [ListEntity]
+          place(osm_id: String!): PublicPlace
+          placesByArea(area: String!): [PublicPlace]
+          relatedPlaces(osm_id: String!, limit: Int): [PublicPlace!]!
+          planLimits: PlanLimits!
         }
         extend type Mutation {
           createMyList(name: String!, description: String): ListEntity
           updateMyList(documentId: ID!, name: String, isPublic: Boolean, description: String): ListEntity
           deleteMyList(documentId: ID!): Boolean
+          copyPublicList(sourceDocumentId: ID!, sourceUsername: String!): ListEntity
         }
       `,
       resolvers: {
         Query: {
+          planLimits: {
+            resolve() {
+              return { freeListLimit: FREE_LIST_LIMIT, freeItemLimit: FREE_ITEM_LIMIT };
+            },
+          },
+          place: {
+            async resolve(_parent, args) {
+              const [item] = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { osm_id: { $eq: args.osm_id } },
+                sort: 'createdAt:asc',
+                limit: 1,
+              });
+
+              if (!item) return null;
+
+              return {
+                osm_id: item.osm_id,
+                name: item.name,
+                category: item.category ?? null,
+                area: item.area ?? null,
+                lat: item.lat ?? null,
+                lng: item.lng ?? null,
+              };
+            },
+          },
+          placesByArea: {
+            async resolve(_parent, args) {
+              const items = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { area: { $eq: args.area } },
+                sort: 'createdAt:asc',
+              });
+
+              const seen = new Set<string>();
+              const places: Array<{
+                osm_id: string;
+                name: string;
+                category: string | null;
+                area: string | null;
+                lat: number | null;
+                lng: number | null;
+              }> = [];
+
+              for (const item of items) {
+                if (seen.has(item.osm_id)) continue;
+                seen.add(item.osm_id);
+                places.push({
+                  osm_id: item.osm_id,
+                  name: item.name,
+                  category: item.category ?? null,
+                  area: item.area ?? null,
+                  lat: item.lat ?? null,
+                  lng: item.lng ?? null,
+                });
+              }
+
+              return places;
+            },
+          },
+          relatedPlaces: {
+            async resolve(_parent, args) {
+              const cap = Math.min(args.limit ?? 6, 12);
+
+              const [target] = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { osm_id: { $eq: args.osm_id } },
+                limit: 1,
+              });
+
+              if (!target?.category) return [];
+
+              const candidates = await strapi.documents('api::list-item.list-item').findMany({
+                filters: {
+                  category: { $eq: target.category },
+                  osm_id: { $ne: args.osm_id },
+                },
+                sort: 'createdAt:desc',
+              });
+
+              const seen = new Set<string>();
+              const results: { osm_id: string; name: string; category: string | null; lat: number | null; lng: number | null }[] = [];
+              for (const item of candidates) {
+                if (!seen.has(item.osm_id)) {
+                  seen.add(item.osm_id);
+                  results.push({
+                    osm_id: item.osm_id,
+                    name: item.name,
+                    category: item.category ?? null,
+                    lat: item.lat ?? null,
+                    lng: item.lng ?? null,
+                  });
+                  if (results.length >= cap) break;
+                }
+              }
+
+              return results;
+            },
+          },
           listItems: {
             async resolve(_parent, args, context) {
               const user = requireUser(context);
@@ -67,6 +180,11 @@ export default {
                 filters: { user: { id: { $eq: user.id } } },
                 sort: args.sort ?? 'createdAt:desc',
               });
+            },
+          },
+          planLimits: {
+            resolve() {
+              return { freeListLimit: FREE_LIST_LIMIT, freeItemLimit: FREE_ITEM_LIMIT };
             },
           },
           listSettings: {
@@ -286,6 +404,90 @@ export default {
 
               await strapi.documents('api::list.list').delete({ documentId: args.documentId });
               return true;
+            },
+          },
+          copyPublicList: {
+            async resolve(_parent, args, context) {
+              const user = requireUser(context);
+
+              const sourceUser = await findUserByUsername(strapi, args.sourceUsername);
+              if (!sourceUser) throw new Error('Source user not found');
+
+              const sourceList = await strapi.documents('api::list.list').findOne({
+                documentId: args.sourceDocumentId,
+                populate: ['user'],
+              });
+
+              if (!sourceList || !isOwnedBy(sourceList, sourceUser.id)) {
+                throw new Error('List not found');
+              }
+
+              if (!sourceList.isPublic) {
+                throw new Error('List is private');
+              }
+
+              const fullUser = await strapi.db
+                .query('plugin::users-permissions.user')
+                .findOne({ where: { id: user.id } });
+
+              const existingLists = await strapi.documents('api::list.list').findMany({
+                filters: { user: { id: { $eq: user.id } } },
+                fields: ['documentId'],
+              });
+
+              if (!fullUser?.isPro && existingLists.length >= FREE_LIST_LIMIT) {
+                const err = new Error('Free plan list limit reached') as Error & {
+                  extensions?: Record<string, unknown>;
+                };
+                err.extensions = { code: 'FREE_LIST_LIMIT_REACHED' };
+                throw err;
+              }
+
+              const typedSourceList = sourceList as typeof sourceList & {
+                description?: string | null;
+              };
+
+              const newList = await strapi.documents('api::list.list').create({
+                data: {
+                  name: sourceList.name,
+                  description: typedSourceList.description ?? null,
+                  isPublic: false,
+                  user: user.id,
+                } as unknown as never,
+              });
+
+              const sourceItems = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { list: { documentId: { $eq: args.sourceDocumentId } } },
+                sort: 'createdAt:asc',
+              });
+
+              const itemLimit = fullUser?.isPro ? sourceItems.length : FREE_ITEM_LIMIT;
+              const itemsToCopy = sourceItems.slice(0, itemLimit);
+
+              await Promise.all(
+                itemsToCopy.map((item) => {
+                  const typedItem = item as typeof item & { area?: string | null };
+                  return strapi.documents('api::list-item.list-item').create({
+                    data: {
+                      osm_id: item.osm_id,
+                      name: item.name,
+                      lat: item.lat ?? null,
+                      lng: item.lng ?? null,
+                      category: item.category ?? null,
+                      area: typedItem.area ?? null,
+                      completed: false,
+                      user: user.id,
+                      list: newList.documentId,
+                    } as unknown as never,
+                  });
+                }),
+              );
+
+              return {
+                ...newList,
+                itemCount: itemsToCopy.length,
+                completedCount: 0,
+              };
             },
           },
         },

@@ -36,6 +36,7 @@ const LISTS = [
     name: 'Weekend Wanders',
     username: 'alice',
     itemCount: 5,
+    viewCount: 20,
     categories: ['park', 'museum'],
   },
   {
@@ -43,6 +44,7 @@ const LISTS = [
     name: 'Museum Trail',
     username: 'bob',
     itemCount: 8,
+    viewCount: 100,
     categories: ['museum'],
   },
   {
@@ -50,6 +52,7 @@ const LISTS = [
     name: 'Hidden Gems',
     username: 'alice',
     itemCount: 3,
+    viewCount: 5,
     categories: ['restaurant', 'cafe'],
   },
 ];
@@ -147,6 +150,33 @@ describe('ExplorePage — item counts', () => {
     render(<ExplorePage lists={noCategories} />);
     // No category text like "park · museum" should appear in a card
     expect(screen.queryByText(/·/)).not.toBeInTheDocument();
+  });
+});
+
+describe('ExplorePage — view counts', () => {
+  it('shows view count on cards that have views', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByText('100 views')).toBeInTheDocument();
+    expect(screen.getByText('20 views')).toBeInTheDocument();
+    expect(screen.getByText('5 views')).toBeInTheDocument();
+  });
+
+  it('shows singular "view" when view count is 1', () => {
+    const oneView = [{ ...LISTS[0], viewCount: 1, categories: [] }];
+    render(<ExplorePage lists={oneView} />);
+    expect(screen.getByText('1 view')).toBeInTheDocument();
+  });
+
+  it('does not show view count when viewCount is 0', () => {
+    const noViews = [{ ...LISTS[0], viewCount: 0, categories: [] }];
+    render(<ExplorePage lists={noViews} />);
+    expect(screen.queryByText(/^\d+ views?$/)).not.toBeInTheDocument();
+  });
+
+  it('does not show view count when viewCount is missing', () => {
+    const noViewCount = [{ documentId: 'x', name: 'A List', username: 'u', itemCount: 2, categories: [] }];
+    render(<ExplorePage lists={noViewCount} />);
+    expect(screen.queryByText(/^\d+ views?$/)).not.toBeInTheDocument();
   });
 });
 
@@ -297,7 +327,7 @@ describe('ExplorePage — conversion CTA', () => {
 
   it('does not show CTA banner when user is logged in', () => {
     mockUseAppContext.mockReturnValue({
-      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice' },
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
       initialized: true,
     });
     render(<ExplorePage lists={LISTS} />);
@@ -308,6 +338,83 @@ describe('ExplorePage — conversion CTA', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: false });
     render(<ExplorePage lists={LISTS} />);
     expect(screen.queryByText(/build your own list/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('ExplorePage — Pro featured badge', () => {
+  const LISTS_WITH_FEATURED = [
+    { ...LISTS[0], isFeatured: true },
+    { ...LISTS[1], isFeatured: false },
+    { ...LISTS[2] },
+  ];
+
+  it('shows "Featured" badge on lists with isFeatured=true', () => {
+    render(<ExplorePage lists={LISTS_WITH_FEATURED} />);
+    expect(screen.getByText('Featured')).toBeInTheDocument();
+  });
+
+  it('shows only one "Featured" badge when only one list is featured', () => {
+    render(<ExplorePage lists={LISTS_WITH_FEATURED} />);
+    expect(screen.getAllByText('Featured')).toHaveLength(1);
+  });
+
+  it('does not show any featured badge when no lists are featured', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.queryByText('Featured')).not.toBeInTheDocument();
+  });
+
+  it('shows featured badge for every featured list', () => {
+    const allFeatured = LISTS.map((l) => ({ ...l, isFeatured: true }));
+    render(<ExplorePage lists={allFeatured} />);
+    expect(screen.getAllByText('Featured')).toHaveLength(3);
+  });
+
+  it('featured badge is aria-hidden (text is already visible)', () => {
+    render(<ExplorePage lists={LISTS_WITH_FEATURED} />);
+    const badge = screen.getByText('Featured');
+    expect(badge).toHaveAttribute('aria-hidden', 'true');
+  });
+});
+
+describe('ExplorePage — Pro upgrade nudge', () => {
+  it('shows upgrade nudge for logged-in non-Pro users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      initialized: true,
+    });
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByText(/upgrade to pro/i)).toBeInTheDocument();
+  });
+
+  it('upgrade nudge links to pricing with ref param', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      initialized: true,
+    });
+    render(<ExplorePage lists={LISTS} />);
+    const link = screen.getByText(/upgrade to pro/i).closest('a');
+    expect(link).toHaveAttribute('href', '/pricing?ref=explore-nudge');
+  });
+
+  it('does not show upgrade nudge for Pro users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: true },
+      initialized: true,
+    });
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show upgrade nudge for logged-out users', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true });
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show upgrade nudge before auth is initialized', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: false });
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
   });
 });
 
@@ -334,9 +441,9 @@ describe('deriveAllCategories', () => {
 
 describe('sortLists', () => {
   const input = [
-    { documentId: 'a', name: 'Zoos', username: 'x', itemCount: 2, categories: [] },
-    { documentId: 'b', name: 'Art Galleries', username: 'y', itemCount: 10, categories: [] },
-    { documentId: 'c', name: 'Markets', username: 'z', itemCount: 5, categories: [] },
+    { documentId: 'a', name: 'Zoos', username: 'x', itemCount: 2, viewCount: 50, categories: [] },
+    { documentId: 'b', name: 'Art Galleries', username: 'y', itemCount: 10, viewCount: 10, categories: [] },
+    { documentId: 'c', name: 'Markets', username: 'z', itemCount: 5, viewCount: 200, categories: [] },
   ];
 
   it('sorts by most-places descending', () => {
@@ -352,6 +459,20 @@ describe('sortLists', () => {
   it('sorts alphabetically by name', () => {
     const result = sortLists(input, 'alphabetical');
     expect(result.map((l) => l.name)).toEqual(['Art Galleries', 'Markets', 'Zoos']);
+  });
+
+  it('sorts by most-viewed descending', () => {
+    const result = sortLists(input, 'most-viewed');
+    expect(result.map((l) => l.viewCount)).toEqual([200, 50, 10]);
+  });
+
+  it('treats missing viewCount as 0 for most-viewed', () => {
+    const withMissing = [
+      { documentId: 'a', name: 'A', username: 'x', itemCount: 1, categories: [] },
+      { documentId: 'b', name: 'B', username: 'y', itemCount: 1, viewCount: 5, categories: [] },
+    ];
+    const result = sortLists(withMissing, 'most-viewed');
+    expect(result[0].viewCount).toBe(5);
   });
 
   it('does not mutate the original array', () => {
@@ -381,13 +502,14 @@ describe('ExplorePage — sort controls', () => {
     expect(select).toHaveValue('most-places');
   });
 
-  it('renders all three sort options', () => {
+  it('renders all four sort options including most-viewed', () => {
     render(<ExplorePage lists={LISTS} />);
     const options = screen.getAllByRole('option');
     const values = options.map((o) => (o as HTMLOptionElement).value);
     expect(values).toContain('most-places');
     expect(values).toContain('fewest-places');
     expect(values).toContain('alphabetical');
+    expect(values).toContain('most-viewed');
   });
 
   it('renders a visible "Sort by" label', () => {
@@ -438,6 +560,21 @@ describe('ExplorePage — sort controls', () => {
     const hiddenIdx = names.findIndex((n) => n?.includes('Hidden Gems'));
     const museumIdx = names.findIndex((n) => n?.includes('Museum Trail'));
     expect(hiddenIdx).toBeLessThan(museumIdx);
+  });
+
+  it('re-orders to most-viewed when selected (Museum Trail with 100 views appears first)', () => {
+    render(<ExplorePage lists={LISTS} />);
+    const select = screen.getByRole('combobox', { name: /sort lists/i });
+    fireEvent.change(select, { target: { value: 'most-viewed' } });
+    const cards = screen.getAllByRole('link').filter((el) =>
+      ['Weekend Wanders', 'Museum Trail', 'Hidden Gems'].some((name) =>
+        el.textContent?.includes(name),
+      ),
+    );
+    const names = cards.map((c) => c.textContent);
+    const museumIdx = names.findIndex((n) => n?.includes('Museum Trail'));
+    const hiddenIdx = names.findIndex((n) => n?.includes('Hidden Gems'));
+    expect(museumIdx).toBeLessThan(hiddenIdx);
   });
 
   it('applies sort after category filter', () => {

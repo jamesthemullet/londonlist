@@ -44,12 +44,18 @@
   font-size: 0.75rem;
   color: #555;
   font-weight: 500;
+  text-transform: capitalize;
 }
 
 .mapLink {
   align-self: flex-start;
   font-size: 0.875rem;
   color: #555;
+  text-decoration: none;
+}
+
+.mapLink:hover {
+  text-decoration: underline;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -59,6 +65,10 @@
 
   .breadcrumbLink {
     color: #999;
+  }
+
+  .breadcrumbSep {
+    color: #555;
   }
 
   .category {

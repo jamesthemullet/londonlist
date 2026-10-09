@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import { findUserByUsername } from '../../../lib/find-user-by-username';
 
 function isOwnedBy(doc: unknown, userId: number): boolean {
   return ((doc as { user?: { id: number } | null } | null)?.user?.id) === userId;
@@ -23,7 +24,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
     return {
       data: lists.map((list) => {
         const typedList = list as typeof list & {
-          user?: { username?: string } | null;
+          user?: { username?: string; isPro?: boolean } | null;
           viewCount?: number;
           description?: string | null;
           list_items?: { category?: string | null; completed?: boolean }[];
@@ -38,6 +39,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
           viewCount: typedList.viewCount ?? 0,
           itemCount: items.length,
           categories,
+          isFeatured: typedList.user?.isPro ?? false,
         };
       }),
     };
@@ -46,9 +48,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
   async getPublicListsByUsername(ctx) {
     const { username } = ctx.params;
 
-    const [user] = await strapi.db.query('plugin::users-permissions.user').findMany({
-      where: { username },
-    });
+    const user = await findUserByUsername(strapi, username);
 
     if (!user) {
       return ctx.notFound('User not found');
@@ -84,9 +84,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
   async getPublicList(ctx) {
     const { username, listId } = ctx.params;
 
-    const [user] = await strapi.db.query('plugin::users-permissions.user').findMany({
-      where: { username },
-    });
+    const user = await findUserByUsername(strapi, username);
 
     if (!user) {
       return ctx.notFound('User not found');

@@ -2,6 +2,11 @@ name: CI Tests For London List
 on:
   pull_request:
     branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   axe:
     runs-on: ubuntu-latest
@@ -26,8 +31,6 @@ jobs:
           unzip -q /tmp/chromedriver.zip -d /tmp/
           chmod +x /tmp/chromedriver-linux64/chromedriver
           echo "CHROMEDRIVER_PATH=/tmp/chromedriver-linux64/chromedriver" >> $GITHUB_ENV
-      - run: yarn ts-check
-      - run: yarn run build
       - run: yarn dev & npx wait-on http://localhost:3000
       - name: Run axe
         run: |

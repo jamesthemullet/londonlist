@@ -4,6 +4,7 @@ import { AppProvider } from '../context/AppContext';
 
 import Layout from '../components/layout/layout';
 import '../styles/globals.css';
+import 'leaflet/dist/leaflet.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 

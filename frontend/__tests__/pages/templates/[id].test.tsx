@@ -21,6 +21,18 @@ jest.mock('../../../hooks/use-auth-header', () => ({
   useAuthHeader: () => ({}),
 }));
 
+jest.mock('../../../components/upgrade-modal/upgrade-modal', () => ({
+  __esModule: true,
+  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
+    isOpen ? (
+      <div data-testid="upgrade-modal">
+        <button type="button" onClick={onClose}>
+          Close modal
+        </button>
+      </div>
+    ) : null,
+}));
+
 jest.mock('../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
 }));
@@ -177,14 +189,14 @@ describe('TemplateDetailPage — rendering', () => {
 describe('CopyButton — logged-out user', () => {
   it('shows sign-up CTA instead of copy button', () => {
     setupMocks({ user: null });
-    render(<CopyButton template={SAMPLE_TEMPLATE} />);
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={jest.fn()} />);
     expect(screen.getByRole('link', { name: /sign up free to copy/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /copy/i })).not.toBeInTheDocument();
   });
 
   it('sign-up link points to /register', () => {
     setupMocks({ user: null });
-    render(<CopyButton template={SAMPLE_TEMPLATE} />);
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={jest.fn()} />);
     const link = screen.getByRole('link', { name: /sign up free to copy/i }) as HTMLAnchorElement;
     expect(link.href).toContain('/register');
   });
@@ -193,7 +205,7 @@ describe('CopyButton — logged-out user', () => {
 describe('CopyButton — logged-in user', () => {
   it('renders the copy button', () => {
     setupMocks({ user: { username: 'alice', isPro: false } });
-    render(<CopyButton template={SAMPLE_TEMPLATE} />);
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={jest.fn()} />);
     expect(screen.getByRole('button', { name: /\+ copy this list/i })).toBeInTheDocument();
   });
 
@@ -204,7 +216,7 @@ describe('CopyButton — logged-in user', () => {
     const createListItemFn = jest.fn().mockResolvedValue({ data: {} });
     setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn, createListItemFn });
 
-    render(<CopyButton template={SAMPLE_TEMPLATE} />);
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={jest.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /\+ copy this list/i }));
 
     await waitFor(() => {
@@ -221,7 +233,7 @@ describe('CopyButton — logged-in user', () => {
     const createMyListFn = jest.fn().mockRejectedValue(new Error('Network error'));
     setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
 
-    render(<CopyButton template={SAMPLE_TEMPLATE} />);
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={jest.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /\+ copy this list/i }));
 
     await waitFor(() => {
@@ -229,12 +241,28 @@ describe('CopyButton — logged-in user', () => {
     });
   });
 
+  it('calls onLimitReached when FREE_LIST_LIMIT_REACHED error is returned', async () => {
+    const createMyListFn = jest.fn().mockRejectedValue({
+      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    });
+    const onLimitReached = jest.fn();
+    setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
+
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={onLimitReached} />);
+    fireEvent.click(screen.getByRole('button', { name: /\+ copy this list/i }));
+
+    await waitFor(() => {
+      expect(onLimitReached).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByText(/something went wrong/i)).not.toBeInTheDocument();
+  });
+
   it('shows copying… state while in-progress', () => {
     let resolve: (v: unknown) => void = () => {};
     const createMyListFn = jest.fn().mockReturnValue(new Promise((r) => { resolve = r; }));
     setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
 
-    render(<CopyButton template={SAMPLE_TEMPLATE} />);
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={jest.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /\+ copy this list/i }));
 
     expect(screen.getByRole('button', { name: /copying…/i })).toBeDisabled();
@@ -243,7 +271,7 @@ describe('CopyButton — logged-in user', () => {
 
   it('shows view lists link after successful copy', async () => {
     setupMocks({ user: { username: 'alice', isPro: false } });
-    render(<CopyButton template={SAMPLE_TEMPLATE} />);
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={jest.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /\+ copy this list/i }));
 
     await waitFor(() => {
@@ -258,12 +286,47 @@ describe('CopyButton — logged-in user', () => {
     });
     setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
 
-    render(<CopyButton template={SAMPLE_TEMPLATE} />);
+    render(<CopyButton template={SAMPLE_TEMPLATE} onLimitReached={jest.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /\+ copy this list/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
     });
+  });
+});
+
+describe('TemplateDetailPage — upgrade modal', () => {
+  it('shows upgrade modal when FREE_LIST_LIMIT_REACHED error is returned', async () => {
+    const createMyListFn = jest.fn().mockRejectedValue({
+      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    });
+    setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
+
+    render(<TemplateDetailPage template={SAMPLE_TEMPLATE} relatedTemplates={[]} />);
+    const copyButtons = screen.getAllByRole('button', { name: /\+ copy this list/i });
+    fireEvent.click(copyButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    });
+  });
+
+  it('dismisses upgrade modal when closed', async () => {
+    const createMyListFn = jest.fn().mockRejectedValue({
+      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    });
+    setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
+
+    render(<TemplateDetailPage template={SAMPLE_TEMPLATE} relatedTemplates={[]} />);
+    const copyButtons = screen.getAllByRole('button', { name: /\+ copy this list/i });
+    fireEvent.click(copyButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /close modal/i }));
+    expect(screen.queryByTestId('upgrade-modal')).not.toBeInTheDocument();
   });
 });
 

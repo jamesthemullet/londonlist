@@ -1,15 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { useQuery } from '@apollo/client/react';
-import { useRouter } from 'next/router';
-import PlaceDetailPage, { buildOsmId } from '../../../../pages/place/[type]/[id]';
-
-jest.mock('@apollo/client/react', () => ({
-  useQuery: jest.fn(),
-}));
-
-jest.mock('next/router', () => ({
-  useRouter: jest.fn(),
-}));
+import PlaceDetailPage, { buildPlaceJsonLd } from '../../../../pages/place/[type]/[id]';
 
 jest.mock('next/head', () => ({
   __esModule: true,
@@ -25,118 +15,130 @@ jest.mock('next/link', () => ({
   ),
 }));
 
-const mockUseQuery = useQuery as unknown as jest.Mock;
-const mockUseRouter = useRouter as jest.Mock;
+jest.mock('../../../../components/related-places/related-places', () => ({
+  __esModule: true,
+  default: ({ places }: { places: { osm_id: string; name: string }[] }) => (
+    <ul aria-label="related-places-mock">
+      {places.map((p) => (
+        <li key={p.osm_id}>{p.name}</li>
+      ))}
+    </ul>
+  ),
+}));
 
-function setupRouter(type: string | undefined, id: string | undefined) {
-  mockUseRouter.mockReturnValue({ query: { type, id } });
-}
+const MUSEUM = {
+  osm_id: 'relation/1525018',
+  name: 'British Museum',
+  category: 'museum',
+  lat: 51.519413,
+  lng: -0.126957,
+};
 
-afterEach(() => {
-  jest.resetAllMocks();
-});
+const MARKET = {
+  osm_id: 'way/60381740',
+  name: 'Borough Market',
+  category: 'market',
+  lat: 51.505,
+  lng: -0.091,
+};
 
-describe('buildOsmId', () => {
-  it('joins a type and id into an osm_id', () => {
-    expect(buildOsmId('relation', '1525018')).toBe('relation/1525018');
-  });
-
-  it('returns null when type is missing', () => {
-    expect(buildOsmId(undefined, '1525018')).toBeNull();
-  });
-
-  it('returns null when id is missing', () => {
-    expect(buildOsmId('relation', undefined)).toBeNull();
-  });
-
-  it('unwraps array query values', () => {
-    expect(buildOsmId(['relation'], ['1525018'])).toBe('relation/1525018');
-  });
-});
+const NO_COORDS = {
+  osm_id: 'node/123',
+  name: 'Mystery Spot',
+  category: null,
+  lat: null,
+  lng: null,
+};
 
 describe('PlaceDetailPage', () => {
-  it('shows a loader while the query is in flight', () => {
-    setupRouter('relation', '1525018');
-    mockUseQuery.mockReturnValue({ loading: true, error: undefined, data: undefined });
-    render(<PlaceDetailPage />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-  });
-
-  it('shows an error message when the query fails', () => {
-    setupRouter('relation', '1525018');
-    mockUseQuery.mockReturnValue({ loading: false, error: new Error('boom'), data: undefined });
-    render(<PlaceDetailPage />);
-    expect(screen.getByText('Error loading this place.')).toBeInTheDocument();
-  });
-
-  it('shows a not-found message when no place matches', () => {
-    setupRouter('relation', '1525018');
-    mockUseQuery.mockReturnValue({ loading: false, error: undefined, data: { place: null } });
-    render(<PlaceDetailPage />);
-    expect(screen.getByText('Place not found.')).toBeInTheDocument();
-  });
-
-  it('renders the place name as H1', () => {
-    setupRouter('relation', '1525018');
-    mockUseQuery.mockReturnValue({
-      loading: false,
-      error: undefined,
-      data: { place: { osm_id: 'relation/1525018', name: 'British Museum', category: 'museum', lat: 51.5, lng: -0.1 } },
-    });
-    render(<PlaceDetailPage />);
+  it('renders the place name as h1', () => {
+    render(<PlaceDetailPage place={MUSEUM} relatedPlaces={[]} />);
     expect(screen.getByRole('heading', { name: 'British Museum', level: 1 })).toBeInTheDocument();
   });
 
-  it('renders the category when present', () => {
-    setupRouter('relation', '1525018');
-    mockUseQuery.mockReturnValue({
-      loading: false,
-      error: undefined,
-      data: { place: { osm_id: 'relation/1525018', name: 'British Museum', category: 'museum', lat: 51.5, lng: -0.1 } },
-    });
-    render(<PlaceDetailPage />);
+  it('renders the category badge when present', () => {
+    render(<PlaceDetailPage place={MUSEUM} relatedPlaces={[]} />);
     expect(screen.getByText('museum')).toBeInTheDocument();
   });
 
+  it('does not render a category badge when category is null', () => {
+    render(<PlaceDetailPage place={NO_COORDS} relatedPlaces={[]} />);
+    expect(screen.queryByText('museum')).not.toBeInTheDocument();
+  });
+
   it('renders an OpenStreetMap link when coordinates are present', () => {
-    setupRouter('way', '60381740');
-    mockUseQuery.mockReturnValue({
-      loading: false,
-      error: undefined,
-      data: { place: { osm_id: 'way/60381740', name: 'Borough Market', category: 'market', lat: 51.5, lng: -0.09 } },
-    });
-    render(<PlaceDetailPage />);
-    const link = screen.getByRole('link', { name: /view on openstreetmap/i }) as HTMLAnchorElement;
-    expect(link.href).toBe('https://www.openstreetmap.org/way/60381740');
+    render(<PlaceDetailPage place={MUSEUM} relatedPlaces={[]} />);
+    const link = screen.getByRole('link', { name: /openstreetmap/i }) as HTMLAnchorElement;
+    expect(link.href).toBe('https://www.openstreetmap.org/relation/1525018');
   });
 
   it('does not render an OpenStreetMap link when coordinates are missing', () => {
-    setupRouter('way', '60381740');
-    mockUseQuery.mockReturnValue({
-      loading: false,
-      error: undefined,
-      data: { place: { osm_id: 'way/60381740', name: 'Borough Market', category: null, lat: null, lng: null } },
-    });
-    render(<PlaceDetailPage />);
-    expect(screen.queryByRole('link', { name: /view on openstreetmap/i })).not.toBeInTheDocument();
+    render(<PlaceDetailPage place={NO_COORDS} relatedPlaces={[]} />);
+    expect(screen.queryByRole('link', { name: /openstreetmap/i })).not.toBeInTheDocument();
   });
 
-  it('renders a breadcrumb link back to /explore', () => {
-    setupRouter('way', '60381740');
-    mockUseQuery.mockReturnValue({
-      loading: false,
-      error: undefined,
-      data: { place: { osm_id: 'way/60381740', name: 'Borough Market', category: 'market', lat: 51.5, lng: -0.09 } },
-    });
-    render(<PlaceDetailPage />);
+  it('renders a breadcrumb link to /explore', () => {
+    render(<PlaceDetailPage place={MUSEUM} relatedPlaces={[]} />);
     const link = screen.getByRole('link', { name: 'Explore' }) as HTMLAnchorElement;
     expect(link.href).toContain('/explore');
   });
 
-  it('shows a loader when the route params are not yet available', () => {
-    setupRouter(undefined, undefined);
-    mockUseQuery.mockReturnValue({ loading: false, error: undefined, data: undefined });
-    render(<PlaceDetailPage />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+  it('renders a breadcrumb with the place name', () => {
+    render(<PlaceDetailPage place={MUSEUM} relatedPlaces={[]} />);
+    expect(screen.getByText('British Museum', { selector: '[aria-current="page"]' })).toBeInTheDocument();
+  });
+
+  it('passes related places to the RelatedPlaces component', () => {
+    const related = [MARKET];
+    render(<PlaceDetailPage place={MUSEUM} relatedPlaces={related} />);
+    expect(screen.getByText('Borough Market')).toBeInTheDocument();
+  });
+
+  it('marks the breadcrumb current page span with the place name', () => {
+    render(<PlaceDetailPage place={MARKET} relatedPlaces={[]} />);
+    expect(screen.getByText('Borough Market', { selector: '[aria-current="page"]' })).toBeInTheDocument();
+  });
+});
+
+describe('buildPlaceJsonLd', () => {
+  it('returns a schema.org TouristAttraction', () => {
+    const ld = buildPlaceJsonLd(MUSEUM, 'https://londonlist.vercel.app') as Record<string, unknown>;
+    expect(ld['@type']).toBe('TouristAttraction');
+  });
+
+  it('includes the canonical URL', () => {
+    const ld = buildPlaceJsonLd(MUSEUM, 'https://londonlist.vercel.app') as { url: string };
+    expect(ld.url).toBe('https://londonlist.vercel.app/place/relation/1525018');
+  });
+
+  it('includes geo coordinates when lat/lng are present', () => {
+    const ld = buildPlaceJsonLd(MUSEUM, 'https://londonlist.vercel.app') as {
+      geo: { '@type': string; latitude: number; longitude: number };
+    };
+    expect(ld.geo['@type']).toBe('GeoCoordinates');
+    expect(ld.geo.latitude).toBe(51.519413);
+    expect(ld.geo.longitude).toBe(-0.126957);
+  });
+
+  it('omits geo when coordinates are null', () => {
+    const ld = buildPlaceJsonLd(NO_COORDS, 'https://londonlist.vercel.app') as { geo?: unknown };
+    expect(ld.geo).toBeUndefined();
+  });
+
+  it('includes a description from the category when present', () => {
+    const ld = buildPlaceJsonLd(MUSEUM, 'https://londonlist.vercel.app') as { description: string };
+    expect(ld.description).toBe('A museum in London');
+  });
+
+  it('omits description when category is null', () => {
+    const ld = buildPlaceJsonLd(NO_COORDS, 'https://londonlist.vercel.app') as { description?: string };
+    expect(ld.description).toBeUndefined();
+  });
+
+  it('includes containedInPlace pointing to London', () => {
+    const ld = buildPlaceJsonLd(MUSEUM, 'https://londonlist.vercel.app') as {
+      containedInPlace: { '@type': string; name: string };
+    };
+    expect(ld.containedInPlace.name).toBe('London');
   });
 });
