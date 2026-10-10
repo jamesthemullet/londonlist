@@ -1,6 +1,8 @@
 import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
+import AddToListButton from '../../../components/add-to-list-button/add-to-list-button';
+import BookingLinks from '../../../components/booking-links/booking-links';
 import RelatedPlaces from '../../../components/related-places/related-places';
 import type { PublicPlace } from '../../../lib/place';
 import styles from './[id].module.css';
@@ -110,6 +112,14 @@ export default function PlaceDetailPage({ place, relatedPlaces }: Props) {
             View on OpenStreetMap ↗
           </a>
         )}
+        <AddToListButton
+          osm_id={place.osm_id}
+          name={place.name}
+          category={place.category ?? null}
+          lat={place.lat ?? null}
+          lng={place.lng ?? null}
+        />
+        <BookingLinks name={place.name} category={place.category ?? null} />
         <RelatedPlaces places={relatedPlaces} />
       </main>
     </>
