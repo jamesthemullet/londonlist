@@ -61,6 +61,11 @@ jest.mock('../../components/upgrade-modal/upgrade-modal', () => ({
     ) : null,
 }));
 
+jest.mock('../../components/welcome-checklist/welcome-checklist', () => ({
+  __esModule: true,
+  default: () => <div data-testid="welcome-checklist" />,
+}));
+
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 const mockUseAppContext = useAppContext as jest.Mock;

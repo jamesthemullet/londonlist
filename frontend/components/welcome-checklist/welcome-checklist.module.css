@@ -1,0 +1,109 @@
+.checklist {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.heading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #111827;
+}
+
+.dismissButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.dismissButton:hover {
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+.progress {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0 0 1rem;
+}
+
+.stepList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.step,
+.stepDone {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.checkEmpty {
+  font-size: 1rem;
+  color: #d1d5db;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.checkDone {
+  font-size: 1rem;
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.labelDone {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.detail {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.cta {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #7c3aed;
+  text-decoration: none;
+  margin-top: 0.125rem;
+}
+
+.cta:hover {
+  text-decoration: underline;
+}
