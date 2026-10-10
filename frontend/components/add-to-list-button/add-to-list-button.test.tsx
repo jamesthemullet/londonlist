@@ -38,9 +38,9 @@ jest.mock('next/link', () => ({
 
 import { useAppContext } from '../../context/AppContext';
 
-const mockUseAppContext = useAppContext as jest.Mock;
-const mockUseQuery = useQuery as jest.Mock;
-const mockUseMutation = useMutation as jest.Mock;
+const mockUseAppContext = useAppContext as unknown as jest.Mock;
+const mockUseQuery = useQuery as unknown as jest.Mock;
+const mockUseMutation = useMutation as unknown as jest.Mock;
 
 const DEFAULT_PROPS = {
   osm_id: 'way/12345',

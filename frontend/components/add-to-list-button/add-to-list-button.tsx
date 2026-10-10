@@ -70,7 +70,8 @@ export default function AddToListButton({ osm_id, name, category, lat, lng }: Pr
     skip: !initialized || !user,
   });
 
-  const [createListItem] = useMutation(CREATE_LIST_ITEM);
+  type CreateListItemData = { createListItem: { documentId: string; name: string } | null };
+  const [createListItem] = useMutation<CreateListItemData>(CREATE_LIST_ITEM);
 
   if (!initialized) return null;
 
