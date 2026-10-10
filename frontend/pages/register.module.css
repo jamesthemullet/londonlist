@@ -40,3 +40,26 @@
   font-size: 0.8rem;
   margin-top: 0.5rem;
 }
+
+.copyListBanner {
+  width: 100%;
+  background: #fdf4ff;
+  border: 1px solid #e9b3f7;
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.copyListBannerHeadline {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #7c1fa0;
+  margin: 0 0 0.25rem;
+}
+
+.copyListBannerSub {
+  font-size: 0.875rem;
+  color: #5a1278;
+  margin: 0;
+}
