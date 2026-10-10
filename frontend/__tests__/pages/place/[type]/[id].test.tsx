@@ -15,6 +15,13 @@ jest.mock('next/link', () => ({
   ),
 }));
 
+jest.mock('../../../../components/booking-links/booking-links', () => ({
+  __esModule: true,
+  default: ({ name, category }: { name: string; category: string | null }) => (
+    <div data-testid="booking-links" data-name={name} data-category={category ?? ''} />
+  ),
+}));
+
 jest.mock('../../../../components/related-places/related-places', () => ({
   __esModule: true,
   default: ({ places }: { places: { osm_id: string; name: string }[] }) => (
@@ -24,6 +31,11 @@ jest.mock('../../../../components/related-places/related-places', () => ({
       ))}
     </ul>
   ),
+}));
+
+jest.mock('../../../../components/add-to-list-button/add-to-list-button', () => ({
+  __esModule: true,
+  default: () => <div data-testid="add-to-list-button-mock" />,
 }));
 
 const MUSEUM = {
@@ -97,6 +109,20 @@ describe('PlaceDetailPage', () => {
   it('marks the breadcrumb current page span with the place name', () => {
     render(<PlaceDetailPage place={MARKET} relatedPlaces={[]} />);
     expect(screen.getByText('Borough Market', { selector: '[aria-current="page"]' })).toBeInTheDocument();
+  });
+
+  it('renders BookingLinks with the place name and category', () => {
+    render(<PlaceDetailPage place={MUSEUM} relatedPlaces={[]} />);
+    const bookingLinks = screen.getByTestId('booking-links');
+    expect(bookingLinks).toHaveAttribute('data-name', 'British Museum');
+    expect(bookingLinks).toHaveAttribute('data-category', 'museum');
+  });
+
+  it('renders BookingLinks with null category when category is absent', () => {
+    render(<PlaceDetailPage place={NO_COORDS} relatedPlaces={[]} />);
+    const bookingLinks = screen.getByTestId('booking-links');
+    expect(bookingLinks).toHaveAttribute('data-name', 'Mystery Spot');
+    expect(bookingLinks).toHaveAttribute('data-category', '');
   });
 });
 

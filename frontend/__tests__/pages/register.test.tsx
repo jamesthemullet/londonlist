@@ -276,6 +276,44 @@ describe('RegisterRoute — already logged-in redirect', () => {
   });
 });
 
+describe('RegisterRoute — copy-list banner', () => {
+  it('shows a contextual banner when ref=copy-list and srcUsername are in query params', () => {
+    mockUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: mockReplace,
+      query: { ref: 'copy-list', srcUsername: 'alice', srcListId: 'list-abc' },
+    });
+    render(<RegisterRoute />);
+    expect(screen.getByText(/You're copying alice's London list/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sign up free and it'll be added to your account automatically/i)).toBeInTheDocument();
+  });
+
+  it('does not show the banner when ref is absent', () => {
+    render(<RegisterRoute />);
+    expect(screen.queryByText(/You're copying/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show the banner when ref is not copy-list', () => {
+    mockUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: mockReplace,
+      query: { ref: 'profile' },
+    });
+    render(<RegisterRoute />);
+    expect(screen.queryByText(/You're copying/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show the banner when srcUsername is absent even if ref is copy-list', () => {
+    mockUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: mockReplace,
+      query: { ref: 'copy-list' },
+    });
+    render(<RegisterRoute />);
+    expect(screen.queryByText(/You're copying/i)).not.toBeInTheDocument();
+  });
+});
+
 describe('RegisterRoute — copy-list flow', () => {
   const fakeUser = {
     id: '1',
