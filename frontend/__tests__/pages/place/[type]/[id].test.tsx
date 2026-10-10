@@ -26,6 +26,16 @@ jest.mock('../../../../components/related-places/related-places', () => ({
   ),
 }));
 
+jest.mock('../../../../components/add-to-list-button/add-to-list-button', () => ({
+  __esModule: true,
+  default: () => <div data-testid="add-to-list-button-mock" />,
+}));
+
+jest.mock('../../../../components/booking-links/booking-links', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const MUSEUM = {
   osm_id: 'relation/1525018',
   name: 'British Museum',
