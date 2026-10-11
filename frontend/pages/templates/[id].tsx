@@ -65,6 +65,21 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
   const [createMyList] = useMutation<{ createMyList: { documentId: string } }>(CREATE_MY_LIST);
   const [createListItem] = useMutation(CREATE_LIST_ITEM);
 
+  if (template.isPremium && user && !user.isPro) {
+    return (
+      <div className={styles.upgradeSection} role="region" aria-label="Pro template">
+        <p className={styles.upgradeHeading}>Pro exclusive template</p>
+        <p className={styles.upgradeText}>
+          This curated list is available to Pro subscribers. Upgrade to copy it to your account.
+        </p>
+        <Link href="/pricing?ref=premium-template-detail" className={styles.upgradeCta}>
+          Upgrade to Pro
+        </Link>
+        <p className={styles.upgradeNote}>14-day free trial · Cancel anytime</p>
+      </div>
+    );
+  }
+
   async function handleCopy() {
     setCopyState('copying');
     try {
@@ -179,6 +194,11 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
         </nav>
 
         <div className={styles.hero}>
+          {template.isPremium && (
+            <span className={styles.proBadge} aria-label="Pro exclusive template">
+              Pro
+            </span>
+          )}
           <h1 className={styles.heading}>{template.name}</h1>
           <p className={styles.description}>{template.description}</p>
           <div className={styles.tags}>

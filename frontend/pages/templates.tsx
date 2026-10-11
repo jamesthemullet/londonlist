@@ -43,6 +43,20 @@ function CopyButton({ template, onLimitReached }: CopyButtonProps) {
   const [createMyList] = useMutation<{ createMyList: { documentId: string } }>(CREATE_MY_LIST);
   const [createListItem] = useMutation(CREATE_LIST_ITEM);
 
+  if (template.isPremium && user && !user.isPro) {
+    return (
+      <div className={styles.cardFooter}>
+        <Link
+          href="/pricing?ref=premium-template"
+          className={styles.upgradeCta}
+        >
+          Upgrade to Pro to copy this list
+        </Link>
+        <p className={styles.proNote}>Pro exclusive template</p>
+      </div>
+    );
+  }
+
   async function handleCopy() {
     setCopyState('copying');
     try {
@@ -127,13 +141,29 @@ export function TemplateCard({ template }: TemplateCardProps) {
 
   return (
     <>
-      <article className={styles.card} aria-label={template.name}>
+      <article
+        className={template.isPremium ? `${styles.card} ${styles.cardPro}` : styles.card}
+        aria-label={template.name}
+      >
         <div className={styles.cardHeader}>
-          <h2 className={styles.cardTitle}>
-            <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
-              {template.name}
-            </Link>
-          </h2>
+          {template.isPremium ? (
+            <div className={styles.cardProHeader}>
+              <h2 className={styles.cardTitle}>
+                <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
+                  {template.name}
+                </Link>
+              </h2>
+              <span className={styles.proBadge} aria-label="Pro exclusive">
+                Pro
+              </span>
+            </div>
+          ) : (
+            <h2 className={styles.cardTitle}>
+              <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
+                {template.name}
+              </Link>
+            </h2>
+          )}
           <p className={styles.cardDescription}>{template.description}</p>
         </div>
 

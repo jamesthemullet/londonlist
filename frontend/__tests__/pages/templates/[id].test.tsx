@@ -330,6 +330,51 @@ describe('TemplateDetailPage — upgrade modal', () => {
   });
 });
 
+const SAMPLE_PREMIUM_TEMPLATE: Template = {
+  ...SAMPLE_TEMPLATE,
+  id: 'premium-template',
+  name: 'Premium Template',
+  isPremium: true,
+};
+
+describe('TemplateDetailPage — premium template', () => {
+  it('shows Pro badge for a premium template', () => {
+    setupMocks({ user: null });
+    render(<TemplateDetailPage template={SAMPLE_PREMIUM_TEMPLATE} relatedTemplates={[]} />);
+    expect(screen.getByLabelText(/pro exclusive template/i)).toBeInTheDocument();
+  });
+
+  it('does not show Pro badge for a non-premium template', () => {
+    setupMocks({ user: null });
+    render(<TemplateDetailPage template={SAMPLE_TEMPLATE} relatedTemplates={[]} />);
+    expect(screen.queryByLabelText(/pro exclusive template/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('CopyButton — premium template', () => {
+  it('shows upgrade section for logged-in free user on premium template', () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<CopyButton template={SAMPLE_PREMIUM_TEMPLATE} onLimitReached={jest.fn()} />);
+    expect(screen.getByRole('region', { name: /pro template/i })).toBeInTheDocument();
+    const upgradeLink = screen.getByRole('link', { name: /upgrade to pro/i }) as HTMLAnchorElement;
+    expect(upgradeLink.href).toContain('/pricing');
+    expect(screen.queryByRole('button', { name: /copy/i })).not.toBeInTheDocument();
+  });
+
+  it('shows copy button for Pro user on premium template', () => {
+    setupMocks({ user: { username: 'alice', isPro: true } });
+    render(<CopyButton template={SAMPLE_PREMIUM_TEMPLATE} onLimitReached={jest.fn()} />);
+    expect(screen.getByRole('button', { name: /\+ copy this list/i })).toBeInTheDocument();
+  });
+
+  it('shows sign-up CTA for logged-out user on premium template', () => {
+    setupMocks({ user: null });
+    render(<CopyButton template={SAMPLE_PREMIUM_TEMPLATE} onLimitReached={jest.fn()} />);
+    expect(screen.getByRole('link', { name: /sign up free to copy/i })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /pro template/i })).not.toBeInTheDocument();
+  });
+});
+
 describe('buildTemplateJsonLd', () => {
   const SITE_URL = 'https://londonlist.co.uk';
 

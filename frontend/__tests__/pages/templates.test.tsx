@@ -305,6 +305,42 @@ describe('TemplateCard — logged-in user', () => {
   });
 });
 
+const SAMPLE_PREMIUM_TEMPLATE: Template = {
+  ...SAMPLE_TEMPLATE,
+  id: 'premium-template',
+  name: 'Premium Template',
+  isPremium: true,
+};
+
+describe('TemplateCard — premium template', () => {
+  it('shows Pro badge for a premium template', () => {
+    setupMocks({ user: null });
+    render(<TemplateCard template={SAMPLE_PREMIUM_TEMPLATE} />);
+    expect(screen.getByLabelText(/pro exclusive/i)).toBeInTheDocument();
+  });
+
+  it('shows upgrade CTA for logged-in free user on premium template', () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplateCard template={SAMPLE_PREMIUM_TEMPLATE} />);
+    const upgradeLink = screen.getByRole('link', { name: /upgrade to pro/i }) as HTMLAnchorElement;
+    expect(upgradeLink.href).toContain('/pricing');
+    expect(screen.queryByRole('button', { name: /copy/i })).not.toBeInTheDocument();
+  });
+
+  it('shows copy button for Pro user on premium template', () => {
+    setupMocks({ user: { username: 'alice', isPro: true } });
+    render(<TemplateCard template={SAMPLE_PREMIUM_TEMPLATE} />);
+    expect(screen.getByRole('button', { name: /\+ copy to my lists/i })).toBeInTheDocument();
+  });
+
+  it('shows sign-up CTA (not upgrade link) for logged-out user on premium template', () => {
+    setupMocks({ user: null });
+    render(<TemplateCard template={SAMPLE_PREMIUM_TEMPLATE} />);
+    expect(screen.getByRole('link', { name: /sign up to copy/i })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /upgrade to pro/i })).not.toBeInTheDocument();
+  });
+});
+
 describe('TEMPLATES data', () => {
   it('exports at least one template', () => {
     expect(TEMPLATES.length).toBeGreaterThan(0);

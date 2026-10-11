@@ -216,10 +216,64 @@
   }
 }
 
+.cardPro {
+  border-color: #c724b1;
+}
+
+.cardProHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.proBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  background: #c724b1;
+  color: #fff;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.upgradeCta {
+  width: 100%;
+  display: block;
+  padding: 0.6rem 1rem;
+  background: #c724b1;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.upgradeCta:hover {
+  background: #a01e94;
+}
+
+.proNote {
+  font-size: 0.78rem;
+  color: #888;
+  text-align: center;
+  margin: 0;
+}
+
 @media (prefers-color-scheme: dark) {
   .card {
     background: #1a1a1a;
     border-color: #333;
+  }
+
+  .cardPro {
+    border-color: #c724b1;
   }
 
   .cardDescription {

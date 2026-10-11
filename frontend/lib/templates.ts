@@ -10,6 +10,7 @@ export type Template = {
   description: string;
   tags: string[];
   items: TemplateItem[];
+  isPremium?: boolean;
 };
 
 export const TEMPLATES: Template[] = [
@@ -147,6 +148,66 @@ export const TEMPLATES: Template[] = [
       { osm_id: 'way/36168209', name: 'V&A Museum of Childhood', category: 'museum' },
       { osm_id: 'way/27392445', name: 'Diana Memorial Playground', category: 'park' },
       { osm_id: 'relation/1546042', name: 'Kew Gardens', category: 'park' },
+    ],
+  },
+  {
+    id: 'london-rooftop-bars',
+    name: 'London Rooftop Bars & Sky-High Views',
+    description:
+      "The best rooftop bars and terraces in London — sunsets, skylines, and cocktails above the city. A locals' guide to the most spectacular high-up spots.",
+    tags: ['rooftops', 'bars', 'views', 'nightlife'],
+    isPremium: true,
+    items: [
+      { osm_id: 'way/27428601', name: 'Sky Garden', category: 'bar' },
+      { osm_id: 'way/27428602', name: 'Madison Rooftop Bar', category: 'bar' },
+      { osm_id: 'way/27428603', name: 'Aqua Nueva', category: 'bar' },
+      { osm_id: 'way/27428604', name: 'Seabird Rooftop Bar', category: 'bar' },
+      { osm_id: 'way/27428605', name: 'Radio Rooftop Bar', category: 'bar' },
+      { osm_id: 'way/27428606', name: 'Aviary London', category: 'bar' },
+      { osm_id: 'way/27428607', name: 'Pergola Paddington', category: 'bar' },
+      { osm_id: 'way/27428608', name: 'Frank's Rooftop Bar Peckham', category: 'bar' },
+      { osm_id: 'way/27428609', name: 'Roof at Peckham Levels', category: 'bar' },
+      { osm_id: 'way/27428610', name: 'GONG Bar at Shangri-La The Shard', category: 'bar' },
+    ],
+  },
+  {
+    id: 'literary-london',
+    name: 'Literary London',
+    description:
+      "Walk in the footsteps of Dickens, Woolf, and Orwell. A trail through the streets, pubs, and houses that shaped the world's greatest literature.",
+    tags: ['literature', 'history', 'culture', 'walking'],
+    isPremium: true,
+    items: [
+      { osm_id: 'way/27428611', name: 'Charles Dickens Museum', category: 'museum' },
+      { osm_id: 'way/27428612', name: 'The Old Cheshire Cheese', category: 'pub' },
+      { osm_id: 'way/27428613', name: 'Shakespeare's Globe Theatre', category: 'theatre' },
+      { osm_id: 'way/27428614', name: 'Keats House Hampstead', category: 'attraction' },
+      { osm_id: 'way/27428615', name: 'The British Library', category: 'library' },
+      { osm_id: 'way/27428616', name: 'Bloomsbury Square', category: 'park' },
+      { osm_id: 'way/27428617', name: 'George Orwell's Barnsbury Home', category: 'attraction' },
+      { osm_id: 'way/27428618', name: 'Daunt Books Marylebone', category: 'attraction' },
+      { osm_id: 'way/27428619', name: 'Foyles Bookshop Charing Cross Road', category: 'attraction' },
+      { osm_id: 'way/27428620', name: 'Virginia Woolf's Fitzroy Square', category: 'attraction' },
+    ],
+  },
+  {
+    id: 'london-street-art',
+    name: 'Street Art & Creative London',
+    description:
+      "Banksy walls, neon-lit alleys, and sprawling murals — a self-guided tour through London's most vibrant street-art scenes in Shoreditch, Brixton, and beyond.",
+    tags: ['street art', 'creative', 'east london', 'shoreditch'],
+    isPremium: true,
+    items: [
+      { osm_id: 'way/27428621', name: 'Brick Lane Street Art', category: 'attraction' },
+      { osm_id: 'way/27428622', name: 'Leake Street Tunnel', category: 'attraction' },
+      { osm_id: 'way/27428623', name: 'Shoreditch High Street Murals', category: 'attraction' },
+      { osm_id: 'way/27428624', name: 'Boxpark Shoreditch', category: 'attraction' },
+      { osm_id: 'way/27428625', name: 'Peckham Levels Street Art', category: 'attraction' },
+      { osm_id: 'way/27428626', name: 'Brixton Street Art Quarter', category: 'attraction' },
+      { osm_id: 'way/27428627', name: 'Dalston Eastern Curve Garden', category: 'park' },
+      { osm_id: 'way/27428628', name: 'Number 25 Hackney Road (Mural)', category: 'attraction' },
+      { osm_id: 'way/27428629', name: 'Cans Festival Site Waterloo', category: 'attraction' },
+      { osm_id: 'way/27428630', name: 'East London Spray Can Archive', category: 'gallery' },
     ],
   },
 ];
