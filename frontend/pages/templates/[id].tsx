@@ -67,7 +67,7 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
 
   if (template.isPremium && user && !user.isPro) {
     return (
-      <div className={styles.upgradeSection} role="region" aria-label="Pro template">
+      <section className={styles.upgradeSection} aria-label="Pro template">
         <p className={styles.upgradeHeading}>Pro exclusive template</p>
         <p className={styles.upgradeText}>
           This curated list is available to Pro subscribers. Upgrade to copy it to your account.
@@ -76,7 +76,7 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
           Upgrade to Pro
         </Link>
         <p className={styles.upgradeNote}>14-day free trial · Cancel anytime</p>
-      </div>
+      </section>
     );
   }
 
@@ -195,7 +195,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
 
         <div className={styles.hero}>
           {template.isPremium && (
-            <span className={styles.proBadge} aria-label="Pro exclusive template">
+            <span className={styles.proBadge} role="img" aria-label="Pro exclusive template">
               Pro
             </span>
           )}

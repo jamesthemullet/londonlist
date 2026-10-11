@@ -153,7 +153,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
                   {template.name}
                 </Link>
               </h2>
-              <span className={styles.proBadge} aria-label="Pro exclusive">
+              <span className={styles.proBadge} role="img" aria-label="Pro exclusive">
                 Pro
               </span>
             </div>
