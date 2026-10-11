@@ -30,7 +30,7 @@ type MyListsData = {
 };
 
 const LIST_FIELDS_FRAGMENT = gql`
-  fragment ListFields on List {
+  fragment ListFields on ListEntity {
     documentId
     name
     description
