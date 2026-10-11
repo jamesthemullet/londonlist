@@ -1,9 +1,11 @@
 import { factories } from '@strapi/strapi';
 import { findUserByUsername } from '../../../lib/find-user-by-username';
+import { requireAuth } from '../../../lib/auth';
 
 export default factories.createCoreController('api::list-setting.list-setting', ({ strapi }) => ({
   async find(ctx) {
-    const user = ctx.state.user;
+    const user = requireAuth(ctx);
+    if (!user) return;
     const results = await strapi.db.query('api::list-setting.list-setting').findMany({
       where: { user: user.id },
     });
@@ -12,7 +14,8 @@ export default factories.createCoreController('api::list-setting.list-setting', 
   },
 
   async create(ctx) {
-    const user = ctx.state.user;
+    const user = requireAuth(ctx);
+    if (!user) return;
     ctx.request.body.data = {
       ...(ctx.request.body.data || {}),
       user: user.id,

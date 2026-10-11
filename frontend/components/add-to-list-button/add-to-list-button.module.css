@@ -1,0 +1,125 @@
+.ctaBanner {
+  background: #f8f4ff;
+  border: 1px solid #d9c8f5;
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+}
+
+.ctaText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.5;
+}
+
+.ctaLink {
+  color: #6b21a8;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.ctaLink:hover {
+  color: #5b1891;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.addButton {
+  background: #6b21a8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.addButton:hover:not(:disabled) {
+  background: #5b1891;
+}
+
+.addButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #b91c1c;
+}
+
+.addedBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  color: #15803d;
+}
+
+.addedCheck {
+  font-size: 1rem;
+}
+
+.addedLink {
+  color: #15803d;
+  font-weight: 600;
+  text-decoration: underline;
+  margin-left: 0.25rem;
+}
+
+.addedLink:hover {
+  color: #166534;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ctaBanner {
+    background: #1e1230;
+    border-color: #4a306a;
+  }
+
+  .ctaText {
+    color: #ccc;
+  }
+
+  .ctaLink {
+    color: #c084fc;
+  }
+
+  .ctaLink:hover {
+    color: #d8a4fc;
+  }
+
+  .addButton {
+    background: #7c3aed;
+  }
+
+  .addButton:hover:not(:disabled) {
+    background: #6d28d9;
+  }
+
+  .addedBanner {
+    background: #052e16;
+    border-color: #166534;
+    color: #4ade80;
+  }
+
+  .addedLink {
+    color: #4ade80;
+  }
+
+  .addedLink:hover {
+    color: #86efac;
+  }
+}

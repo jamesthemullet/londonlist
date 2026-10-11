@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
 import type { GetStaticPaths, GetStaticProps } from 'next';
+import BookingLinks from '../../components/booking-links/booking-links';
 import UpgradeModal from '../../components/upgrade-modal/upgrade-modal';
 import { TEMPLATES } from '../../lib/templates';
 import type { Template } from '../../lib/templates';
@@ -207,6 +208,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
                   {item.category && (
                     <span className={styles.placeCategory}>{item.category}</span>
                   )}
+                  <BookingLinks name={item.name} category={item.category} />
                 </div>
               </li>
             ))}

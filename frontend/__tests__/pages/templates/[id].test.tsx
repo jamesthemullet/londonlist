@@ -21,6 +21,13 @@ jest.mock('../../../hooks/use-auth-header', () => ({
   useAuthHeader: () => ({}),
 }));
 
+jest.mock('../../../components/booking-links/booking-links', () => ({
+  __esModule: true,
+  default: ({ name, category }: { name: string; category: string | null }) => (
+    <div data-testid="booking-links" data-name={name} data-category={category ?? ''} />
+  ),
+}));
+
 jest.mock('../../../components/upgrade-modal/upgrade-modal', () => ({
   __esModule: true,
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
@@ -183,6 +190,23 @@ describe('TemplateDetailPage — rendering', () => {
     render(<TemplateDetailPage template={SAMPLE_TEMPLATE} relatedTemplates={RELATED} />);
     const link = screen.getByRole('link', { name: /related template one/i }) as HTMLAnchorElement;
     expect(link.href).toContain('/templates/related-1');
+  });
+
+  it('renders BookingLinks for each template item', () => {
+    setupMocks();
+    render(<TemplateDetailPage template={SAMPLE_TEMPLATE} relatedTemplates={[]} />);
+    const bookingLinksEls = screen.getAllByTestId('booking-links');
+    expect(bookingLinksEls).toHaveLength(SAMPLE_TEMPLATE.items.length);
+  });
+
+  it('passes the correct name and category to each BookingLinks', () => {
+    setupMocks();
+    render(<TemplateDetailPage template={SAMPLE_TEMPLATE} relatedTemplates={[]} />);
+    const bookingLinksEls = screen.getAllByTestId('booking-links');
+    expect(bookingLinksEls[0]).toHaveAttribute('data-name', 'Place One');
+    expect(bookingLinksEls[0]).toHaveAttribute('data-category', 'museum');
+    expect(bookingLinksEls[1]).toHaveAttribute('data-name', 'Place Two');
+    expect(bookingLinksEls[1]).toHaveAttribute('data-category', 'park');
   });
 });
 

@@ -13,6 +13,7 @@ jobs:
   ts-check-frontend:
     name: TypeScript (frontend)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -29,6 +30,7 @@ jobs:
   lint-frontend:
     name: Lint (frontend)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -45,6 +47,7 @@ jobs:
   test-frontend:
     name: Unit tests (frontend)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -61,6 +64,7 @@ jobs:
   knip-frontend:
     name: Knip (frontend)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -77,6 +81,7 @@ jobs:
   knip-backend:
     name: Knip (backend)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend
@@ -93,6 +98,7 @@ jobs:
   e2e:
     name: E2E tests (frontend)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
@@ -115,8 +121,10 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - run: npx playwright install --with-deps chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 5
       - run: npx playwright install-deps chromium
         if: steps.playwright-cache.outputs.cache-hit == 'true'
+        timeout-minutes: 5
       - run: yarn test:e2e
         env:
           CI: true

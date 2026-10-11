@@ -58,9 +58,8 @@ describe('stripe controller', () => {
   describe('createCheckoutSession', () => {
     it('returns unauthorized when there is no authenticated user', async () => {
       const ctx = createCtx();
-      const result = await stripeController.createCheckoutSession(ctx);
+      await stripeController.createCheckoutSession(ctx);
       expect(ctx.unauthorized).toHaveBeenCalledWith('Authentication required');
-      expect(result).toEqual({ status: 401, msg: 'Authentication required' });
     });
 
     it('returns internalServerError when the relevant price id is not configured', async () => {

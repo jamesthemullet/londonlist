@@ -19,8 +19,13 @@ export default function ShareButtons({ url, title }: Props) {
     }
   };
 
-  const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+
+  const twitterUrl = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`;
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+  const pinterestUrl = `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedTitle}`;
 
   return (
     <div className={styles.container}>
@@ -50,6 +55,24 @@ export default function ShareButtons({ url, title }: Props) {
           aria-label="Share on WhatsApp"
         >
           WhatsApp
+        </a>
+        <a
+          href={facebookUrl}
+          className={styles.buttonLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share on Facebook"
+        >
+          Facebook
+        </a>
+        <a
+          href={pinterestUrl}
+          className={styles.buttonLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Share on Pinterest"
+        >
+          Pinterest
         </a>
       </div>
     </div>

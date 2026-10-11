@@ -36,10 +36,9 @@ describe('account controller', () => {
     it('returns unauthorized when there is no authenticated user', async () => {
       const ctx = createCtx();
 
-      const result = await accountController.deleteAccount(ctx);
+      await accountController.deleteAccount(ctx);
 
       expect(ctx.unauthorized).toHaveBeenCalledWith('Authentication required');
-      expect(result).toEqual({ status: 401, msg: 'Authentication required' });
     });
 
     it('deletes the users lists, their items, and the user record', async () => {

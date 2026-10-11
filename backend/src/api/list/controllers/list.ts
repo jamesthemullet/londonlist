@@ -24,7 +24,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
     return {
       data: lists.map((list) => {
         const typedList = list as typeof list & {
-          user?: { username?: string } | null;
+          user?: { username?: string; isPro?: boolean } | null;
           viewCount?: number;
           description?: string | null;
           list_items?: { category?: string | null; completed?: boolean }[];
@@ -39,6 +39,7 @@ export default factories.createCoreController('api::list.list', ({ strapi }) => 
           viewCount: typedList.viewCount ?? 0,
           itemCount: items.length,
           categories,
+          isFeatured: typedList.user?.isPro ?? false,
         };
       }),
     };

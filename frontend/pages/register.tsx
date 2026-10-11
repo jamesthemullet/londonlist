@@ -135,6 +135,16 @@ export default function RegisterRoute() {
       <section className={styles.container}>
       <div>
         <h1>Sign Up</h1>
+        {router.query?.ref === 'copy-list' && router.query?.srcUsername && (
+          <aside className={styles.copyListBanner} aria-label="Copy list context">
+            <p className={styles.copyListBannerHeadline}>
+              You&apos;re copying {router.query.srcUsername}&apos;s London list
+            </p>
+            <p className={styles.copyListBannerSub}>
+              Sign up free and it&apos;ll be added to your account automatically.
+            </p>
+          </aside>
+        )}
         <form onSubmit={handleRegister} className={styles.form}>
           <div className={styles.fieldGroup}>
             <label htmlFor="username">Username</label>

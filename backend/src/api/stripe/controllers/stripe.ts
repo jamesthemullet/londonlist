@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { requireAuth } from '../../../lib/auth';
 
 const unparsedBodySymbol = Symbol.for('unparsedBody');
 
@@ -25,10 +26,8 @@ async function activateProFromSession(session: Stripe.Checkout.Session) {
 
 export default {
   async createCheckoutSession(ctx) {
-    const user = ctx.state.user as { id: number; email: string } | undefined;
-    if (!user) {
-      return ctx.unauthorized('Authentication required');
-    }
+    const user = requireAuth(ctx);
+    if (!user) return;
 
     const { billingPeriod } = (ctx.request.body as { billingPeriod?: string }) ?? {};
     const isAnnual = billingPeriod === 'annual';
@@ -59,10 +58,8 @@ export default {
   },
 
   async confirmCheckoutSession(ctx) {
-    const user = ctx.state.user as { id: number } | undefined;
-    if (!user) {
-      return ctx.unauthorized('Authentication required');
-    }
+    const user = requireAuth(ctx);
+    if (!user) return;
 
     const { sessionId } = ctx.request.body as { sessionId?: string };
     if (!sessionId) {
@@ -94,10 +91,8 @@ export default {
   },
 
   async createCustomerPortalSession(ctx) {
-    const user = ctx.state.user as { id: number } | undefined;
-    if (!user) {
-      return ctx.unauthorized('Authentication required');
-    }
+    const user = requireAuth(ctx);
+    if (!user) return;
 
     const dbUser = await strapi.db.query('plugin::users-permissions.user').findOne({
       where: { id: user.id },

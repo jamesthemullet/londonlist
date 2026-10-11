@@ -327,7 +327,7 @@ describe('ExplorePage — conversion CTA', () => {
 
   it('does not show CTA banner when user is logged in', () => {
     mockUseAppContext.mockReturnValue({
-      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice' },
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
       initialized: true,
     });
     render(<ExplorePage lists={LISTS} />);
@@ -338,6 +338,83 @@ describe('ExplorePage — conversion CTA', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: false });
     render(<ExplorePage lists={LISTS} />);
     expect(screen.queryByText(/build your own list/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('ExplorePage — Pro featured badge', () => {
+  const LISTS_WITH_FEATURED = [
+    { ...LISTS[0], isFeatured: true },
+    { ...LISTS[1], isFeatured: false },
+    { ...LISTS[2] },
+  ];
+
+  it('shows "Featured" badge on lists with isFeatured=true', () => {
+    render(<ExplorePage lists={LISTS_WITH_FEATURED} />);
+    expect(screen.getByText('Featured')).toBeInTheDocument();
+  });
+
+  it('shows only one "Featured" badge when only one list is featured', () => {
+    render(<ExplorePage lists={LISTS_WITH_FEATURED} />);
+    expect(screen.getAllByText('Featured')).toHaveLength(1);
+  });
+
+  it('does not show any featured badge when no lists are featured', () => {
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.queryByText('Featured')).not.toBeInTheDocument();
+  });
+
+  it('shows featured badge for every featured list', () => {
+    const allFeatured = LISTS.map((l) => ({ ...l, isFeatured: true }));
+    render(<ExplorePage lists={allFeatured} />);
+    expect(screen.getAllByText('Featured')).toHaveLength(3);
+  });
+
+  it('featured badge is aria-hidden (text is already visible)', () => {
+    render(<ExplorePage lists={LISTS_WITH_FEATURED} />);
+    const badge = screen.getByText('Featured');
+    expect(badge).toHaveAttribute('aria-hidden', 'true');
+  });
+});
+
+describe('ExplorePage — Pro upgrade nudge', () => {
+  it('shows upgrade nudge for logged-in non-Pro users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      initialized: true,
+    });
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.getByText(/upgrade to pro/i)).toBeInTheDocument();
+  });
+
+  it('upgrade nudge links to pricing with ref param', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      initialized: true,
+    });
+    render(<ExplorePage lists={LISTS} />);
+    const link = screen.getByText(/upgrade to pro/i).closest('a');
+    expect(link).toHaveAttribute('href', '/pricing?ref=explore-nudge');
+  });
+
+  it('does not show upgrade nudge for Pro users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: true },
+      initialized: true,
+    });
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show upgrade nudge for logged-out users', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true });
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show upgrade nudge before auth is initialized', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: false });
+    render(<ExplorePage lists={LISTS} />);
+    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
   });
 });
 

@@ -12,7 +12,7 @@ const MOCK_USER = {
 };
 
 const MOCK_LIST = {
-  __typename: 'List',
+  __typename: 'ListEntity',
   documentId: 'list_abc123',
   name: 'My List',
   description: null,
@@ -23,7 +23,7 @@ const MOCK_LIST = {
 };
 
 const MOCK_LIST_2 = {
-  __typename: 'List',
+  __typename: 'ListEntity',
   documentId: 'list_def456',
   name: 'Weekend Plans',
   description: null,
@@ -34,7 +34,7 @@ const MOCK_LIST_2 = {
 };
 
 const MOCK_LIST_3 = {
-  __typename: 'List',
+  __typename: 'ListEntity',
   documentId: 'list_ghi789',
   name: 'Hidden Gems',
   description: null,
