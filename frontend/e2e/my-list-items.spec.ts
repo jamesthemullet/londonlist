@@ -13,7 +13,7 @@ const MOCK_USER = {
 };
 
 const MOCK_LIST = {
-  __typename: 'List',
+  __typename: 'ListEntity',
   documentId: 'list_abc123',
   name: 'My List',
   description: null,
