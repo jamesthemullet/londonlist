@@ -7,7 +7,7 @@ import styles from "./area.module.css";
 const SITE_URL =
 	process.env.NEXT_PUBLIC_SITE_URL || "https://londonlist.vercel.app";
 
-function buildAreaIndexJsonLd(siteUrl: string): object {
+export function buildAreaIndexJsonLd(siteUrl: string): object {
 	return {
 		"@context": "https://schema.org",
 		"@type": "CollectionPage",
