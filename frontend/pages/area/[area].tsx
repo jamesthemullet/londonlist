@@ -4,6 +4,7 @@ import Link from "next/link";
 import BookingLinks from "../../components/booking-links/booking-links";
 import { useAppContext } from "../../context/AppContext";
 import { AREA_META, decodeAreaSlug } from "../../lib/area-meta";
+import { buildOgImageUrl } from "../../lib/og-image";
 import styles from "./area.module.css";
 
 const API_URL = process.env.STRAPI_URL || "http://127.0.0.1:1337";
@@ -90,6 +91,7 @@ export default function AreaPage({
 	const categories = Object.keys(grouped).sort();
 	const canonicalUrl = `${SITE_URL}/area/${areaSlug}`;
 	const pageTitle = `Places in ${areaLabel} — London List`;
+	const ogImage = buildOgImageUrl({ title: pageTitle }, SITE_URL);
 	const jsonLd = buildAreaPageJsonLd(
 		areaLabel,
 		areaDescription,
@@ -111,9 +113,11 @@ export default function AreaPage({
 				<meta property="og:description" content={areaDescription} />
 				<meta property="og:url" content={canonicalUrl} />
 				<meta property="og:locale" content="en_GB" />
-				<meta name="twitter:card" content="summary" />
+				<meta property="og:image" content={ogImage} />
+				<meta name="twitter:card" content="summary_large_image" />
 				<meta name="twitter:title" content={pageTitle} />
 				<meta name="twitter:description" content={areaDescription} />
+				<meta name="twitter:image" content={ogImage} />
 				{jsonLd && (
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
 					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
