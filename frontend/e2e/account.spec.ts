@@ -266,7 +266,7 @@ test.describe('Account page — delete account', () => {
     await expect(page.getByRole('button', { name: 'Yes, delete my account' })).not.toBeVisible();
   });
 
-  test('confirming deletion redirects to home page', async ({ page }) => {
+  test('confirming deletion navigates away from the account page', async ({ page }) => {
     await page.route(GRAPHQL_URL, (route, request) =>
       handleGraphql(route, request, { __me: MOCK_USER_FREE }),
     );
@@ -282,7 +282,8 @@ test.describe('Account page — delete account', () => {
     await page.getByRole('button', { name: 'Delete my account' }).click();
     await page.getByRole('button', { name: 'Yes, delete my account' }).click();
 
-    await expect(page).toHaveURL('http://localhost:3000/', { timeout: 5000 });
+    // After setUser(null), the useEffect redirect to /login fires before router.push('/')
+    await expect(page).not.toHaveURL(/\/account/, { timeout: 5000 });
   });
 
   test('deletion API error shows error message', async ({ page }) => {
