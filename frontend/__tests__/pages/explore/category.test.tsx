@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import CategoryExplorePage, {
   buildCategoryJsonLd,
   CATEGORY_META,
+  getServerSideProps,
 } from '../../../pages/explore/[category]';
 
 jest.mock('../../../context/AppContext', () => ({
@@ -329,5 +330,86 @@ describe('CATEGORY_META', () => {
       expect(CATEGORY_META[cat].label).toBeTruthy();
       expect(CATEGORY_META[cat].description).toBeTruthy();
     }
+  });
+});
+
+describe('getServerSideProps', () => {
+  const makeContext = (category: string) => ({
+    params: { category },
+    req: {},
+    res: {},
+    query: {},
+    resolvedUrl: `/explore/${category}`,
+  // biome-ignore lint/suspicious/noExplicitAny: minimal context mock
+  }) as any;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('returns notFound for an unknown category', async () => {
+    const result = await getServerSideProps(makeContext('unknown-category'));
+    expect(result).toEqual({ notFound: true });
+  });
+
+  it('returns lists filtered to the requested category on success', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { documentId: 'd1', name: 'Museum List', username: 'alice', itemCount: 5, categories: ['museum'] },
+          { documentId: 'd2', name: 'Restaurant List', username: 'bob', itemCount: 3, categories: ['restaurant'] },
+        ],
+      }),
+    });
+
+    const result = await getServerSideProps(makeContext('museum'));
+    expect(result).toEqual({
+      props: {
+        lists: [{ documentId: 'd1', name: 'Museum List', username: 'alice', itemCount: 5, categories: ['museum'] }],
+        category: 'museum',
+        meta: CATEGORY_META.museum,
+      },
+    });
+  });
+
+  it('returns empty lists when the API call fails', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+    const result = await getServerSideProps(makeContext('museum'));
+    expect(result).toEqual({
+      props: { lists: [], category: 'museum', meta: CATEGORY_META.museum },
+    });
+  });
+
+  it('returns empty lists when the API returns a non-ok response', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+
+    const result = await getServerSideProps(makeContext('cafe'));
+    expect(result).toEqual({
+      props: { lists: [], category: 'cafe', meta: CATEGORY_META.cafe },
+    });
+  });
+
+  it('returns empty lists when the API response contains no data array', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+
+    const result = await getServerSideProps(makeContext('park'));
+    expect(result).toEqual({
+      props: { lists: [], category: 'park', meta: CATEGORY_META.park },
+    });
+  });
+
+  it('includes the correct meta for the requested category', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    const result = await getServerSideProps(makeContext('gallery'));
+    expect((result as { props: { meta: { label: string } } }).props.meta).toEqual(CATEGORY_META.gallery);
   });
 });
