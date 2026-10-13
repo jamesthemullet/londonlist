@@ -150,7 +150,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
   return (
     <>
       <Head>
-        <title>{pageTitle} — London List</title>
+        <title>{`${pageTitle} — London List`}</title>
         <meta name="description" content={template.description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={canonicalUrl} />

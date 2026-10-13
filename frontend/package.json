@@ -50,12 +50,6 @@
     "knip": "^6.16.1"
   },
   "resolutions": {
-    "picomatch": "^4.0.4",
-    "ws": ">=8.21.0",
-    "js-yaml": ">=3.15.0 <6.0.0",
-    "sharp": ">=0.35.0",
-    "postcss": ">=8.5.18",
-    "brace-expansion": ">=5.0.8",
-    "source-map-js": ">=1.2.2"
+    "js-yaml": ">=3.15.0 <6.0.0"
   }
 }

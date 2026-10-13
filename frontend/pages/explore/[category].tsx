@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../context/AppContext';
+import { buildOgImageUrl } from '../../lib/og-image';
 import styles from '../explore.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -112,6 +113,7 @@ export default function CategoryExplorePage({ lists, category, meta }: Props) {
   const pageTitle = `London ${meta.label} Lists — London List`;
   const ogUrl = `${SITE_URL}/explore/${category}`;
   const jsonLd = buildCategoryJsonLd(category, meta, lists, SITE_URL);
+  const ogImage = buildOgImageUrl({ title: pageTitle }, SITE_URL);
 
   return (
     <>
@@ -123,9 +125,11 @@ export default function CategoryExplorePage({ lists, category, meta }: Props) {
         <meta property="og:description" content={meta.description} />
         <meta property="og:url" content={ogUrl} />
         <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`London ${meta.label} Lists`} />
         <meta name="twitter:description" content={meta.description} />
+        <meta name="twitter:image" content={ogImage} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {jsonLd && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
