@@ -9,6 +9,11 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non-major dependencies",
       "groupSlug": "all-minor-patch"
+    },
+    {
+      "description": "next 16.4.0 Turbopack dev server fails to load client modules (\"module factory is not available\"); skip until a patch release",
+      "matchPackageNames": ["next", "@next/bundle-analyzer"],
+      "allowedVersions": "!/^16\\.4\\.0$/"
     }
   ],
   "schedule": ["* 2-5 * * *"],
