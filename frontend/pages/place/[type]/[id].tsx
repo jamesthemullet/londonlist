@@ -5,6 +5,7 @@ import AddToListButton from '../../../components/add-to-list-button/add-to-list-
 import BookingLinks from '../../../components/booking-links/booking-links';
 import RelatedPlaces from '../../../components/related-places/related-places';
 import type { PublicPlace } from '../../../lib/place';
+import { buildOgImageUrl } from '../../../lib/og-image';
 import styles from './[id].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -65,6 +66,7 @@ type Props = {
 
 export default function PlaceDetailPage({ place, relatedPlaces }: Props) {
   const pageTitle = `${place.name} — London List`;
+  const ogImage = buildOgImageUrl({ title: pageTitle }, SITE_URL);
   const pageDescription = place.category
     ? `${place.name} is a ${place.category} in London. Add it to your bucket list on London List.`
     : `${place.name} is a place in London. Add it to your bucket list on London List.`;
@@ -82,6 +84,11 @@ export default function PlaceDetailPage({ place, relatedPlaces }: Props) {
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogImage} />
         <script
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: structured data, not user content

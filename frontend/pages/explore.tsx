@@ -3,12 +3,14 @@ import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useMemo, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { buildOgImageUrl } from '../lib/og-image';
 import styles from './explore.module.css';
 
 export type SortOption = 'most-places' | 'fewest-places' | 'alphabetical' | 'most-viewed';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+const OG_IMAGE = buildOgImageUrl({ title: 'Explore London Lists — London List' }, SITE_URL);
 
 type PublicList = {
   documentId: string;
@@ -105,6 +107,14 @@ export default function ExplorePage({ lists }: Props) {
           content="Browse curated lists of things to do in London — hidden gems, restaurants, museums, parks, and more."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Explore London Lists" />
+        <meta
+          name="twitter:description"
+          content="Browse curated lists of things to do in London — hidden gems, restaurants, museums, parks, and more."
+        />
+        <meta name="twitter:image" content={OG_IMAGE} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {lists.length > 0 && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
