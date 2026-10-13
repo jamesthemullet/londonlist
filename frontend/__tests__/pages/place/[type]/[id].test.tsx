@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import PlaceDetailPage, { buildPlaceJsonLd } from '../../../../pages/place/[type]/[id]';
+import PlaceDetailPage, { buildPlaceJsonLd, getServerSideProps } from '../../../../pages/place/[type]/[id]';
 
 jest.mock('next/head', () => ({
   __esModule: true,
@@ -166,5 +166,115 @@ describe('buildPlaceJsonLd', () => {
       containedInPlace: { '@type': string; name: string };
     };
     expect(ld.containedInPlace.name).toBe('London');
+  });
+});
+
+describe('getServerSideProps', () => {
+  const makeContext = (type: string, id: string) => ({
+    params: { type, id },
+    req: {},
+    res: {},
+    query: {},
+    resolvedUrl: `/place/${type}/${id}`,
+  // biome-ignore lint/suspicious/noExplicitAny: minimal context mock
+  }) as any;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('returns the place and related places on success', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { place: MUSEUM } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { relatedPlaces: [MARKET] } }),
+      });
+
+    const result = await getServerSideProps(makeContext('relation', '1525018'));
+    expect(result).toEqual({ props: { place: MUSEUM, relatedPlaces: [MARKET] } });
+  });
+
+  it('returns notFound when the API response is not ok', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+
+    const result = await getServerSideProps(makeContext('relation', '1525018'));
+    expect(result).toEqual({ notFound: true });
+  });
+
+  it('returns notFound when the place is null in the response', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: { place: null } }),
+    });
+
+    const result = await getServerSideProps(makeContext('node', '999'));
+    expect(result).toEqual({ notFound: true });
+  });
+
+  it('returns notFound when fetch throws', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+    const result = await getServerSideProps(makeContext('way', '123'));
+    expect(result).toEqual({ notFound: true });
+  });
+
+  it('returns place with empty relatedPlaces when the related fetch fails', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { place: MUSEUM } }),
+      })
+      .mockRejectedValueOnce(new Error('Related places unavailable'));
+
+    const result = await getServerSideProps(makeContext('relation', '1525018'));
+    expect(result).toEqual({ props: { place: MUSEUM, relatedPlaces: [] } });
+  });
+
+  it('returns place with empty relatedPlaces when the related fetch is not ok', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { place: MUSEUM } }),
+      })
+      .mockResolvedValueOnce({ ok: false });
+
+    const result = await getServerSideProps(makeContext('relation', '1525018'));
+    expect(result).toEqual({ props: { place: MUSEUM, relatedPlaces: [] } });
+  });
+
+  it('returns empty relatedPlaces when the related response has no data', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { place: MUSEUM } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      });
+
+    const result = await getServerSideProps(makeContext('relation', '1525018'));
+    expect(result).toEqual({ props: { place: MUSEUM, relatedPlaces: [] } });
+  });
+
+  it('constructs the osm_id from type and id params', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { place: MARKET } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { relatedPlaces: [] } }),
+      });
+
+    await getServerSideProps(makeContext('way', '60381740'));
+
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(body.variables.osm_id).toBe('way/60381740');
   });
 });
