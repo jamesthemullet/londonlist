@@ -9,10 +9,12 @@ import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import { useStreak } from '../hooks/use-streak';
 import { GET_MY_LISTS } from './my-list';
+import { buildOgImageUrl } from '../lib/og-image';
 import styles from './index.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+const OG_IMAGE = buildOgImageUrl({ title: 'London List — Your London Bucket List App' }, SITE_URL);
 
 export function buildWebSiteJsonLd(siteUrl: string): object {
   return {
@@ -91,12 +93,14 @@ export default function Home() {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${SITE_URL}/`} />
+        <meta property="og:image" content={OG_IMAGE} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="London List — Your London Bucket List App" />
         <meta
           name="twitter:description"
           content="Add places, track visits, and share your London adventures. Free to use."
         />
+        <meta name="twitter:image" content={OG_IMAGE} />
         {buildWebSiteJsonLd(SITE_URL) && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebSiteJsonLd(SITE_URL)) }} />
