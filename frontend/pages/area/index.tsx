@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useAppContext } from "../../context/AppContext";
 import { AREA_META, encodeAreaSlug } from "../../lib/area-meta";
+import { buildOgImageUrl } from "../../lib/og-image";
 import styles from "./area.module.css";
 
 const SITE_URL =
@@ -17,6 +18,8 @@ export function buildAreaIndexJsonLd(siteUrl: string): object {
 		url: `${siteUrl}/area`,
 	};
 }
+
+const OG_IMAGE = buildOgImageUrl({ title: 'Browse London by Area — London List' }, SITE_URL);
 
 export default function AreaIndexPage() {
 	const { user, initialized } = useAppContext();
@@ -45,7 +48,8 @@ export default function AreaIndexPage() {
 				/>
 				<meta property="og:url" content={`${SITE_URL}/area`} />
 				<meta property="og:locale" content="en_GB" />
-				<meta name="twitter:card" content="summary" />
+				<meta property="og:image" content={OG_IMAGE} />
+				<meta name="twitter:card" content="summary_large_image" />
 				<meta
 					name="twitter:title"
 					content="Browse London by Area — London List"
@@ -54,6 +58,7 @@ export default function AreaIndexPage() {
 					name="twitter:description"
 					content="Explore places across London's neighbourhoods and boroughs."
 				/>
+				<meta name="twitter:image" content={OG_IMAGE} />
 				{jsonLd && (
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
 					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
