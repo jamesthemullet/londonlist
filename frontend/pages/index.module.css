@@ -210,6 +210,74 @@
   color: #333;
 }
 
+.starterLists {
+  width: 100%;
+}
+
+.starterSubheading {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0 0 1rem;
+}
+
+.starterGrid {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.starterCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.starterCard:hover {
+  border-color: #999;
+  background: #fafafa;
+}
+
+.starterName {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.starterCount {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+.starterDesc {
+  font-size: 0.82rem;
+  color: #666;
+  line-height: 1.45;
+  margin-top: 0.15rem;
+}
+
+.starterCta {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.starterCta a {
+  color: #111;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.starterCta a:hover {
+  color: #333;
+}
+
 @media (prefers-color-scheme: dark) {
   .proNudge {
     background: #1a1a1a;
@@ -225,6 +293,35 @@
   }
 
   .proNudgeLink:hover {
+    color: #fff;
+  }
+
+  .starterSubheading {
+    color: #aaa;
+  }
+
+  .starterCard {
+    border-color: #333;
+  }
+
+  .starterCard:hover {
+    border-color: #666;
+    background: #1a1a1a;
+  }
+
+  .starterCount {
+    color: #777;
+  }
+
+  .starterDesc {
+    color: #999;
+  }
+
+  .starterCta a {
+    color: #eee;
+  }
+
+  .starterCta a:hover {
     color: #fff;
   }
 }
