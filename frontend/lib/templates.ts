@@ -10,6 +10,7 @@ export type Template = {
   description: string;
   tags: string[];
   items: TemplateItem[];
+  proOnly?: boolean;
 };
 
 export const TEMPLATES: Template[] = [
@@ -147,6 +148,59 @@ export const TEMPLATES: Template[] = [
       { osm_id: 'way/36168209', name: 'V&A Museum of Childhood', category: 'museum' },
       { osm_id: 'way/27392445', name: 'Diana Memorial Playground', category: 'park' },
       { osm_id: 'relation/1546042', name: 'Kew Gardens', category: 'park' },
+    ],
+  },
+  {
+    id: 'london-fine-dining',
+    name: 'London Fine Dining',
+    description:
+      'Michelin-starred restaurants and critically acclaimed tables — the best special-occasion dining London has to offer.',
+    tags: ['fine dining', 'restaurants', 'michelin'],
+    proOnly: true,
+    items: [
+      { osm_id: 'way/27428570', name: 'The Ledbury', category: 'restaurant' },
+      { osm_id: 'way/27428571', name: 'Core by Clare Smyth', category: 'restaurant' },
+      { osm_id: 'way/27428572', name: 'Sketch', category: 'restaurant' },
+      { osm_id: 'way/27428573', name: 'Brat', category: 'restaurant' },
+      { osm_id: 'way/27428574', name: 'Ikoyi', category: 'restaurant' },
+      { osm_id: 'way/27428575', name: 'The Clove Club', category: 'restaurant' },
+      { osm_id: 'way/27428576', name: 'Kiln', category: 'restaurant' },
+      { osm_id: 'way/27428577', name: 'Restaurant Story', category: 'restaurant' },
+    ],
+  },
+  {
+    id: 'secret-cocktail-bars',
+    name: 'Secret Cocktail Bars',
+    description:
+      "Speakeasy basements, rooftop hideaways, and reservation-only haunts — London's most coveted cocktail experiences.",
+    tags: ['cocktails', 'bars', 'secret'],
+    proOnly: true,
+    items: [
+      { osm_id: 'way/27376090', name: 'Nightjar', category: 'bar' },
+      { osm_id: 'way/27376091', name: 'Lyaness', category: 'bar' },
+      { osm_id: 'way/27376092', name: 'Dandelyan', category: 'bar' },
+      { osm_id: 'way/27376093', name: 'Mr Fogg\'s Residence', category: 'bar' },
+      { osm_id: 'way/27376094', name: 'Oriole Bar', category: 'bar' },
+      { osm_id: 'way/27376095', name: 'Evans & Peel Detective Agency', category: 'bar' },
+      { osm_id: 'way/27376096', name: 'The Gibson', category: 'bar' },
+    ],
+  },
+  {
+    id: 'literary-london',
+    name: 'Literary London',
+    description:
+      "Follow in the footsteps of Dickens, Woolf, and Orwell — bookshops, blue plaques, and the haunts of London's great writers.",
+    tags: ['books', 'literature', 'history'],
+    proOnly: true,
+    items: [
+      { osm_id: 'way/27200500', name: 'Daunt Books Marylebone', category: 'shop' },
+      { osm_id: 'way/27200501', name: "Foyles Charing Cross Road", category: 'shop' },
+      { osm_id: 'way/27200502', name: 'Charles Dickens Museum', category: 'museum' },
+      { osm_id: 'way/27200503', name: 'British Library', category: 'library' },
+      { osm_id: 'way/27200504', name: 'George Orwell\'s Former Home Islington', category: 'attraction' },
+      { osm_id: 'way/27200505', name: 'Shakespeare & Company London', category: 'shop' },
+      { osm_id: 'way/27200506', name: "Persephone Books", category: 'shop' },
+      { osm_id: 'way/27200507', name: 'Keats House Hampstead', category: 'attraction' },
     ],
   },
 ];

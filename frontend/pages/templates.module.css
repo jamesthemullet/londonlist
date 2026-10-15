@@ -210,6 +210,79 @@
   margin: 0;
 }
 
+.proBadge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.1rem 0.45rem;
+  background: #7c3aed;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.cardLocked {
+  opacity: 0.85;
+}
+
+.proUpgradeCta {
+  width: 100%;
+  display: block;
+  padding: 0.6rem 1rem;
+  background: #7c3aed;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.proUpgradeCta:hover {
+  background: #6d28d9;
+}
+
+.proTeaser {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: #f5f0ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.proTeaserHeading {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #4c1d95;
+}
+
+.proTeaserText {
+  font-size: 0.875rem;
+  color: #6b21a8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.proTeaserCta {
+  align-self: flex-start;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #7c3aed;
+  text-decoration: none;
+}
+
+.proTeaserCta:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 600px) {
   .grid {
     grid-template-columns: 1fr;
@@ -253,5 +326,22 @@
 
   .signInNote {
     color: #666;
+  }
+
+  .proTeaser {
+    background: #1e1535;
+    border-color: #4c1d95;
+  }
+
+  .proTeaserHeading {
+    color: #c4b5fd;
+  }
+
+  .proTeaserText {
+    color: #a78bfa;
+  }
+
+  .proTeaserCta {
+    color: #a78bfa;
   }
 }

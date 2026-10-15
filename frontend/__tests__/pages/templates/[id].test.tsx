@@ -92,6 +92,18 @@ const RELATED: Template[] = [
   },
 ];
 
+const PRO_TEMPLATE: Template = {
+  id: 'pro-test',
+  name: 'Pro Test',
+  description: 'A Pro-only template.',
+  tags: ['pro'],
+  proOnly: true,
+  items: [
+    { osm_id: 'way/20', name: 'Fancy Place', category: 'restaurant' },
+    { osm_id: 'way/21', name: 'Secret Bar', category: 'bar' },
+  ],
+};
+
 function setupMocks({
   user = null,
   createMyListFn = jest.fn().mockResolvedValue({ data: { createMyList: { documentId: 'new-id' } } }),
@@ -423,5 +435,41 @@ describe('getStaticProps', () => {
     const related = (result as { props: { relatedTemplates: Template[] } }).props.relatedTemplates;
     expect(related.length).toBeLessThanOrEqual(3);
     expect(related.every((t) => t.id !== first.id)).toBe(true);
+  });
+});
+
+describe('CopyButton — Pro-only template', () => {
+  it('shows sign-up and upgrade CTA for a logged-out user', () => {
+    setupMocks({ user: null });
+    render(<CopyButton template={PRO_TEMPLATE} onLimitReached={jest.fn()} />);
+    const link = screen.getByRole('link', { name: /sign up.*upgrade to copy/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', expect.stringContaining('/register'));
+  });
+
+  it('shows upgrade to Pro CTA for a logged-in non-Pro user', () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<CopyButton template={PRO_TEMPLATE} onLimitReached={jest.fn()} />);
+    const link = screen.getByRole('link', { name: /upgrade to pro to copy/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', expect.stringContaining('/pricing'));
+  });
+
+  it('shows the normal copy button for a Pro user', () => {
+    setupMocks({ user: { username: 'alice', isPro: true } });
+    render(<CopyButton template={PRO_TEMPLATE} onLimitReached={jest.fn()} />);
+    expect(screen.getByRole('button', { name: /\+ copy this list/i })).toBeInTheDocument();
+  });
+
+  it('shows Pro badge on the detail page heading for a Pro-only template', () => {
+    setupMocks({ user: null });
+    render(<TemplateDetailPage template={PRO_TEMPLATE} relatedTemplates={[]} />);
+    expect(screen.getByLabelText('Pro template')).toBeInTheDocument();
+  });
+
+  it('does not show Pro badge on a regular template', () => {
+    setupMocks({ user: null });
+    render(<TemplateDetailPage template={SAMPLE_TEMPLATE} relatedTemplates={[]} />);
+    expect(screen.queryByLabelText('Pro template')).not.toBeInTheDocument();
   });
 });

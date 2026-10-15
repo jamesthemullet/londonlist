@@ -76,6 +76,27 @@ function CopyButton({ template, onLimitReached }: CopyButtonProps) {
     }
   }
 
+  if (template.proOnly && !user?.isPro) {
+    if (!user) {
+      return (
+        <div className={styles.cardFooter}>
+          <Link href="/register?ref=pro-template" className={styles.proUpgradeCta}>
+            Sign up &amp; upgrade to copy
+          </Link>
+          <p className={styles.signInNote}>Requires London List Pro</p>
+        </div>
+      );
+    }
+    return (
+      <div className={styles.cardFooter}>
+        <Link href="/pricing?ref=pro-template" className={styles.proUpgradeCta}>
+          Upgrade to Pro to copy
+        </Link>
+        <p className={styles.signInNote}>Unlock all Pro templates from £3.99/month</p>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className={styles.cardFooter}>
@@ -124,15 +145,20 @@ type TemplateCardProps = {
 
 export function TemplateCard({ template }: TemplateCardProps) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { user } = useAppContext();
+  const isLocked = template.proOnly && !user?.isPro;
 
   return (
     <>
-      <article className={styles.card} aria-label={template.name}>
+      <article className={`${styles.card}${isLocked ? ` ${styles.cardLocked}` : ''}`} aria-label={template.name}>
         <div className={styles.cardHeader}>
           <h2 className={styles.cardTitle}>
             <Link href={`/templates/${template.id}`} className={styles.cardTitleLink}>
               {template.name}
             </Link>
+            {template.proOnly && (
+              <span className={styles.proBadge} role="img" aria-label="Pro template">Pro</span>
+            )}
           </h2>
           <p className={styles.cardDescription}>{template.description}</p>
         </div>
@@ -169,6 +195,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
 }
 
 export default function TemplatesPage() {
+  const { user } = useAppContext();
   const ogTitle = 'London Starter Lists — London List';
   const ogDescription =
     'Ready-made London itineraries curated by locals. Copy one to your account and start exploring.';
@@ -205,6 +232,19 @@ export default function TemplatesPage() {
             </li>
           ))}
         </ul>
+
+        {user && !user.isPro && (
+          <aside className={styles.proTeaser}>
+            <p className={styles.proTeaserHeading}>Unlock Pro templates</p>
+            <p className={styles.proTeaserText}>
+              Upgrade to London List Pro to copy the Fine Dining, Secret Cocktail Bars, and Literary
+              London lists — plus unlimited lists and analytics.
+            </p>
+            <Link href="/pricing?ref=templates-teaser" className={styles.proTeaserCta}>
+              See Pro plans →
+            </Link>
+          </aside>
+        )}
       </main>
     </>
   );

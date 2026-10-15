@@ -91,6 +91,18 @@ const SAMPLE_TEMPLATE: Template = {
   ],
 };
 
+const PRO_TEMPLATE: Template = {
+  id: 'pro-test-template',
+  name: 'Pro Test Template',
+  description: 'A Pro-only template for testing.',
+  tags: ['pro', 'premium'],
+  proOnly: true,
+  items: [
+    { osm_id: 'way/10', name: 'Fancy Place', category: 'restaurant' },
+    { osm_id: 'way/11', name: 'Secret Bar', category: 'bar' },
+  ],
+};
+
 afterEach(() => {
   jest.resetAllMocks();
 });
@@ -106,7 +118,7 @@ describe('TemplatesPage — rendering', () => {
     setupMocks();
     render(<TemplatesPage />);
     for (const t of TEMPLATES) {
-      expect(screen.getByRole('heading', { name: t.name, level: 2 })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: new RegExp(t.name, 'i'), level: 2 })).toBeInTheDocument();
     }
   });
 
@@ -327,5 +339,80 @@ describe('TEMPLATES data', () => {
         expect(item.name).toBeTruthy();
       }
     }
+  });
+
+  it('includes at least one Pro-only template', () => {
+    expect(TEMPLATES.some((t) => t.proOnly)).toBe(true);
+  });
+
+  it('all Pro-only templates have proOnly set to true', () => {
+    for (const t of TEMPLATES.filter((t) => t.proOnly)) {
+      expect(t.proOnly).toBe(true);
+    }
+  });
+});
+
+describe('TemplateCard — Pro-only template', () => {
+  beforeEach(() => {
+    mockUseMutation.mockImplementation(() => [jest.fn(), {}]);
+  });
+
+  it('shows a Pro badge on a pro-only template', () => {
+    setupMocks({ user: null });
+    render(<TemplateCard template={PRO_TEMPLATE} />);
+    expect(screen.getByLabelText('Pro template')).toBeInTheDocument();
+  });
+
+  it('shows upgrade CTA with pricing link for a logged-in non-Pro user', () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplateCard template={PRO_TEMPLATE} />);
+    const upgradeLink = screen.getByRole('link', { name: /upgrade to pro to copy/i });
+    expect(upgradeLink).toBeInTheDocument();
+    expect(upgradeLink).toHaveAttribute('href', expect.stringContaining('/pricing'));
+  });
+
+  it('shows sign-up CTA for a logged-out user on a pro-only template', () => {
+    setupMocks({ user: null });
+    render(<TemplateCard template={PRO_TEMPLATE} />);
+    const signUpLink = screen.getByRole('link', { name: /sign up.*upgrade to copy/i });
+    expect(signUpLink).toBeInTheDocument();
+    expect(signUpLink).toHaveAttribute('href', expect.stringContaining('/register'));
+  });
+
+  it('shows the normal copy button for a Pro user on a pro-only template', () => {
+    setupMocks({ user: { username: 'alice', isPro: true } });
+    render(<TemplateCard template={PRO_TEMPLATE} />);
+    expect(screen.getByRole('button', { name: /\+ copy to my lists/i })).toBeInTheDocument();
+  });
+
+  it('does not show the normal copy button for a non-Pro user on a pro-only template', () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplateCard template={PRO_TEMPLATE} />);
+    expect(screen.queryByRole('button', { name: /\+ copy to my lists/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('TemplatesPage — Pro teaser', () => {
+  beforeEach(() => {
+    mockUseMutation.mockImplementation(() => [jest.fn(), {}]);
+  });
+
+  it('shows the Pro teaser for a logged-in non-Pro user', () => {
+    setupMocks({ user: { username: 'alice', isPro: false } });
+    render(<TemplatesPage />);
+    expect(screen.getByText(/unlock pro templates/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /see pro plans/i })).toBeInTheDocument();
+  });
+
+  it('does not show the Pro teaser for a Pro user', () => {
+    setupMocks({ user: { username: 'alice', isPro: true } });
+    render(<TemplatesPage />);
+    expect(screen.queryByText(/unlock pro templates/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show the Pro teaser for a logged-out user', () => {
+    setupMocks({ user: null });
+    render(<TemplatesPage />);
+    expect(screen.queryByText(/unlock pro templates/i)).not.toBeInTheDocument();
   });
 });

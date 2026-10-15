@@ -96,4 +96,42 @@ describe('Template type structure', () => {
       expect(typed.items).toBeDefined();
     }
   });
+
+  it('proOnly is either true or undefined on every template', () => {
+    for (const t of TEMPLATES) {
+      expect(t.proOnly === true || t.proOnly === undefined).toBe(true);
+    }
+  });
+});
+
+describe('Pro-only templates', () => {
+  it('includes at least one Pro-only template', () => {
+    expect(TEMPLATES.some((t) => t.proOnly === true)).toBe(true);
+  });
+
+  it('includes the london-fine-dining Pro template', () => {
+    const found = TEMPLATES.find((t) => t.id === 'london-fine-dining');
+    expect(found).toBeDefined();
+    expect(found?.proOnly).toBe(true);
+  });
+
+  it('includes the secret-cocktail-bars Pro template', () => {
+    const found = TEMPLATES.find((t) => t.id === 'secret-cocktail-bars');
+    expect(found).toBeDefined();
+    expect(found?.proOnly).toBe(true);
+  });
+
+  it('includes the literary-london Pro template', () => {
+    const found = TEMPLATES.find((t) => t.id === 'literary-london');
+    expect(found).toBeDefined();
+    expect(found?.proOnly).toBe(true);
+  });
+
+  it('free templates do not have proOnly set to true', () => {
+    const freeTemplates = TEMPLATES.filter((t) => !t.proOnly);
+    expect(freeTemplates.length).toBeGreaterThan(0);
+    for (const t of freeTemplates) {
+      expect(t.proOnly).not.toBe(true);
+    }
+  });
 });

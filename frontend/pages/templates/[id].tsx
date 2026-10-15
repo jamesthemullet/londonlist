@@ -99,6 +99,27 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
     }
   }
 
+  if (template.proOnly && !user?.isPro) {
+    if (!user) {
+      return (
+        <div className={styles.copySection}>
+          <Link href="/register?ref=pro-template" className={styles.proUpgradeCta}>
+            Sign up &amp; upgrade to copy
+          </Link>
+          <p className={styles.signInNote}>Requires London List Pro · from £3.99/month</p>
+        </div>
+      );
+    }
+    return (
+      <div className={styles.copySection}>
+        <Link href="/pricing?ref=pro-template" className={styles.proUpgradeCta}>
+          Upgrade to Pro to copy this list
+        </Link>
+        <p className={styles.signInNote}>Unlock all Pro templates from £3.99/month</p>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className={styles.copySection}>
@@ -180,7 +201,12 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
         </nav>
 
         <div className={styles.hero}>
-          <h1 className={styles.heading}>{template.name}</h1>
+          <h1 className={styles.heading}>
+            {template.name}
+            {template.proOnly && (
+              <span className={styles.proBadge} role="img" aria-label="Pro template">Pro</span>
+            )}
+          </h1>
           <p className={styles.description}>{template.description}</p>
           <div className={styles.tags}>
             {template.tags.map((tag) => (
