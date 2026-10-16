@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import ProfilePage, { buildProfileJsonLd } from '../../../pages/profile/[username]';
+import ProfilePage, { buildProfileJsonLd, getServerSideProps } from '../../../pages/profile/[username]';
 
 jest.mock('../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -258,5 +258,39 @@ describe('buildProfileJsonLd', () => {
   it('returns an empty hasPart array when the user has no lists', () => {
     const result = buildProfileJsonLd('alice', [], SITE) as Record<string, unknown>;
     expect(result.hasPart).toEqual([]);
+  });
+});
+
+// ─── getServerSideProps ───────────────────────────────────────────────────
+
+describe('getServerSideProps', () => {
+  // biome-ignore lint/suspicious/noExplicitAny: minimal context mock
+  const makeContext = (username: string) => ({ params: { username }, req: {}, res: {}, query: {}, resolvedUrl: `/profile/${username}` }) as any;
+
+  beforeEach(() => { jest.resetAllMocks(); });
+
+  it('returns not_found pageState when the API returns 404', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ status: 404, ok: false });
+    const result = await getServerSideProps(makeContext('bob'));
+    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
+  });
+
+  it('returns found pageState with profileData on a successful response', async () => {
+    const profileData = { lists: [{ documentId: 'l1', name: 'My List', itemCount: 3, completedCount: 1 }] };
+    global.fetch = jest.fn().mockResolvedValue({ status: 200, ok: true, json: async () => profileData });
+    const result = await getServerSideProps(makeContext('bob'));
+    expect(result).toEqual({ props: { pageState: 'found', profileData, username: 'bob' } });
+  });
+
+  it('returns not_found pageState for a non-ok, non-404 response', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ status: 500, ok: false });
+    const result = await getServerSideProps(makeContext('bob'));
+    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
+  });
+
+  it('returns not_found pageState when fetch throws', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+    const result = await getServerSideProps(makeContext('bob'));
+    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
   });
 });

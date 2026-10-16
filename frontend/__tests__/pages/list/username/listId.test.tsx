@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription, selectRelatedLists } from '../../../../pages/list/[username]/[listId]';
+import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription, selectRelatedLists, getServerSideProps } from '../../../../pages/list/[username]/[listId]';
 
 jest.mock('../../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -1688,5 +1688,95 @@ describe('PublicListPage — untitled list fallback', () => {
       />,
     );
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('My London Picks');
+  });
+});
+
+// ─── getServerSideProps ───────────────────────────────────────────────────
+
+describe('getServerSideProps', () => {
+  // biome-ignore lint/suspicious/noExplicitAny: minimal context mock
+  const makeContext = (username: string, listId: string) => ({ params: { username, listId }, req: {}, res: {}, query: {}, resolvedUrl: `/list/${username}/${listId}` }) as any;
+
+  const LIST_DATA = { data: [{ documentId: 'item-1', name: 'Jazz Cafe', category: 'music', completed: false, osm_id: 'r/1', visitedAt: null }], username: 'alice', listName: 'My Picks' };
+  const PROFILE_DATA = { lists: [{ documentId: 'other-list', name: 'Weekend Plan', itemCount: 4 }, { documentId: 'list-abc', name: 'My Picks', itemCount: 1 }] };
+  const EXPLORE_DATA = { data: [{ documentId: 'other-list', name: 'Jazz Trail', username: 'bob', itemCount: 5, categories: ['music'] }] };
+
+  beforeEach(() => { jest.resetAllMocks(); });
+
+  it('returns private pageState when the list API returns 403', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ status: 403, ok: false })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
+    const result = await getServerSideProps(makeContext('alice', 'list-abc'));
+    expect(result).toEqual({ props: { pageState: 'private', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+  });
+
+  it('returns not_found pageState when the list API returns 404', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ status: 404, ok: false })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
+    const result = await getServerSideProps(makeContext('alice', 'list-abc'));
+    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+  });
+
+  it('returns found pageState with listData, otherLists and relatedLists when all fetches succeed', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => LIST_DATA })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
+    const result = await getServerSideProps(makeContext('alice', 'list-abc')) as { props: Record<string, unknown> };
+    expect(result.props.pageState).toBe('found');
+    expect(result.props.listData).toEqual(LIST_DATA);
+    expect(result.props.username).toBe('alice');
+    expect(result.props.listId).toBe('list-abc');
+    expect((result.props.otherLists as unknown[]).length).toBe(1);
+    expect((result.props.relatedLists as unknown[]).length).toBe(1);
+  });
+
+  it('returns empty otherLists when the profile fetch fails', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => LIST_DATA })
+      .mockResolvedValueOnce({ status: 500, ok: false })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
+    const result = await getServerSideProps(makeContext('alice', 'list-abc')) as { props: Record<string, unknown> };
+    expect(result.props.pageState).toBe('found');
+    expect(result.props.otherLists).toEqual([]);
+  });
+
+  it('returns empty relatedLists when the explore fetch fails', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => LIST_DATA })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
+      .mockResolvedValueOnce({ status: 500, ok: false });
+    const result = await getServerSideProps(makeContext('alice', 'list-abc')) as { props: Record<string, unknown> };
+    expect(result.props.pageState).toBe('found');
+    expect(result.props.relatedLists).toEqual([]);
+  });
+
+  it('returns not_found pageState for a non-ok list response', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ status: 500, ok: false })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
+    const result = await getServerSideProps(makeContext('alice', 'list-abc'));
+    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+  });
+
+  it('returns not_found pageState when fetch throws', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+    const result = await getServerSideProps(makeContext('alice', 'list-abc'));
+    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+  });
+
+  it('excludes the current list from otherLists', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => LIST_DATA })
+      .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
+      .mockResolvedValueOnce({ status: 500, ok: false });
+    const result = await getServerSideProps(makeContext('alice', 'list-abc')) as { props: Record<string, unknown> };
+    const otherLists = result.props.otherLists as Array<{ documentId: string }>;
+    expect(otherLists.every((l) => l.documentId !== 'list-abc')).toBe(true);
   });
 });
