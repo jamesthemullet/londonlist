@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import AreaPage from '../../../pages/area/[area]';
+import AreaPage, { getServerSideProps } from '../../../pages/area/[area]';
 import type { Place } from '../../../pages/area/[area]';
 
 jest.mock('../../../context/AppContext', () => ({
@@ -201,5 +201,88 @@ describe('AreaPage — logged-out CTA banner', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: false, setUser: jest.fn() });
     render(<AreaPage {...BLOOMSBURY_PROPS} places={[]} />);
     expect(screen.queryByRole('link', { name: /add it to your london list/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('getServerSideProps', () => {
+  // biome-ignore lint/suspicious/noExplicitAny: minimal context mock
+  const makeContext = (area: string) => ({ params: { area }, req: {}, res: {}, query: {}, resolvedUrl: `/area/${area}` }) as any;
+
+  beforeEach(() => { jest.resetAllMocks(); });
+
+  it('returns notFound for an unknown area slug', async () => {
+    const result = await getServerSideProps(makeContext('atlantis'));
+    expect(result).toEqual({ notFound: true });
+  });
+
+  it('returns props with empty places when the API call throws', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+    const result = await getServerSideProps(makeContext('bloomsbury'));
+    expect(result).toEqual({
+      props: {
+        places: [],
+        areaSlug: 'bloomsbury',
+        areaLabel: expect.any(String),
+        areaDescription: expect.any(String),
+      },
+    });
+  });
+
+  it('returns props with empty places when the API returns a non-ok response', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+    const result = await getServerSideProps(makeContext('camden'));
+    expect(result).toEqual({
+      props: {
+        places: [],
+        areaSlug: 'camden',
+        areaLabel: expect.any(String),
+        areaDescription: expect.any(String),
+      },
+    });
+  });
+
+  it('returns places from a successful API response', async () => {
+    const apiPlaces = [
+      { osm_id: 'r/1', name: 'Jazz Cafe', category: 'music', area: 'Camden', lat: 51.54, lng: -0.14 },
+    ];
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: { placesByArea: apiPlaces } }),
+    });
+    const result = await getServerSideProps(makeContext('camden'));
+    expect(result).toEqual({
+      props: {
+        places: apiPlaces,
+        areaSlug: 'camden',
+        areaLabel: expect.any(String),
+        areaDescription: expect.any(String),
+      },
+    });
+  });
+
+  it('returns empty places when the API response has no placesByArea', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: {} }),
+    });
+    const result = await getServerSideProps(makeContext('camden'));
+    expect(result).toEqual({
+      props: {
+        places: [],
+        areaSlug: 'camden',
+        areaLabel: expect.any(String),
+        areaDescription: expect.any(String),
+      },
+    });
+  });
+
+  it('includes the correct areaLabel and areaDescription from AREA_META', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: { placesByArea: [] } }),
+    });
+    const result = await getServerSideProps(makeContext('bloomsbury')) as { props: Record<string, unknown> };
+    expect(result.props.areaLabel).toBeTruthy();
+    expect(result.props.areaDescription).toBeTruthy();
   });
 });
