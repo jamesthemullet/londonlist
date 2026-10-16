@@ -10,6 +10,7 @@ import { useAuthHeader } from '../hooks/use-auth-header';
 import { useStreak } from '../hooks/use-streak';
 import { GET_MY_LISTS } from './my-list';
 import { buildOgImageUrl } from '../lib/og-image';
+import { TEMPLATES } from '../lib/templates';
 import styles from './index.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -143,6 +144,9 @@ export default function Home() {
   );
 }
 
+const FEATURED_TEMPLATE_IDS = ['london-weekend-icons', 'london-museum-trail', 'london-food-trail'];
+const FEATURED_TEMPLATES = TEMPLATES.filter((t) => FEATURED_TEMPLATE_IDS.includes(t.id));
+
 function LoggedOutHero() {
   return (
     <>
@@ -169,6 +173,27 @@ function LoggedOutHero() {
             <p className={styles.featureText}>{f.text}</p>
           </div>
         ))}
+      </section>
+
+      <section className={styles.starterLists} aria-label="Starter Lists">
+        <h2 className={styles.sectionHeading}>Start with a ready-made list</h2>
+        <p className={styles.starterSubheading}>
+          Copy a curated London itinerary to your account — free, instant, no setup needed.
+        </p>
+        <ul className={styles.starterGrid}>
+          {FEATURED_TEMPLATES.map((template) => (
+            <li key={template.id}>
+              <Link href={`/templates/${template.id}`} className={styles.starterCard}>
+                <span className={styles.starterName}>{template.name}</span>
+                <span className={styles.starterCount}>{template.items.length} places</span>
+                <span className={styles.starterDesc}>{template.description}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className={styles.starterCta}>
+          <Link href="/templates">Browse all starter lists →</Link>
+        </p>
       </section>
     </>
   );

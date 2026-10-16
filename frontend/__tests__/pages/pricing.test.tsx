@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PricingPage, { buildPricingJsonLd } from '../../pages/pricing';
 
 jest.mock('../../context/AppContext', () => ({
@@ -219,6 +219,167 @@ describe('PricingPage — CTAs for authenticated users', () => {
     fireEvent.click(screen.getByRole('button', { name: /manage subscription/i }));
 
     expect(await screen.findByText(/something went wrong opening the billing portal/i)).toBeInTheDocument();
+  });
+
+  it('redirects to login when manage subscription is clicked with no cookie token', async () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: true },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+    mockCookieGet.mockReturnValue(undefined);
+    const pushMock = jest.fn();
+    mockUseRouter.mockReturnValue({ query: {}, push: pushMock });
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /manage subscription/i }));
+
+    expect(pushMock).toHaveBeenCalledWith('/login');
+  });
+});
+
+describe('PricingPage — upgrade checkout (handleUpgrade)', () => {
+  const freeUser = { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false };
+
+  it('redirects to login when upgrade is clicked with no cookie token', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    mockCookieGet.mockReturnValue(undefined);
+    const pushMock = jest.fn();
+    mockUseRouter.mockReturnValue({ query: {}, push: pushMock });
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /start 14-day free trial/i }));
+
+    expect(pushMock).toHaveBeenCalledWith('/login');
+  });
+
+  it('calls create-checkout-session and shows redirecting state on success', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    // biome-ignore lint/suspicious/noExplicitAny: minimal window.location mock for jsdom
+    (window as any).location = { href: '' };
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ url: 'https://checkout.stripe.com/pay/cs_test_123' }),
+    });
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /start 14-day free trial/i }));
+
+    await screen.findByRole('button', { name: /redirecting/i });
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/stripe/create-checkout-session'),
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('shows error when create-checkout-session returns non-ok response', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /start 14-day free trial/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/something went wrong starting checkout/i)).toBeInTheDocument(),
+    );
+  });
+
+  it('shows error when create-checkout-session returns no URL', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ url: null }),
+    });
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /start 14-day free trial/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/something went wrong starting checkout/i)).toBeInTheDocument(),
+    );
+  });
+
+  it('shows error when create-checkout-session throws', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /start 14-day free trial/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/something went wrong starting checkout/i)).toBeInTheDocument(),
+    );
+  });
+
+  it('shows "Redirecting…" while the checkout API is pending', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    let resolveFetch!: (v: unknown) => void;
+    global.fetch = jest.fn().mockReturnValue(new Promise((resolve) => { resolveFetch = resolve; }));
+
+    render(<PricingPage />);
+    fireEvent.click(screen.getByRole('button', { name: /start 14-day free trial/i }));
+    expect(await screen.findByRole('button', { name: /redirecting/i })).toBeInTheDocument();
+
+    resolveFetch({ ok: false });
+  });
+});
+
+describe('PricingPage — post-checkout confirmation', () => {
+  const freeUser = { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false };
+
+  it('calls confirm-checkout-session and upgrades user when checkout=success with valid sessionId', async () => {
+    const setUser = jest.fn();
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser, initialized: true });
+    mockUseRouter.mockReturnValue({ query: { checkout: 'success', session_id: 'cs_test_abc' }, push: jest.fn() });
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ isPro: true }),
+    });
+
+    render(<PricingPage />);
+
+    await screen.findByRole('heading', { level: 1 });
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/stripe/confirm-checkout-session'),
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('does not call confirm-checkout-session when checkout status is not success', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    mockUseRouter.mockReturnValue({ query: { checkout: 'cancelled', session_id: 'cs_test_abc' }, push: jest.fn() });
+    global.fetch = jest.fn();
+
+    render(<PricingPage />);
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not call confirm-checkout-session when user is already Pro', async () => {
+    const proUser = { ...freeUser, isPro: true };
+    mockUseAppContext.mockReturnValue({ user: proUser, setUser: jest.fn(), initialized: true });
+    mockUseRouter.mockReturnValue({ query: { checkout: 'success', session_id: 'cs_test_abc' }, push: jest.fn() });
+    global.fetch = jest.fn();
+
+    render(<PricingPage />);
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not call confirm-checkout-session when there is no token cookie', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    mockUseRouter.mockReturnValue({ query: { checkout: 'success', session_id: 'cs_test_abc' }, push: jest.fn() });
+    mockCookieGet.mockReturnValue(undefined);
+    global.fetch = jest.fn();
+
+    render(<PricingPage />);
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });
 

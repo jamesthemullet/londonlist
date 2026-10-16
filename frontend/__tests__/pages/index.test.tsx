@@ -183,6 +183,53 @@ describe('Home page — logged-out hero', () => {
   });
 });
 
+describe('Home page — starter lists teaser', () => {
+  beforeEach(() => {
+    mockFetch({ data: [] });
+    mockUseAppContext.mockReturnValue({ user: null, setUser: jest.fn(), initialized: true });
+  });
+
+  it('shows the "Start with a ready-made list" heading', () => {
+    render(<Home />);
+    expect(screen.getByRole('heading', { name: /start with a ready-made list/i })).toBeInTheDocument();
+  });
+
+  it('renders exactly 3 featured template cards', () => {
+    render(<Home />);
+    const section = screen.getByRole('region', { name: /starter lists/i });
+    const links = section.querySelectorAll('a[href^="/templates/"]');
+    expect(links).toHaveLength(3);
+  });
+
+  it('renders template names as card links to their detail pages', () => {
+    render(<Home />);
+    const link = screen.getByRole('link', { name: /london weekend icons/i });
+    expect(link).toHaveAttribute('href', '/templates/london-weekend-icons');
+  });
+
+  it('shows a place count on each template card', () => {
+    render(<Home />);
+    const counts = screen.getAllByText(/\d+ places/i);
+    expect(counts.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('renders a "Browse all starter lists" link to /templates', () => {
+    render(<Home />);
+    const link = screen.getByRole('link', { name: /browse all starter lists/i });
+    expect(link).toHaveAttribute('href', '/templates');
+  });
+
+  it('does not show the starter lists section for logged-in users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      setUser: jest.fn(),
+      initialized: true,
+    });
+    render(<Home />);
+    expect(screen.queryByRole('heading', { name: /start with a ready-made list/i })).not.toBeInTheDocument();
+  });
+});
+
 describe('Home page — logged-in hero', () => {
   beforeEach(() => {
     mockFetch({ data: [] });
