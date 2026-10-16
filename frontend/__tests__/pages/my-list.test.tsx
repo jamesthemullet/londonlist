@@ -41,12 +41,20 @@ jest.mock('../../components/my-list/my-list', () => ({
 
 jest.mock('../../components/search/place-search', () => ({
   __esModule: true,
-  default: () => <div data-testid="place-search" />,
+  default: ({ onLimitReached }: { onLimitReached: () => void }) => (
+    <div data-testid="place-search">
+      <button type="button" onClick={onLimitReached}>Trigger limit</button>
+    </div>
+  ),
 }));
 
 jest.mock('../../components/list-visibility-toggle/list-visibility-toggle', () => ({
   __esModule: true,
-  default: () => <div data-testid="visibility-toggle" />,
+  default: ({ onToggle }: { onToggle: () => void }) => (
+    <div data-testid="visibility-toggle">
+      <button type="button" onClick={onToggle}>Toggle visibility</button>
+    </div>
+  ),
 }));
 
 jest.mock('../../components/upgrade-modal/upgrade-modal', () => ({
@@ -63,7 +71,11 @@ jest.mock('../../components/upgrade-modal/upgrade-modal', () => ({
 
 jest.mock('../../components/welcome-checklist/welcome-checklist', () => ({
   __esModule: true,
-  default: () => <div data-testid="welcome-checklist" />,
+  default: ({ onDismiss }: { onDismiss: () => void }) => (
+    <div data-testid="welcome-checklist">
+      <button type="button" onClick={onDismiss}>Dismiss checklist</button>
+    </div>
+  ),
 }));
 
 const mockUseQuery = useQuery as unknown as jest.Mock;
@@ -1005,5 +1017,175 @@ describe('MyListPage — Pro analytics stats card', () => {
     expect(within(statsCard).queryByText('Places saved')).not.toBeInTheDocument();
     expect(within(statsCard).queryByText('Completed')).not.toBeInTheDocument();
     expect(within(statsCard).getByText('Total views')).toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — auto-create list', () => {
+  it('auto-creates "My List" when the user has no lists', async () => {
+    const { mockCreate } = setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: [] } });
+
+    render(<MyListPage />);
+
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith({ variables: { name: 'My List' } });
+    });
+  });
+});
+
+describe('MyListPage — checklist dismiss', () => {
+  it('hides the welcome checklist after onDismiss is called', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByTestId('welcome-checklist')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss checklist' }));
+    expect(screen.queryByTestId('welcome-checklist')).not.toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — tab switching', () => {
+  it('switches the active tab when a second tab is clicked', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: TWO_LISTS } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Weekend Plans' }));
+
+    expect(screen.getByRole('tab', { name: 'Weekend Plans' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'My List' })).toHaveAttribute('aria-selected', 'false');
+  });
+
+  it('closes the rename form when switching tabs', async () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: TWO_LISTS } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    expect(screen.getByRole('textbox', { name: /New name for/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Weekend Plans' }));
+    expect(screen.queryByRole('textbox', { name: /New name for/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — description editing', () => {
+  it('opens the description form when "Add description" is clicked', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add description' }));
+    expect(screen.getByRole('form', { name: 'Edit list description' })).toBeInTheDocument();
+  });
+
+  it('saves the description when the form is submitted', async () => {
+    const { mockUpdate } = setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add description' }));
+    fireEvent.change(screen.getByLabelText(/Description/), {
+      target: { value: 'A great London list' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save description' }));
+
+    await waitFor(() => {
+      expect(mockUpdate).toHaveBeenCalledWith({
+        variables: { documentId: 'list-1', description: 'A great London list' },
+      });
+    });
+  });
+
+  it('dismisses the description form when Cancel is clicked', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add description' }));
+    expect(screen.getByRole('form', { name: 'Edit list description' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('form', { name: 'Edit list description' })).not.toBeInTheDocument();
+  });
+
+  it('shows description preview and "Edit description" button when description exists', () => {
+    setupMutations();
+    const listWithDesc = [{ documentId: 'list-1', name: 'My List', isPublic: false, viewCount: 0, description: 'London hidden gems' }];
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: listWithDesc } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByText('London hidden gems')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit description' })).toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — toggle visibility', () => {
+  it('calls updateList with toggled isPublic when onToggle is invoked', async () => {
+    const { mockUpdate } = setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle visibility' }));
+
+    await waitFor(() => {
+      expect(mockUpdate).toHaveBeenCalledWith({
+        variables: { documentId: 'list-1', isPublic: true },
+      });
+    });
+  });
+});
+
+describe('MyListPage — place item limit', () => {
+  it('opens the upgrade modal when the place limit is reached', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Trigger limit' }));
+    expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+  });
+});
+
+describe('MyListPage — save rename with unchanged name', () => {
+  it('dismisses the rename form without calling updateList when the name is unchanged', async () => {
+    const { mockUpdate } = setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('textbox', { name: /New name for/ })).not.toBeInTheDocument();
+    });
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+});
+
+describe('MyListPage — close upgrade modal', () => {
+  it('closes the upgrade modal when onClose is called', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: THREE_LISTS } });
+    mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upgrade to Pro to create more lists' }));
+    expect(screen.getByTestId('upgrade-modal')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close modal' }));
+    expect(screen.queryByTestId('upgrade-modal')).not.toBeInTheDocument();
   });
 });
