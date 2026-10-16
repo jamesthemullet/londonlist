@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import PublicProfilePage, {
   buildProfileOgDescription,
+  getServerSideProps,
 } from '../../../pages/list/[username]';
 
 jest.mock('../../../context/AppContext', () => ({
@@ -232,5 +233,45 @@ describe('PublicProfilePage — OG / Twitter meta tags', () => {
   it('renders twitter:description with item count', () => {
     render(<PublicProfilePage pageState="found" listData={listData} username="alice" />);
     expect(getMeta('name', 'twitter:description')?.getAttribute('content')).toContain('2 places');
+  });
+});
+
+// ─── getServerSideProps ───────────────────────────────────────────────────
+
+describe('getServerSideProps', () => {
+  // biome-ignore lint/suspicious/noExplicitAny: minimal context mock
+  const makeContext = (username: string) => ({ params: { username }, req: {}, res: {}, query: {}, resolvedUrl: `/list/${username}` }) as any;
+
+  beforeEach(() => { jest.resetAllMocks(); });
+
+  it('returns not_found pageState when the API returns 404', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ status: 404, ok: false });
+    const result = await getServerSideProps(makeContext('alice'));
+    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice' } });
+  });
+
+  it('returns private pageState when the API returns 403', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ status: 403, ok: false });
+    const result = await getServerSideProps(makeContext('alice'));
+    expect(result).toEqual({ props: { pageState: 'private', listData: null, username: 'alice' } });
+  });
+
+  it('returns found pageState with list data on a successful response', async () => {
+    const listData = { data: [{ documentId: 'item-1', name: 'British Museum' }], username: 'alice' };
+    global.fetch = jest.fn().mockResolvedValue({ status: 200, ok: true, json: async () => listData });
+    const result = await getServerSideProps(makeContext('alice'));
+    expect(result).toEqual({ props: { pageState: 'found', listData, username: 'alice' } });
+  });
+
+  it('returns not_found pageState for a non-ok, non-403/404 response', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ status: 500, ok: false });
+    const result = await getServerSideProps(makeContext('alice'));
+    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice' } });
+  });
+
+  it('returns not_found pageState when fetch throws', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+    const result = await getServerSideProps(makeContext('alice'));
+    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice' } });
   });
 });
