@@ -58,16 +58,19 @@ export function deriveAllCategories(lists: PublicList[]): string[] {
 
 export function sortLists(lists: PublicList[], sortBy: SortOption): PublicList[] {
   const copy = [...lists];
-  if (sortBy === 'most-places') {
-    return copy.sort((a, b) => b.itemCount - a.itemCount);
-  }
-  if (sortBy === 'fewest-places') {
-    return copy.sort((a, b) => a.itemCount - b.itemCount);
-  }
-  if (sortBy === 'most-viewed') {
-    return copy.sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
-  }
-  return copy.sort((a, b) => a.name.localeCompare(b.name));
+
+  const compareWithinGroup = (a: PublicList, b: PublicList): number => {
+    if (sortBy === 'most-places') return b.itemCount - a.itemCount;
+    if (sortBy === 'fewest-places') return a.itemCount - b.itemCount;
+    if (sortBy === 'most-viewed') return (b.viewCount ?? 0) - (a.viewCount ?? 0);
+    return a.name.localeCompare(b.name);
+  };
+
+  return copy.sort((a, b) => {
+    if (a.isFeatured && !b.isFeatured) return -1;
+    if (!a.isFeatured && b.isFeatured) return 1;
+    return compareWithinGroup(a, b);
+  });
 }
 
 export default function ExplorePage({ lists }: Props) {
