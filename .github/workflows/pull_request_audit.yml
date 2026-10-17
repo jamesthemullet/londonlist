@@ -31,7 +31,10 @@ jobs:
           unzip -q /tmp/chromedriver.zip -d /tmp/
           chmod +x /tmp/chromedriver-linux64/chromedriver
           echo "CHROMEDRIVER_PATH=/tmp/chromedriver-linux64/chromedriver" >> $GITHUB_ENV
-      - run: yarn dev & npx wait-on http://localhost:3000
+      # Scan a production build: dev mode injects Next's dev overlay into the
+      # page, which axe flags, and is prone to dev-only bundler bugs.
+      - run: yarn build
+      - run: yarn start & npx wait-on http://localhost:3000
       - name: Run axe
         run: |
           yarn add @axe-core/cli
