@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ExplorePage, { deriveAllCategories, sortLists, buildExplorePageJsonLd } from '../../pages/explore';
+import ExplorePage, { deriveAllCategories, sortLists, buildExplorePageJsonLd, getServerSideProps } from '../../pages/explore';
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -669,5 +669,103 @@ describe('buildExplorePageJsonLd', () => {
     const parts = result.hasPart as Array<Record<string, unknown>>;
     expect(parts[0].url).toContain('https://londonlist.co.uk');
     expect(result.url).toBe('https://londonlist.co.uk/explore');
+  });
+});
+
+describe('sortLists — featured-first ordering', () => {
+  const base = [
+    { documentId: 'a', name: 'Zoos', username: 'x', itemCount: 2, viewCount: 50, categories: [] },
+    { documentId: 'b', name: 'Art Galleries', username: 'y', itemCount: 10, viewCount: 10, categories: [], isFeatured: true },
+    { documentId: 'c', name: 'Markets', username: 'z', itemCount: 5, viewCount: 200, categories: [], isFeatured: false },
+  ];
+
+  it('puts featured lists before non-featured for most-places sort', () => {
+    const result = sortLists(base, 'most-places');
+    expect(result[0].documentId).toBe('b');
+  });
+
+  it('puts featured lists before non-featured for fewest-places sort', () => {
+    const result = sortLists(base, 'fewest-places');
+    expect(result[0].documentId).toBe('b');
+  });
+
+  it('puts featured lists before non-featured for alphabetical sort', () => {
+    const result = sortLists(base, 'alphabetical');
+    expect(result[0].documentId).toBe('b');
+  });
+
+  it('puts featured lists before non-featured for most-viewed sort', () => {
+    const result = sortLists(base, 'most-viewed');
+    expect(result[0].documentId).toBe('b');
+  });
+
+  it('within featured group, applies the chosen sort (most-places)', () => {
+    const input = [
+      { documentId: 'a', name: 'Z', username: 'x', itemCount: 2, categories: [], isFeatured: true },
+      { documentId: 'b', name: 'A', username: 'y', itemCount: 10, categories: [], isFeatured: true },
+    ];
+    const result = sortLists(input, 'most-places');
+    expect(result[0].documentId).toBe('b');
+  });
+
+  it('within non-featured group, applies the chosen sort (alphabetical)', () => {
+    const input = [
+      { documentId: 'a', name: 'Zoos', username: 'x', itemCount: 2, categories: [] },
+      { documentId: 'b', name: 'Art', username: 'y', itemCount: 10, categories: [] },
+    ];
+    const result = sortLists(input, 'alphabetical');
+    expect(result[0].documentId).toBe('b');
+  });
+
+  it('all featured lists appear before all non-featured lists with multiple of each', () => {
+    const input = [
+      { documentId: 'nf1', name: 'B', username: 'x', itemCount: 5, categories: [] },
+      { documentId: 'f1', name: 'C', username: 'y', itemCount: 3, categories: [], isFeatured: true },
+      { documentId: 'nf2', name: 'A', username: 'z', itemCount: 8, categories: [] },
+      { documentId: 'f2', name: 'D', username: 'w', itemCount: 1, categories: [], isFeatured: true },
+    ];
+    const result = sortLists(input, 'alphabetical');
+    const featuredIds = result.filter((l) => l.isFeatured).map((l) => l.documentId);
+    const nonFeaturedIds = result.filter((l) => !l.isFeatured).map((l) => l.documentId);
+    const lastFeaturedIdx = result.findIndex((l) => l.documentId === featuredIds[featuredIds.length - 1]);
+    const firstNonFeaturedIdx = result.findIndex((l) => l.documentId === nonFeaturedIds[0]);
+    expect(lastFeaturedIdx).toBeLessThan(firstNonFeaturedIdx);
+  });
+});
+
+describe('getServerSideProps', () => {
+  beforeEach(() => { jest.resetAllMocks(); });
+
+  it('returns lists from the API on a successful response', async () => {
+    const data = [
+      { documentId: 'doc-1', name: 'Weekend Wanders', username: 'alice', itemCount: 5, categories: [] },
+    ];
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data }),
+    });
+    const result = await getServerSideProps({} as Parameters<typeof getServerSideProps>[0]);
+    expect(result).toEqual({ props: { lists: data } });
+  });
+
+  it('returns empty lists array when the API response is not ok', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+    const result = await getServerSideProps({} as Parameters<typeof getServerSideProps>[0]);
+    expect(result).toEqual({ props: { lists: [] } });
+  });
+
+  it('returns empty lists array when the API response has no data field', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+    const result = await getServerSideProps({} as Parameters<typeof getServerSideProps>[0]);
+    expect(result).toEqual({ props: { lists: [] } });
+  });
+
+  it('returns empty lists array when fetch throws', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+    const result = await getServerSideProps({} as Parameters<typeof getServerSideProps>[0]);
+    expect(result).toEqual({ props: { lists: [] } });
   });
 });
