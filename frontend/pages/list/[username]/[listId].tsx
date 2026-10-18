@@ -13,6 +13,12 @@ import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
 
+export function buildPlaceUrl(osm_id: string): string | null {
+  const idx = osm_id.indexOf('/');
+  if (idx < 1 || idx === osm_id.length - 1) return null;
+  return `/place/${osm_id.slice(0, idx)}/${osm_id.slice(idx + 1)}`;
+}
+
 const ListMap = dynamic(() => import('../../../components/map/list-map'), {
   ssr: false,
   loading: () => <div className={styles.mapLoader} role="status" aria-label="Map loading">Loading map…</div>,
@@ -402,7 +408,13 @@ export default function PublicListPage({ pageState, listData, username, listId, 
                   {todo.map((item) => (
                     <li key={item.documentId} className={styles.item}>
                       <div className={styles.itemMain}>
-                        <span className={styles.name}>{item.name}</span>
+                        {buildPlaceUrl(item.osm_id) ? (
+                          <Link href={buildPlaceUrl(item.osm_id) as string} className={styles.name}>
+                            {item.name}
+                          </Link>
+                        ) : (
+                          <span className={styles.name}>{item.name}</span>
+                        )}
                         {item.category && (
                           <span className={styles.category}>{item.category}</span>
                         )}
@@ -421,7 +433,13 @@ export default function PublicListPage({ pageState, listData, username, listId, 
                   {done.map((item) => (
                     <li key={item.documentId} className={styles.item}>
                       <div className={styles.itemMain}>
-                        <span className={styles.nameDone}>{item.name}</span>
+                        {buildPlaceUrl(item.osm_id) ? (
+                          <Link href={buildPlaceUrl(item.osm_id) as string} className={styles.nameDone}>
+                            {item.name}
+                          </Link>
+                        ) : (
+                          <span className={styles.nameDone}>{item.name}</span>
+                        )}
                         {item.category && (
                           <span className={styles.category}>{item.category}</span>
                         )}
