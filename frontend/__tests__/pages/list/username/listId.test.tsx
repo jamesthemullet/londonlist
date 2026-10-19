@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription, selectRelatedLists, getServerSideProps } from '../../../../pages/list/[username]/[listId]';
+import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription, selectRelatedLists, getServerSideProps, buildPlaceUrl } from '../../../../pages/list/[username]/[listId]';
 
 jest.mock('../../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -1778,5 +1778,93 @@ describe('getServerSideProps', () => {
     const result = await getServerSideProps(makeContext('alice', 'list-abc')) as { props: Record<string, unknown> };
     const otherLists = result.props.otherLists as Array<{ documentId: string }>;
     expect(otherLists.every((l) => l.documentId !== 'list-abc')).toBe(true);
+  });
+});
+
+describe('buildPlaceUrl', () => {
+  it('returns the correct URL for a relation osm_id', () => {
+    expect(buildPlaceUrl('relation/1525018')).toBe('/place/relation/1525018');
+  });
+
+  it('returns the correct URL for a way osm_id', () => {
+    expect(buildPlaceUrl('way/60381740')).toBe('/place/way/60381740');
+  });
+
+  it('returns the correct URL for a node osm_id', () => {
+    expect(buildPlaceUrl('node/123')).toBe('/place/node/123');
+  });
+
+  it('returns null when osm_id has no slash', () => {
+    expect(buildPlaceUrl('123')).toBeNull();
+  });
+
+  it('returns null when osm_id starts with a slash', () => {
+    expect(buildPlaceUrl('/123')).toBeNull();
+  });
+
+  it('returns null when osm_id ends with a slash', () => {
+    expect(buildPlaceUrl('relation/')).toBeNull();
+  });
+
+  it('returns null for an empty string', () => {
+    expect(buildPlaceUrl('')).toBeNull();
+  });
+});
+
+describe('PublicListPage — place links on list items', () => {
+  const LINKED_TODO = {
+    documentId: 'item-a',
+    name: 'British Museum',
+    category: 'museum',
+    completed: false,
+    osm_id: 'relation/1525018',
+    visitedAt: null,
+  };
+
+  const LINKED_DONE = {
+    documentId: 'item-b',
+    name: 'Borough Market',
+    category: 'market',
+    completed: true,
+    osm_id: 'way/60381740',
+    visitedAt: '2026-03-10T12:00:00.000Z',
+  };
+
+  const NO_SLASH_TODO = {
+    documentId: 'item-c',
+    name: 'Mystery Place',
+    category: null,
+    completed: false,
+    osm_id: 'legacy123',
+    visitedAt: null,
+  };
+
+  function renderList(items: typeof LINKED_TODO[]) {
+    return render(
+      <PublicListPage
+        pageState="found"
+        listData={{ data: items, username: 'alice', listName: 'Test List' }}
+        username="alice"
+        listId="list-abc"
+      />,
+    );
+  }
+
+  it('links a to-do item name to its place page', () => {
+    renderList([LINKED_TODO]);
+    const link = screen.getByRole('link', { name: 'British Museum' }) as HTMLAnchorElement;
+    expect(link.href).toContain('/place/relation/1525018');
+  });
+
+  it('links a done item name to its place page', () => {
+    renderList([LINKED_DONE]);
+    const link = screen.getByRole('link', { name: 'Borough Market' }) as HTMLAnchorElement;
+    expect(link.href).toContain('/place/way/60381740');
+  });
+
+  it('renders item name as plain text when osm_id has no slash', () => {
+    renderList([NO_SLASH_TODO]);
+    expect(screen.getByText('Mystery Place')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Mystery Place' })).toBeNull();
   });
 });
