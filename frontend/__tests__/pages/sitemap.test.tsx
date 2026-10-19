@@ -162,4 +162,83 @@ describe('getServerSideProps', () => {
     expect(xml).toContain('carol');
     expect(xml).not.toContain('abc123');
   });
+
+  it('includes place URLs when the GraphQL allPlaces query returns results', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: {
+            allPlaces: [
+              { osm_id: 'relation/1525018' },
+              { osm_id: 'way/60381740' },
+            ],
+          },
+        }),
+      });
+
+    const res = makeRes();
+    await getServerSideProps(makeCtx(res));
+
+    const xml: string = res.write.mock.calls[0][0];
+    expect(xml).toContain('/place/relation/1525018');
+    expect(xml).toContain('/place/way/60381740');
+  });
+
+  it('serves sitemap without place URLs when the GraphQL call fails', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      })
+      .mockRejectedValueOnce(new Error('GraphQL unreachable'));
+
+    const res = makeRes();
+    await getServerSideProps(makeCtx(res));
+
+    expect(res.end).toHaveBeenCalledTimes(1);
+    const xml: string = res.write.mock.calls[0][0];
+    expect(xml).toContain('<?xml');
+    expect(xml).not.toContain('/place/');
+  });
+
+  it('serves sitemap without place URLs when GraphQL returns a non-ok response', async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      })
+      .mockResolvedValueOnce({ ok: false });
+
+    const res = makeRes();
+    await getServerSideProps(makeCtx(res));
+
+    const xml: string = res.write.mock.calls[0][0];
+    expect(xml).not.toContain('/place/');
+  });
+
+  it('sends the GraphQL query to the correct endpoint', async () => {
+    const mockFetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: [] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { allPlaces: [] } }),
+      });
+    global.fetch = mockFetch;
+
+    const res = makeRes();
+    await getServerSideProps(makeCtx(res));
+
+    const graphqlCall = mockFetch.mock.calls[1];
+    expect(graphqlCall[0]).toContain('/graphql');
+    expect(graphqlCall[1]?.method).toBe('POST');
+    expect(graphqlCall[1]?.body).toContain('allPlaces');
+  });
 });

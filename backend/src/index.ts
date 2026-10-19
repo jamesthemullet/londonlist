@@ -46,6 +46,7 @@ export default {
           place(osm_id: String!): PublicPlace
           placesByArea(area: String!): [PublicPlace]
           relatedPlaces(osm_id: String!, limit: Int): [PublicPlace!]!
+          allPlaces(limit: Int): [PublicPlace!]!
           planLimits: PlanLimits!
         }
         extend type Mutation {
@@ -151,6 +152,35 @@ export default {
               }
 
               return results;
+            },
+          },
+          allPlaces: {
+            async resolve(_parent, args) {
+              const cap = Math.min(args.limit ?? 5000, 10000);
+
+              const items = await strapi.documents('api::list-item.list-item').findMany({
+                sort: 'createdAt:asc',
+                limit: cap * 3,
+              });
+
+              const seen = new Set<string>();
+              const places: { osm_id: string; name: string; category: string | null; area: string | null; lat: number | null; lng: number | null }[] = [];
+
+              for (const item of items) {
+                if (seen.has(item.osm_id)) continue;
+                seen.add(item.osm_id);
+                places.push({
+                  osm_id: item.osm_id,
+                  name: item.name,
+                  category: item.category ?? null,
+                  area: item.area ?? null,
+                  lat: item.lat ?? null,
+                  lng: item.lng ?? null,
+                });
+                if (places.length >= cap) break;
+              }
+
+              return places;
             },
           },
           listItems: {
