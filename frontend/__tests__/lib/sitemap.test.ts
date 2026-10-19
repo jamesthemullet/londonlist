@@ -4,6 +4,7 @@ import {
 	EXPLORE_CATEGORIES,
 	generateSitemapXml,
 } from "../../lib/sitemap";
+import type { PublicPlaceForSitemap } from "../../lib/sitemap";
 import { TEMPLATES } from "../../lib/templates";
 
 const SITE_URL = "https://londonlist.vercel.app";
@@ -155,6 +156,55 @@ describe("buildSitemapEntries", () => {
 			expect(entry?.changefreq).toBe("weekly");
 			expect(entry?.priority).toBe("0.7");
 		}
+	});
+
+	it("includes a place entry for each valid osm_id when places are provided", () => {
+		const places: PublicPlaceForSitemap[] = [
+			{ osm_id: "relation/1525018" },
+			{ osm_id: "way/60381740" },
+			{ osm_id: "node/123456" },
+		];
+		const entries = buildSitemapEntries([], places);
+		expect(entries.find((e) => e.loc === "/place/relation/1525018")).toBeDefined();
+		expect(entries.find((e) => e.loc === "/place/way/60381740")).toBeDefined();
+		expect(entries.find((e) => e.loc === "/place/node/123456")).toBeDefined();
+	});
+
+	it("sets priority 0.5 and monthly changefreq on place entries", () => {
+		const places: PublicPlaceForSitemap[] = [{ osm_id: "relation/1525018" }];
+		const entries = buildSitemapEntries([], places);
+		const entry = entries.find((e) => e.loc === "/place/relation/1525018");
+		expect(entry?.priority).toBe("0.5");
+		expect(entry?.changefreq).toBe("monthly");
+	});
+
+	it("filters out places with malformed osm_id", () => {
+		const places: PublicPlaceForSitemap[] = [
+			{ osm_id: "relation/1525018" },
+			{ osm_id: "invalid-id" },
+			{ osm_id: "" },
+			{ osm_id: "relation/" },
+			{ osm_id: "/123456" },
+		];
+		const entries = buildSitemapEntries([], places);
+		const placeLocs = entries.filter((e) => e.loc.startsWith("/place/")).map((e) => e.loc);
+		expect(placeLocs).toHaveLength(1);
+		expect(placeLocs[0]).toBe("/place/relation/1525018");
+	});
+
+	it("defaults to no place entries when places argument is omitted", () => {
+		const entries = buildSitemapEntries([]);
+		const placeLocs = entries.filter((e) => e.loc.startsWith("/place/"));
+		expect(placeLocs).toHaveLength(0);
+	});
+
+	it("combines list entries and place entries in the same sitemap", () => {
+		const lists = [{ documentId: "doc-1", username: "alice" }];
+		const places: PublicPlaceForSitemap[] = [{ osm_id: "relation/9999" }];
+		const entries = buildSitemapEntries(lists, places);
+		const locs = entries.map((e) => e.loc);
+		expect(locs).toContain("/list/alice/doc-1");
+		expect(locs).toContain("/place/relation/9999");
 	});
 });
 

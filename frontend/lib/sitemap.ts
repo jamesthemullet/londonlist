@@ -20,6 +20,10 @@ export type PublicListForSitemap = {
 	username: string | null;
 };
 
+export type PublicPlaceForSitemap = {
+	osm_id: string;
+};
+
 export const EXPLORE_CATEGORIES = [
 	"museum",
 	"restaurant",
@@ -64,8 +68,11 @@ const STATIC_PAGES: SitemapEntry[] = [
 	...CATEGORY_PAGES,
 ];
 
+const OSM_ID_RE = /^\w+\/\d+$/;
+
 export function buildSitemapEntries(
 	lists: PublicListForSitemap[],
+	places: PublicPlaceForSitemap[] = [],
 ): SitemapEntry[] {
 	const withUsername = lists.filter((l) => l.username !== null);
 
@@ -84,7 +91,15 @@ export function buildSitemapEntries(
 		priority: "0.6",
 	}));
 
-	return [...STATIC_PAGES, ...profileEntries, ...listEntries];
+	const placeEntries: SitemapEntry[] = places
+		.filter((p) => OSM_ID_RE.test(p.osm_id))
+		.map((p) => ({
+			loc: `/place/${p.osm_id}`,
+			changefreq: "monthly" as const,
+			priority: "0.5",
+		}));
+
+	return [...STATIC_PAGES, ...profileEntries, ...listEntries, ...placeEntries];
 }
 
 export function generateSitemapXml(
