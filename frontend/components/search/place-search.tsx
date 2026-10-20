@@ -73,6 +73,8 @@ function osmTypeExpanded(short: string): string {
 }
 
 type Props = {
+  /** Visible label rendered as a tab above a large search box; otherwise the label is screen-reader only */
+  label?: string;
   listId?: string;
   itemCount?: number;
   isPro?: boolean;
@@ -80,7 +82,7 @@ type Props = {
   onLimitReached?: () => void;
 };
 
-export default function PlaceSearch({ listId, itemCount, isPro, freeItemLimit = 20, onLimitReached }: Props) {
+export default function PlaceSearch({ label, listId, itemCount, isPro, freeItemLimit = 20, onLimitReached }: Props) {
   const isAtItemLimit = !isPro && itemCount !== undefined && itemCount >= freeItemLimit;
   const authHeader = useAuthHeader();
   const [query, setQuery] = useState('');
@@ -203,16 +205,16 @@ export default function PlaceSearch({ listId, itemCount, isPro, freeItemLimit = 
   }
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${label ? styles.prominent : ''}`}>
       {!isPro && itemCount !== undefined && (
         <p className={styles.itemCounter}>
           {itemCount}/{freeItemLimit} places on free plan
         </p>
       )}
+      <label htmlFor="place-search-input" className={label ? styles.labelTab : styles.srOnly}>
+        {label ?? 'Search for a place in London'}
+      </label>
       <div className={styles.inputWrapper}>
-        <label htmlFor="place-search-input" className={styles.srOnly}>
-          Search for a place in London
-        </label>
         <input
           id="place-search-input"
           className={styles.input}
@@ -247,10 +249,8 @@ export default function PlaceSearch({ listId, itemCount, isPro, freeItemLimit = 
                   {subtitle && (
                     <span className={styles.resultSubtitle}>{subtitle}</span>
                   )}
-                  {r.properties.osm_value && (
-                    <span className={styles.resultType}>{r.properties.osm_value}</span>
-                  )}
                 </div>
+                <span className={styles.resultType}>{r.properties.osm_value}</span>
                 <button
                   type="button"
                   className={styles.addButton}

@@ -50,21 +50,22 @@ type PublicList = {
 
 const FEATURES = [
   {
-    icon: '📍',
     heading: 'Discover London',
     text: 'Search hundreds of places — museums, restaurants, parks, and hidden gems.',
   },
   {
-    icon: '✓',
     heading: 'Track your visits',
     text: 'Tick off places as you explore and watch your London adventures grow.',
   },
   {
-    icon: '🔗',
     heading: 'Share with friends',
     text: 'Make your list public and inspire others to explore the city.',
   },
 ];
+
+function pad(n: number): string {
+  return String(n).padStart(2, '0');
+}
 
 export default function Home() {
   const { user } = useAppContext();
@@ -115,7 +116,7 @@ export default function Home() {
         )}
 
         {publicLists.length > 0 && (
-          <section className={styles.publicLists}>
+          <section className={styles.section}>
             <h2 className={styles.sectionHeading}>Community lists</h2>
             <ul className={styles.listGrid}>
               {publicLists.map((list) => (
@@ -150,50 +151,75 @@ const FEATURED_TEMPLATES = TEMPLATES.filter((t) => FEATURED_TEMPLATE_IDS.include
 function LoggedOutHero() {
   return (
     <>
-      <section className={styles.hero}>
-        <h1 className={styles.heading}>Your London bucket list, beautifully organised</h1>
-        <p className={styles.subheading}>
-          Add places, track visits, and share your London adventures with friends and family.
-        </p>
-        <div className={styles.heroCtas}>
-          <Link href="/register" className={styles.ctaPrimary}>
-            Create your free list
-          </Link>
-          <Link href="/login" className={styles.ctaSecondary}>
-            Log in
-          </Link>
+      <section className={styles.heroGrid}>
+        <div className={styles.hero}>
+          <h1 className={styles.heading}>Your London bucket list, beautifully organised</h1>
+          <p className={styles.subheading}>
+            Add places, track visits, and share your London adventures with friends and family.
+          </p>
+          <div className={styles.heroCtas}>
+            <Link href="/register" className={styles.ctaPrimary}>
+              Create your free list <span aria-hidden="true">&rarr;</span>
+            </Link>
+            <Link href="/login" className={styles.ctaSecondary}>
+              Log in
+            </Link>
+          </div>
+        </div>
+        <div className={styles.concretePanel} aria-hidden="true">
+          <div className={styles.panelTop}>
+            <span>Fig. 01</span>
+            <span>London</span>
+          </div>
+          <div>
+            51.5072° N
+            <br />
+            0.1276° W
+          </div>
         </div>
       </section>
 
       <section className={styles.features} aria-label="Features">
-        {FEATURES.map((f) => (
+        {FEATURES.map((f, i) => (
           <div key={f.heading} className={styles.feature}>
-            <span className={styles.featureIcon} aria-hidden="true">{f.icon}</span>
+            <span className={styles.featureNumber} aria-hidden="true">{pad(i + 1)} —</span>
             <h2 className={styles.featureHeading}>{f.heading}</h2>
             <p className={styles.featureText}>{f.text}</p>
           </div>
         ))}
       </section>
 
-      <section className={styles.starterLists} aria-label="Starter Lists">
-        <h2 className={styles.sectionHeading}>Start with a ready-made list</h2>
-        <p className={styles.starterSubheading}>
-          Copy a curated London itinerary to your account — free, instant, no setup needed.
-        </p>
-        <ul className={styles.starterGrid}>
-          {FEATURED_TEMPLATES.map((template) => (
+      <section className={styles.section} aria-label="Starter Lists">
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionHeading}>Start with a ready-made list</h2>
+            <p className={styles.sectionSubheading}>
+              Copy a curated London itinerary to your account — free, instant, no setup needed.
+            </p>
+          </div>
+          <Link href="/templates" className={styles.ctaPrimary}>
+            Browse all starter lists <span aria-hidden="true">&rarr;</span>
+          </Link>
+        </div>
+        <ul className={styles.directory}>
+          <li className={styles.directoryHead} aria-hidden="true">
+            <span>N°</span>
+            <span>List</span>
+            <span>Description</span>
+            <span>Places</span>
+          </li>
+          {FEATURED_TEMPLATES.map((template, i) => (
             <li key={template.id}>
-              <Link href={`/templates/${template.id}`} className={styles.starterCard}>
-                <span className={styles.starterName}>{template.name}</span>
-                <span className={styles.starterCount}>{template.items.length} places</span>
-                <span className={styles.starterDesc}>{template.description}</span>
+              <Link href={`/templates/${template.id}`} className={styles.directoryRow}>
+                <span className={styles.directoryNumber} aria-hidden="true">{pad(i + 1)}</span>
+                <span className={styles.directoryName}>{template.name}</span>
+                <span className={styles.directoryDesc}>{template.description}</span>
+                <span className={styles.directoryCount}>{template.items.length} places</span>
+                <span className={styles.directoryArrow} aria-hidden="true">&rarr;</span>
               </Link>
             </li>
           ))}
         </ul>
-        <p className={styles.starterCta}>
-          <Link href="/templates">Browse all starter lists →</Link>
-        </p>
       </section>
     </>
   );
@@ -248,7 +274,7 @@ function LoggedInHero({ isPro }: { isPro: boolean }) {
   const showBanner = atRisk || streak > 0 || !!milestoneMessage;
 
   return (
-    <>
+    <div className={styles.loggedIn}>
       <div className={styles.hero}>
         <h1 className={styles.heading}>What do you want to do in London?</h1>
         <p className={styles.subheading}>Search for a place and add it to your list.</p>
@@ -259,20 +285,22 @@ function LoggedInHero({ isPro }: { isPro: boolean }) {
           {!atRisk && milestoneMessage && <p className={styles.welcomeBannerText}>{milestoneMessage}</p>}
         </Link>
       )}
-      <PlaceSearch />
-      <p className={styles.loginPrompt}>
-        <Link href="/my-list">View your list &rarr;</Link>
+      <PlaceSearch label="Start here — search for a place in London" />
+      <p className={styles.loggedInActions}>
+        <Link href="/my-list" className={styles.ctaSecondary}>View your list &rarr;</Link>
       </p>
       {!isPro && (
         <aside className={styles.proNudge} aria-label="Upgrade to Pro">
           <p className={styles.proNudgeText}>
-            <strong>Free plan:</strong> up to 3 lists.{' '}
+            <span>
+              <strong>Free plan:</strong> up to 3 lists.
+            </span>{' '}
             <Link href="/pricing" className={styles.proNudgeLink}>
               Upgrade to Pro for unlimited lists &rarr;
             </Link>
           </p>
         </aside>
       )}
-    </>
+    </div>
   );
 }

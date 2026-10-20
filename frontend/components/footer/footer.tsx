@@ -6,10 +6,7 @@ export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
-        <div className={styles.brand}>
-          <Link href="/" className={styles.brandLink}>London List</Link>
-          <p className={styles.tagline}>Your London bucket list, beautifully organised.</p>
-        </div>
+        <p className={styles.tagline}>Your London bucket list, beautifully organised.</p>
         <nav aria-label="Footer navigation" className={styles.nav}>
           <Link href="/" className={styles.link}>Home</Link>
           <Link href="/explore" className={styles.link}>Explore</Link>
@@ -19,6 +16,7 @@ export default function Footer() {
           <Link href="/login" className={styles.link}>Log in</Link>
         </nav>
       </div>
+      <Link href="/" className={styles.wordmark}>London List</Link>
       <p className={styles.copy}>&copy; {year} London List. All rights reserved.</p>
     </footer>
   );

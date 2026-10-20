@@ -1,6 +1,6 @@
 .container {
   width: 100%;
-  max-width: 640px;
+  max-width: 760px;
 }
 
 .srOnly {
@@ -23,16 +23,26 @@
 
 .input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  border: 2px solid #ccc;
-  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--concrete);
+  border: var(--rule);
+  border-radius: 0;
   outline: none;
-  transition: border-color 0.2s;
+  box-shadow: 5px 5px 0 var(--accent);
+  transition: box-shadow 0.1s;
+}
+
+.input::placeholder {
+  color: var(--ink-muted);
+  font-weight: 400;
 }
 
 .input:focus {
-  border-color: #333;
+  box-shadow: 5px 5px 0 var(--ink);
 }
 
 .spinner {
@@ -40,8 +50,8 @@
   right: 1rem;
   width: 18px;
   height: 18px;
-  border: 2px solid #ccc;
-  border-top-color: #333;
+  border: 2px solid var(--concrete-panel);
+  border-top-color: var(--ink);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -54,11 +64,9 @@
 
 .results {
   list-style: none;
-  margin: 0.5rem 0 0;
+  margin: 0.75rem 0 0;
   padding: 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
+  border: var(--rule);
 }
 
 .result {
@@ -67,7 +75,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: var(--rule);
 }
 
 .result:last-child {
@@ -75,6 +83,7 @@
 }
 
 .resultInfo {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -82,7 +91,7 @@
 }
 
 .resultName {
-  font-weight: 500;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -90,44 +99,56 @@
 
 .resultSubtitle {
   font-size: 0.85rem;
-  color: #555;
+  color: var(--ink-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .resultType {
-  font-size: 0.75rem;
-  color: #888;
-  text-transform: capitalize;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
 }
 
 .addButton {
   flex-shrink: 0;
-  padding: 0.4rem 0.9rem;
-  font-size: 0.85rem;
-  border: 2px solid #333;
-  border-radius: 6px;
-  background: transparent;
+  padding: 0.5rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: var(--rule);
+  border-radius: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.1s, color 0.1s;
   white-space: nowrap;
 }
 
 .addButton:hover:not(:disabled) {
-  background: #333;
-  color: white;
+  background: var(--ink);
+  color: var(--concrete);
+}
+
+.addButton:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .addButton:disabled {
-  border-color: #aaa;
-  color: #aaa;
+  background: transparent;
+  color: var(--ink-faint);
   cursor: default;
 }
 
 .noResults {
   margin-top: 0.75rem;
-  color: #888;
+  color: var(--ink-muted);
   font-size: 0.9rem;
 }
 
@@ -139,8 +160,9 @@
 
 .itemCounter {
   margin: 0 0 0.5rem;
-  font-size: 0.85rem;
-  color: #666;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
 }
 
 .limitBanner {
@@ -168,4 +190,91 @@
   color: #333;
   font-weight: 600;
   text-decoration: underline;
+}
+
+/* Prominent variant: visible tab label, big white input, results attached below */
+.prominent {
+  max-width: none;
+}
+
+.labelTab {
+  display: inline-block;
+  padding: 0.5rem 0.875rem;
+  border: 3px solid var(--ink);
+  border-bottom: none;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.prominent .input {
+  padding: 1.25rem 1.5rem;
+  font-size: clamp(1.25rem, 3vw, 1.875rem);
+  letter-spacing: -0.01em;
+  border-width: 3px;
+  background: var(--input-bg);
+  box-shadow: 6px 6px 0 var(--accent);
+}
+
+.prominent .input:focus {
+  background: var(--input-bg-focus);
+  box-shadow: 6px 6px 0 var(--accent);
+}
+
+.prominent .results {
+  margin: 0;
+  border: 3px solid var(--ink);
+  border-top: none;
+}
+
+.prominent .result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px 170px;
+  gap: 1.5rem;
+  padding: 1.125rem 1.5rem;
+  border-bottom: none;
+  border-top: var(--rule);
+}
+
+.prominent .resultName {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.prominent .resultSubtitle {
+  font-size: 0.95rem;
+}
+
+.prominent .resultType {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.prominent .addButton {
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+}
+
+.prominent .noResults {
+  margin-top: 0.875rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+
+@media (max-width: 768px) {
+  .prominent .result {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .prominent .resultType {
+    display: none;
+  }
 }
