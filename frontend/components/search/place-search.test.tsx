@@ -458,3 +458,18 @@ describe('PlaceSearch — search edge cases', () => {
     });
   });
 });
+
+describe('PlaceSearch — label', () => {
+  it('uses the default screen-reader label when no label is given', () => {
+    render(<PlaceSearch />);
+    expect(screen.getByLabelText('Search for a place in London')).toHaveAttribute('id', 'place-search-input');
+  });
+
+  it('uses a custom label for the input when one is given', () => {
+    render(<PlaceSearch label="Start here — search for a place in London" />);
+    expect(screen.getByLabelText('Start here — search for a place in London')).toHaveAttribute(
+      'id',
+      'place-search-input',
+    );
+  });
+});

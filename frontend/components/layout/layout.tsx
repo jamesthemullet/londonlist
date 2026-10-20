@@ -5,11 +5,8 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
-import { Crimson_Text } from 'next/font/google';
-import { Button } from '../core/button/button';
 import Footer from '../footer/footer';
 import Meta from '../meta/meta';
-const crimsonText = Crimson_Text({ weight: '400', subsets: ['latin'] });
 import styles from './layout.module.css';
 
 function Navigation() {
@@ -44,10 +41,10 @@ function Navigation() {
   }
 
   return (
-    <header>
-      <nav className={`${styles.nav} ${crimsonText.className}`}>
-        <div className={styles.navBrand}>
-          <Link href="/" aria-label="London List — home">London List</Link>
+    <header className={styles.header}>
+      <nav className={styles.nav}>
+        <Link href="/" aria-label="London List — home" className={styles.brand}>London List</Link>
+        <div className={styles.navPrimary}>
           <Link href="/explore">Explore</Link>
           <Link href="/templates">Starter Lists</Link>
         </div>
@@ -75,20 +72,16 @@ function Navigation() {
             <div className={styles.navLinks} aria-hidden="true" />
           ) : user ? (
             <div className={styles.navLinks}>
-              <Link href="/my-list" onClick={() => setMenuOpen(false)}>My List</Link>
-              <Link href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
-              <Link href="/account" onClick={() => setMenuOpen(false)} className={styles.navUsername}>{user.username}</Link>
-              <Button onClick={handleLogout}>Log Out</Button>
+              <Link href="/my-list" onClick={() => setMenuOpen(false)} className={styles.navCell}>My List</Link>
+              <Link href="/pricing" onClick={() => setMenuOpen(false)} className={styles.navCell}>Pricing</Link>
+              <Link href="/account" onClick={() => setMenuOpen(false)} className={`${styles.navCell} ${styles.navUsername}`}>{user.username}</Link>
+              <button type="button" onClick={handleLogout} className={`${styles.navCell} ${styles.navCellDark}`}>Log Out</button>
             </div>
           ) : (
             <div className={styles.navLinks}>
-              <Link href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
-              <Link href="/login" onClick={() => setMenuOpen(false)}>
-                <Button>Log In</Button>
-              </Link>
-              <Link href="/register" onClick={() => setMenuOpen(false)}>
-                <Button>Sign Up</Button>
-              </Link>
+              <Link href="/pricing" onClick={() => setMenuOpen(false)} className={styles.navCell}>Pricing</Link>
+              <Link href="/login" onClick={() => setMenuOpen(false)} className={styles.navCell}>Log In</Link>
+              <Link href="/register" onClick={() => setMenuOpen(false)} className={`${styles.navCell} ${styles.navCellAccent}`}>Sign Up</Link>
             </div>
           )}
         </div>

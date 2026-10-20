@@ -1,67 +1,88 @@
 .footer {
-  background-color: #111;
-  color: #ccc;
+  background-color: var(--slab);
+  color: var(--on-slab);
   width: 100%;
-  padding: 2rem 1.5rem 1rem;
+  overflow: hidden;
 }
 
 .inner {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
+  align-items: center;
+  gap: 1.5rem;
   flex-wrap: wrap;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #333;
-  margin-bottom: 1rem;
-}
-
-.brand {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.brandLink {
-  color: #fff;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.brandLink:hover {
-  text-decoration: underline;
+  padding: 2.5rem 3rem;
+  border-bottom: 1px solid var(--slab-rule);
 }
 
 .tagline {
-  font-size: 0.8rem;
-  color: #888;
+  font-size: 1.0625rem;
   margin: 0;
+  color: var(--on-slab-muted);
 }
 
 .nav {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.75rem;
   flex-wrap: wrap;
   align-items: center;
 }
 
 .link {
-  color: #aaa;
-  text-decoration: none;
-  font-size: 0.875rem;
-  transition: color 0.15s;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-slab);
 }
 
 .link:hover {
-  color: #fff;
+  color: var(--accent);
+}
+
+.link:focus-visible,
+.wordmark:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.wordmark {
+  display: block;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 2.5rem 0;
+  font-family: var(--font-sans);
+  font-stretch: 118%;
+  font-weight: 900;
+  font-size: min(11.5vw, 8.75rem);
+  line-height: 0.82;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--on-slab);
+}
+
+.wordmark:hover {
+  color: var(--accent);
 }
 
 .copy {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 1.25rem 3rem 1.5rem;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: #888;
+  color: var(--on-slab-faint);
+}
+
+@media (max-width: 768px) {
+  .inner,
+  .wordmark,
+  .copy {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
