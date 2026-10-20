@@ -1,19 +1,31 @@
+:root {
+  --concrete: #eceae5;
+  --concrete-panel: #c9c5bd;
+  --concrete-mark: rgba(26, 26, 26, 0.06);
+  --ink: #1a1a1a;
+  --ink-muted: #3d3a35;
+  --ink-faint: #5a564f;
+  --slab: #1a1a1a;
+  --on-slab: #eceae5;
+  --on-slab-muted: #b9b5ad;
+  --on-slab-faint: #8e8a82;
+  --slab-rule: #3d3a35;
+  --accent: #e2532d;
+  --accent-ink: #1a1a1a;
+  --input-bg: #fff;
+  --input-bg-focus: #fff6f2;
+  --rule: 2px solid var(--ink);
+  --font-sans: var(--font-archivo), 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    Segoe UI,
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    Fira Sans,
-    Droid Sans,
-    Helvetica Neue,
-    sans-serif;
+  background: var(--concrete);
+  color: var(--ink);
+  font-family: var(--font-sans);
 }
 
 a {
@@ -26,11 +38,20 @@ a {
 }
 
 @media (prefers-color-scheme: dark) {
+  :root {
+    --concrete: #1d1c1a;
+    --concrete-panel: #2c2a27;
+    --concrete-mark: rgba(236, 234, 229, 0.06);
+    --ink: #eceae5;
+    --ink-muted: #c4c0b8;
+    --ink-faint: #9a968e;
+    --slab: #0f0f0e;
+    --slab-rule: #2c2a27;
+    --input-bg: #262522;
+    --input-bg-focus: #2e2622;
+  }
+
   html {
     color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
   }
 }

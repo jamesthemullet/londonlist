@@ -1,16 +1,29 @@
 .button {
-  border: none;
-  padding: 10px 20px;
-  font-size: 18px;
-  background-color: #c724b1;
-  color: white;
+  border: var(--rule);
+  padding: 0.875rem 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   text-transform: uppercase;
   cursor: pointer;
-  font-family: monospace;
+  font-family: var(--font-mono);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: background 0.1s, color 0.1s;
+}
+
+.button:hover:not(:disabled) {
+  background-color: var(--ink);
+  color: var(--accent);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .button:focus-visible {
-  outline: 3px solid #c724b1;
-  outline-offset: 3px;
-  box-shadow: 0 0 0 5px rgba(199, 36, 177, 0.25);
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
 }
