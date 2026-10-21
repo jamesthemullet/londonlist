@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useMemo, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { AREA_META, encodeAreaSlug } from '../lib/area-meta';
 import { buildOgImageUrl } from '../lib/og-image';
 import styles from './explore.module.css';
 
@@ -54,6 +55,34 @@ export function deriveAllCategories(lists: PublicList[]): string[] {
     }
   }
   return [...seen].sort();
+}
+
+export const FEATURED_AREA_KEYS = [
+  'Shoreditch',
+  'South Bank',
+  'Camden',
+  'Covent Garden',
+  'Notting Hill',
+  'Greenwich',
+] as const;
+
+export type FeaturedArea = {
+  key: string;
+  label: string;
+  emoji: string;
+  href: string;
+};
+
+export function buildFeaturedAreas(): FeaturedArea[] {
+  return FEATURED_AREA_KEYS.map((key) => {
+    const meta = AREA_META[key];
+    return {
+      key,
+      label: meta.label,
+      emoji: meta.emoji,
+      href: `/area/${encodeAreaSlug(key)}`,
+    };
+  });
 }
 
 export function sortLists(lists: PublicList[], sortBy: SortOption): PublicList[] {
@@ -244,6 +273,23 @@ export default function ExplorePage({ lists }: Props) {
             </ul>
           </>
         )}
+
+        <section className={styles.areaSection} aria-label="Browse London by area">
+          <h2 className={styles.areaSectionHeading}>Browse London by area</h2>
+          <ul className={styles.areaGrid}>
+            {buildFeaturedAreas().map((area) => (
+              <li key={area.key}>
+                <Link href={area.href} className={styles.areaChip}>
+                  <span className={styles.areaChipEmoji} aria-hidden="true">{area.emoji}</span>
+                  {area.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link href="/area" className={styles.areaSeeAll}>
+            Browse all London areas →
+          </Link>
+        </section>
 
         {initialized && user && !user.isPro && (
           <aside className={styles.proNudge}>
