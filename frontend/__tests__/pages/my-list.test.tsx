@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
-import { useQuery, useMutation } from '@apollo/client/react';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client/react';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../context/AppContext';
 import MyListPage from '../../pages/my-list';
@@ -7,6 +7,13 @@ import MyListPage from '../../pages/my-list';
 jest.mock('@apollo/client/react', () => ({
   useQuery: jest.fn(),
   useMutation: jest.fn(),
+  useLazyQuery: jest.fn(),
+}));
+
+jest.mock('../../lib/export-list', () => ({
+  exportListToCsv: jest.fn(() => 'csv-content'),
+  downloadCsv: jest.fn(),
+  buildCsvFilename: jest.fn(() => 'london-list-test.csv'),
 }));
 
 jest.mock('@apollo/client', () => ({
@@ -37,6 +44,7 @@ jest.mock('next/head', () => ({
 jest.mock('../../components/my-list/my-list', () => ({
   __esModule: true,
   default: () => <div data-testid="my-list" />,
+  GET_MY_LIST: 'GET_MY_LIST',
 }));
 
 jest.mock('../../components/search/place-search', () => ({
@@ -80,6 +88,7 @@ jest.mock('../../components/welcome-checklist/welcome-checklist', () => ({
 
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
+const mockUseLazyQuery = useLazyQuery as unknown as jest.Mock;
 const mockUseAppContext = useAppContext as jest.Mock;
 const mockUseRouter = useRouter as jest.Mock;
 
@@ -125,6 +134,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockUseRouter.mockReturnValue(MOCK_ROUTER);
   mockUseAppContext.mockReturnValue({ user: MOCK_USER, initialized: true });
+  mockUseLazyQuery.mockReturnValue([jest.fn().mockResolvedValue({ data: { listItems: [] } }), {}]);
 });
 
 describe('MyListPage — auth', () => {
@@ -800,7 +810,8 @@ describe('MyListPage — view counts', () => {
 
     render(<MyListPage />);
 
-    expect(screen.getByRole('link', { name: 'Upgrade to Pro' })).toBeInTheDocument();
+    const shareSection = screen.getByRole('region', { name: 'Share' });
+    expect(within(shareSection).getByRole('link', { name: 'Upgrade to Pro' })).toBeInTheDocument();
     expect(screen.getByText(/to see how many times your list has been viewed/)).toBeInTheDocument();
   });
 
@@ -811,7 +822,8 @@ describe('MyListPage — view counts', () => {
 
     render(<MyListPage />);
 
-    expect(screen.getByRole('link', { name: 'Upgrade to Pro' })).toHaveAttribute('href', '/pricing');
+    const shareSection = screen.getByRole('region', { name: 'Share' });
+    expect(within(shareSection).getByRole('link', { name: 'Upgrade to Pro' })).toHaveAttribute('href', '/pricing');
   });
 
   it('does not show view count or upgrade prompt for private lists', () => {

@@ -1,17 +1,19 @@
 import { gql } from '@apollo/client';
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
 import MyList from '../components/my-list/my-list';
+import { GET_MY_LIST } from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import WelcomeChecklist from '../components/welcome-checklist/welcome-checklist';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import { usePlanLimits } from '../hooks/use-plan-limits';
+import { buildCsvFilename, downloadCsv, exportListToCsv } from '../lib/export-list';
 import styles from './my-list.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
@@ -164,6 +166,7 @@ export default function MyListPage() {
   const [descriptionValue, setDescriptionValue] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [createListError, setCreateListError] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [checklistDismissed, setChecklistDismissed] = useState(false);
@@ -196,6 +199,11 @@ export default function MyListPage() {
   };
 
   const { freeListLimit, freeItemLimit } = usePlanLimits();
+
+  const [fetchListItems] = useLazyQuery<{ listItems: Array<{ name: string; category: string | null; completed: boolean; visitedAt: string | null; notes: string | null; osm_id: string }> }>(GET_MY_LIST, {
+    context: { headers: authHeader },
+    fetchPolicy: 'network-only',
+  });
 
   const { data, loading: listsLoading } = useQuery<MyListsData>(GET_MY_LISTS, {
     context: { headers: authHeader },
@@ -357,6 +365,19 @@ export default function MyListPage() {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // clipboard not available in this context
+    }
+  };
+
+  const handleExportCsv = async () => {
+    if (!activeList || !user?.isPro) return;
+    setIsExporting(true);
+    try {
+      const result = await fetchListItems({ variables: { listDocumentId: activeList.documentId } });
+      const items = result.data?.listItems ?? [];
+      const csv = exportListToCsv(items, activeList.name);
+      downloadCsv(csv, buildCsvFilename(activeList.name));
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -657,6 +678,31 @@ export default function MyListPage() {
               ) : (
                 <p className={styles.sharePrivate}>
                   Make this list public to share it with others.
+                </p>
+              )}
+            </section>
+
+            <section className={styles.section} aria-label="Export">
+              <h2 className={styles.subheading}>Export</h2>
+              {user?.isPro ? (
+                <div className={styles.exportRow}>
+                  <p className={styles.exportHint}>Download your list as a CSV file.</p>
+                  <button
+                    type="button"
+                    className={styles.exportButton}
+                    onClick={handleExportCsv}
+                    disabled={isExporting}
+                    aria-busy={isExporting}
+                  >
+                    {isExporting ? 'Exporting…' : 'Export as CSV'}
+                  </button>
+                </div>
+              ) : (
+                <p className={styles.exportLocked}>
+                  <Link href="/pricing" className={styles.exportUpgradeLink}>
+                    Upgrade to Pro
+                  </Link>{' '}
+                  to export your list as a CSV file.
                 </p>
               )}
             </section>
