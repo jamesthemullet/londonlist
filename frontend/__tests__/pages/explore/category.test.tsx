@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import CategoryExplorePage, {
   buildCategoryJsonLd,
-  CATEGORY_META,
   getServerSideProps,
 } from '../../../pages/explore/[category]';
+import { CATEGORY_META } from '../../../lib/category-meta';
 
 jest.mock('../../../context/AppContext', () => ({
   useAppContext: jest.fn(),
