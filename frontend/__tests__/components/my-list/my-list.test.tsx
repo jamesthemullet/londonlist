@@ -124,6 +124,14 @@ describe('MyList — rendering', () => {
   });
 });
 
+describe('ListItemRow — notes', () => {
+  it('+ Add note button has a contextual aria-label identifying the item', () => {
+    setupQuery([makeItem({ documentId: 'a', name: 'Tate Modern', completed: false, notes: null })]);
+    render(<MyList listId="list-1" listName="My List" />);
+    expect(screen.getByRole('button', { name: 'Add note for Tate Modern' })).toBeInTheDocument();
+  });
+});
+
 describe('MyList — milestone celebration', () => {
   it('shows celebration when completion crosses a milestone after re-render', async () => {
     const items = [

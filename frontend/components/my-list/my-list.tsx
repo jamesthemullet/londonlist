@@ -383,6 +383,7 @@ export function ListItemRow({ item, onToggle, onDelete, onSaveNotes }: ListItemR
             <button
               type="button"
               className={styles.notesAdd}
+              aria-label={`Add note for ${item.name}`}
               onClick={() => {
                 setDraftNotes('');
                 setEditingNotes(true);

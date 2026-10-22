@@ -288,7 +288,7 @@ describe('MyList — notes integration', () => {
 
     render(<MyList listId="list-1" listName="My List" />);
 
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for Tate Modern' }));
     await user.type(screen.getByRole('textbox', { name: 'Notes for Tate Modern' }), 'Must see Turbine Hall');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -304,7 +304,7 @@ describe('MyList — notes integration', () => {
 
     render(<MyList listId="list-1" listName="My List" />);
 
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for Borough Market' }));
     await user.type(screen.getByRole('textbox', { name: 'Notes for Borough Market' }), 'Go early on Saturday');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
