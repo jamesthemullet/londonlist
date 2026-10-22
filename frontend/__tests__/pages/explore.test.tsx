@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ExplorePage, { deriveAllCategories, sortLists, buildExplorePageJsonLd, getServerSideProps } from '../../pages/explore';
+import ExplorePage, { deriveAllCategories, sortLists, buildExplorePageJsonLd, getServerSideProps, buildFeaturedAreas, FEATURED_AREA_KEYS } from '../../pages/explore';
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -730,6 +730,73 @@ describe('sortLists — featured-first ordering', () => {
     const lastFeaturedIdx = result.findIndex((l) => l.documentId === featuredIds[featuredIds.length - 1]);
     const firstNonFeaturedIdx = result.findIndex((l) => l.documentId === nonFeaturedIds[0]);
     expect(lastFeaturedIdx).toBeLessThan(firstNonFeaturedIdx);
+  });
+});
+
+describe('buildFeaturedAreas', () => {
+  it('returns an entry for each key in FEATURED_AREA_KEYS', () => {
+    const areas = buildFeaturedAreas();
+    expect(areas).toHaveLength(FEATURED_AREA_KEYS.length);
+  });
+
+  it('each area has a label, emoji, key, and href', () => {
+    const areas = buildFeaturedAreas();
+    for (const area of areas) {
+      expect(area.key).toBeTruthy();
+      expect(area.label).toBeTruthy();
+      expect(area.emoji).toBeTruthy();
+      expect(area.href).toMatch(/^\/area\//);
+    }
+  });
+
+  it('Shoreditch area has the correct href', () => {
+    const areas = buildFeaturedAreas();
+    const shoreditch = areas.find((a) => a.key === 'Shoreditch');
+    expect(shoreditch).toBeDefined();
+    expect(shoreditch?.href).toBe('/area/shoreditch');
+  });
+
+  it('South Bank area uses a URL-encoded slug', () => {
+    const areas = buildFeaturedAreas();
+    const southBank = areas.find((a) => a.key === 'South Bank');
+    expect(southBank).toBeDefined();
+    expect(southBank?.href).toMatch(/^\/area\//);
+    expect(southBank?.href).not.toContain(' ');
+  });
+});
+
+describe('ExplorePage — browse by area section', () => {
+  it('renders the browse by area heading', () => {
+    render(<ExplorePage lists={[]} />);
+    expect(screen.getByRole('heading', { name: /browse london by area/i })).toBeInTheDocument();
+  });
+
+  it('renders a link for each featured area', () => {
+    render(<ExplorePage lists={[]} />);
+    for (const key of FEATURED_AREA_KEYS) {
+      const areas = buildFeaturedAreas();
+      const area = areas.find((a) => a.key === key);
+      if (area) {
+        expect(screen.getByRole('link', { name: new RegExp(area.label, 'i') })).toBeInTheDocument();
+      }
+    }
+  });
+
+  it('renders a "Browse all London areas" link pointing to /area', () => {
+    render(<ExplorePage lists={[]} />);
+    const link = screen.getByRole('link', { name: /browse all london areas/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/area');
+  });
+
+  it('area links point to the correct /area/[slug] path', () => {
+    render(<ExplorePage lists={[]} />);
+    const areas = buildFeaturedAreas();
+    const shoreditch = areas.find((a) => a.key === 'Shoreditch');
+    if (shoreditch) {
+      const link = screen.getByRole('link', { name: /shoreditch/i });
+      expect(link).toHaveAttribute('href', shoreditch.href);
+    }
   });
 });
 
