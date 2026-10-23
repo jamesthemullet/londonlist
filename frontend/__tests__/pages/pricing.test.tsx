@@ -130,12 +130,14 @@ describe('PricingPage — features', () => {
   it('renders key free tier features', () => {
     render(<PricingPage />);
     expect(screen.getByText('Up to 3 lists')).toBeInTheDocument();
+    expect(screen.getByText('Up to 20 places per list')).toBeInTheDocument();
     expect(screen.getByText('Public & private lists')).toBeInTheDocument();
   });
 
   it('renders key pro tier features', () => {
     render(<PricingPage />);
     expect(screen.getByText('Unlimited lists')).toBeInTheDocument();
+    expect(screen.getByText('Unlimited places per list')).toBeInTheDocument();
     expect(screen.getByText('View counts on each public list')).toBeInTheDocument();
   });
 });
@@ -450,5 +452,10 @@ describe('PricingPage — FAQ', () => {
     expect(
       screen.getByText(/what is the difference between monthly and annual billing/i),
     ).toBeInTheDocument();
+  });
+
+  it('renders a FAQ item explaining the 20-place limit', () => {
+    render(<PricingPage />);
+    expect(screen.getByText(/what is the 20-place limit/i)).toBeInTheDocument();
   });
 });
