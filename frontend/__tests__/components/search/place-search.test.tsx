@@ -56,6 +56,37 @@ describe('PlaceSearch — item counter for free users', () => {
   });
 });
 
+describe('PlaceSearch — near item limit nudge', () => {
+  it('shows upgrade nudge when item count is at 75% of the free limit', () => {
+    render(<PlaceSearch listId="list-1" itemCount={15} isPro={false} freeItemLimit={20} />);
+    expect(screen.getByText(/upgrade to pro/i)).toBeInTheDocument();
+    expect(screen.getByText(/15\/20 places/i)).toBeInTheDocument();
+  });
+
+  it('shows upgrade nudge at 19 of 20 items', () => {
+    render(<PlaceSearch listId="list-1" itemCount={19} isPro={false} freeItemLimit={20} />);
+    expect(screen.getByText(/upgrade to pro/i)).toBeInTheDocument();
+    expect(screen.getByText(/19\/20 places/i)).toBeInTheDocument();
+  });
+
+  it('does not show upgrade nudge when below 75%', () => {
+    render(<PlaceSearch listId="list-1" itemCount={14} isPro={false} freeItemLimit={20} />);
+    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
+    expect(screen.getByText('14/20 places on free plan')).toBeInTheDocument();
+  });
+
+  it('does not show near-limit nudge for Pro users', () => {
+    render(<PlaceSearch listId="list-1" itemCount={18} isPro={true} freeItemLimit={20} />);
+    expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
+  });
+
+  it('upgrade link in near-limit nudge points to /pricing', () => {
+    render(<PlaceSearch listId="list-1" itemCount={16} isPro={false} freeItemLimit={20} />);
+    const link = screen.getByRole('link', { name: /upgrade to pro/i });
+    expect(link).toHaveAttribute('href', '/pricing');
+  });
+});
+
 describe('PlaceSearch — limit reached state', () => {
   it('shows the limit banner instead of the search input when at the free item limit', () => {
     render(<PlaceSearch listId="list-1" itemCount={20} isPro={false} freeItemLimit={20} />);
