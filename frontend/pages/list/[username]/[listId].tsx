@@ -8,6 +8,7 @@ import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
+import OpenInMapsButton from '../../../components/open-in-maps-button/open-in-maps-button';
 import { buildOgImageUrl } from '../../../lib/og-image';
 import { buildPlaceUrl } from '../../../lib/place';
 import BookingLinks from '../../../components/booking-links/booking-links';
@@ -392,6 +393,14 @@ export default function PublicListPage({ pageState, listData, username, listId, 
         {initialized && user && items.length > 0 && (
           <CopyListButton items={items} listName={listName} />
         )}
+        {(() => {
+          const todoWithCoords = todo.filter(
+            (i): i is typeof i & { lat: number; lng: number } => i.lat != null && i.lng != null,
+          );
+          return todoWithCoords.length > 0 ? (
+            <OpenInMapsButton places={todoWithCoords} isPro={true} />
+          ) : null;
+        })()}
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>
         ) : (
