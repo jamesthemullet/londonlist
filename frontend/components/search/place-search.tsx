@@ -234,8 +234,8 @@ export default function PlaceSearch({ label, listId, itemCount, isPro, freeItemL
           `No places found in London for ${query}`}
       </div>
 
-      {searchError && <p className={styles.error}>{searchError}</p>}
-      {addError && <p className={styles.error}>{addError}</p>}
+      {searchError && <p role="alert" className={styles.error}>{searchError}</p>}
+      {addError && <p role="alert" className={styles.error}>{addError}</p>}
 
       {results.length > 0 && (
         <ul className={styles.results}>

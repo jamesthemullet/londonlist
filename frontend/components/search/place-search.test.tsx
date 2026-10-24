@@ -473,3 +473,42 @@ describe('PlaceSearch — label', () => {
     );
   });
 });
+
+describe('PlaceSearch — error announcements', () => {
+  it('renders a search timeout error with role="alert"', async () => {
+    const abortError = new Error('aborted');
+    abortError.name = 'AbortError';
+    global.fetch = jest.fn().mockRejectedValue(abortError);
+
+    render(<PlaceSearch />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'museum' } });
+
+    await waitFor(() => {
+      const alert = screen.getByRole('alert');
+      expect(alert).toHaveTextContent(/search timed out/i);
+    });
+  });
+
+  it('renders an add error with role="alert" when not logged in', async () => {
+    mockCookieGet.mockReturnValue(undefined);
+    mockUseMutation.mockReturnValue([jest.fn(), {}]);
+    const mockFetchFn = jest.fn().mockResolvedValue({
+      json: () => Promise.resolve({ features: [{
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [-0.13, 51.5] },
+        properties: { osm_id: 1, osm_type: 'N' as const, name: 'Test Place', city: 'London', country: 'UK', osm_key: 'tourism', osm_value: 'museum' },
+      }] }),
+    } as Response);
+    global.fetch = mockFetchFn;
+
+    render(<PlaceSearch listId="list-1" />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Test' } });
+    await waitFor(() => screen.getByText('Test Place'));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+
+    await waitFor(() => {
+      const alert = screen.getByRole('alert');
+      expect(alert).toHaveTextContent(/please log in/i);
+    });
+  });
+});
