@@ -47,3 +47,9 @@ export const GET_RELATED_PLACES = gql`
 export function extractRelatedPlaces(data: GetRelatedPlacesData | undefined | null): PublicPlace[] {
   return data?.relatedPlaces ?? [];
 }
+
+export function buildPlaceUrl(osm_id: string): string | null {
+  const idx = osm_id.indexOf('/');
+  if (idx < 1 || idx === osm_id.length - 1) return null;
+  return `/place/${osm_id.slice(0, idx)}/${osm_id.slice(idx + 1)}`;
+}
