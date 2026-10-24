@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ExplorePage, { deriveAllCategories, sortLists, buildExplorePageJsonLd, getServerSideProps, buildFeaturedAreas, FEATURED_AREA_KEYS } from '../../pages/explore';
+import ExplorePage, { deriveAllCategories, sortLists, buildExplorePageJsonLd, getServerSideProps, buildFeaturedAreas, FEATURED_AREA_KEYS, buildFeaturedCategories, FEATURED_CATEGORY_KEYS } from '../../pages/explore';
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
@@ -834,5 +834,60 @@ describe('getServerSideProps', () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
     const result = await getServerSideProps({} as Parameters<typeof getServerSideProps>[0]);
     expect(result).toEqual({ props: { lists: [] } });
+  });
+});
+
+describe('buildFeaturedCategories', () => {
+  it('returns an array of featured categories', () => {
+    const cats = buildFeaturedCategories();
+    expect(Array.isArray(cats)).toBe(true);
+    expect(cats.length).toBeGreaterThan(0);
+  });
+
+  it('each entry has key, label, emoji, and href', () => {
+    for (const cat of buildFeaturedCategories()) {
+      expect(typeof cat.key).toBe('string');
+      expect(typeof cat.label).toBe('string');
+      expect(typeof cat.emoji).toBe('string');
+      expect(cat.href).toMatch(/^\/explore\//);
+    }
+  });
+
+  it('museum entry has correct href', () => {
+    const cats = buildFeaturedCategories();
+    const museum = cats.find((c) => c.key === 'museum');
+    expect(museum).toBeDefined();
+    expect(museum?.href).toBe('/explore/museum');
+    expect(museum?.label).toBe('Museums');
+  });
+
+  it('returns one entry per FEATURED_CATEGORY_KEYS entry', () => {
+    const cats = buildFeaturedCategories();
+    expect(cats.length).toBe(FEATURED_CATEGORY_KEYS.length);
+  });
+});
+
+describe('ExplorePage — browse by category section', () => {
+  it('renders the browse by category heading', () => {
+    render(<ExplorePage lists={[]} />);
+    expect(screen.getByRole('heading', { name: /browse by category/i })).toBeInTheDocument();
+  });
+
+  it('renders a link for each featured category', () => {
+    render(<ExplorePage lists={[]} />);
+    const cats = buildFeaturedCategories();
+    for (const cat of cats) {
+      expect(screen.getByRole('link', { name: new RegExp(cat.label, 'i') })).toBeInTheDocument();
+    }
+  });
+
+  it('category links point to the correct /explore/[category] path', () => {
+    render(<ExplorePage lists={[]} />);
+    const cats = buildFeaturedCategories();
+    const museum = cats.find((c) => c.key === 'museum');
+    if (museum) {
+      const link = screen.getByRole('link', { name: /museums/i });
+      expect(link).toHaveAttribute('href', '/explore/museum');
+    }
   });
 });
