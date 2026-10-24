@@ -126,6 +126,7 @@ describe('list controller', () => {
             viewCount: 5,
             itemCount: 3,
             categories: ['food', 'travel'],
+            isFeatured: false,
           },
           {
             documentId: 'list-2',
@@ -135,6 +136,36 @@ describe('list controller', () => {
             viewCount: 0,
             itemCount: 0,
             categories: [],
+            isFeatured: false,
+          },
+        ],
+      });
+    });
+
+    it('marks lists owned by a Pro user as featured', async () => {
+      listDocuments.findMany.mockResolvedValue([
+        {
+          documentId: 'list-3',
+          name: 'Pro List',
+          user: { username: 'proUser', isPro: true },
+          list_items: [],
+        },
+      ]);
+      const ctx = createCtx();
+
+      const result = await listController.getAllPublicLists(ctx);
+
+      expect(result).toEqual({
+        data: [
+          {
+            documentId: 'list-3',
+            name: 'Pro List',
+            description: null,
+            username: 'proUser',
+            viewCount: 0,
+            itemCount: 0,
+            categories: [],
+            isFeatured: true,
           },
         ],
       });
