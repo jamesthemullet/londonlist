@@ -139,6 +139,18 @@ export default function CategoryExplorePage({ lists, category, meta }: Props) {
           </>
         )}
 
+        {initialized && user && !user.isPro && (
+          <aside className={styles.proNudge} aria-label="Upgrade to Pro">
+            <p className={styles.proNudgeText}>
+              Want your list to stand out?{' '}
+              <Link href={`/pricing?ref=category-nudge-${category}`} className={styles.proNudgeLink}>
+                Upgrade to Pro
+              </Link>{' '}
+              to get a Featured badge on all your public lists.
+            </p>
+          </aside>
+        )}
+
         <Link href="/explore" className={styles.backLink}>
           ← All lists
         </Link>
