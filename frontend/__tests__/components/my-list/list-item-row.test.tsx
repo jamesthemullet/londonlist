@@ -24,12 +24,12 @@ function makeProps(overrides?: Partial<typeof BASE_ITEM>) {
 describe('ListItemRow — notes display', () => {
   it('shows "Add note" button when notes is null', () => {
     render(<ListItemRow {...makeProps({ notes: null })} />);
-    expect(screen.getByRole('button', { name: '+ Add note' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add note for British Museum' })).toBeInTheDocument();
   });
 
   it('shows "Add note" button when notes is empty string', () => {
     render(<ListItemRow {...makeProps({ notes: '' })} />);
-    expect(screen.getByRole('button', { name: '+ Add note' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add note for British Museum' })).toBeInTheDocument();
   });
 
   it('renders the notes text when notes is set', () => {
@@ -39,7 +39,7 @@ describe('ListItemRow — notes display', () => {
 
   it('does not show "Add note" button when notes is set', () => {
     render(<ListItemRow {...makeProps({ notes: 'My tip' })} />);
-    expect(screen.queryByRole('button', { name: '+ Add note' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add note for British Museum' })).not.toBeInTheDocument();
   });
 });
 
@@ -47,7 +47,7 @@ describe('ListItemRow — entering notes edit mode', () => {
   it('clicking "Add note" shows the textarea', async () => {
     const user = userEvent.setup();
     render(<ListItemRow {...makeProps({ notes: null })} />);
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for British Museum' }));
     expect(screen.getByRole('textbox', { name: `Notes for British Museum` })).toBeInTheDocument();
   });
 
@@ -62,7 +62,7 @@ describe('ListItemRow — entering notes edit mode', () => {
   it('shows Save and Cancel buttons in edit mode', async () => {
     const user = userEvent.setup();
     render(<ListItemRow {...makeProps({ notes: null })} />);
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for British Museum' }));
     expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
@@ -73,7 +73,7 @@ describe('ListItemRow — saving notes', () => {
     const user = userEvent.setup();
     const props = makeProps({ notes: null });
     render(<ListItemRow {...props} />);
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for British Museum' }));
     await user.type(screen.getByRole('textbox', { name: 'Notes for British Museum' }), 'Great view');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(props.onSaveNotes).toHaveBeenCalledWith('Great view');
@@ -83,7 +83,7 @@ describe('ListItemRow — saving notes', () => {
     const user = userEvent.setup();
     const props = makeProps({ notes: null });
     render(<ListItemRow {...props} />);
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for British Museum' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(props.onSaveNotes).toHaveBeenCalledWith(null);
   });
@@ -92,7 +92,7 @@ describe('ListItemRow — saving notes', () => {
     const user = userEvent.setup();
     const props = makeProps({ notes: null });
     render(<ListItemRow {...props} />);
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for British Museum' }));
     await user.type(screen.getByRole('textbox', { name: 'Notes for British Museum' }), '   ');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(props.onSaveNotes).toHaveBeenCalledWith(null);
@@ -101,7 +101,7 @@ describe('ListItemRow — saving notes', () => {
   it('hides the textarea after saving', async () => {
     const user = userEvent.setup();
     render(<ListItemRow {...makeProps({ notes: null })} />);
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for British Museum' }));
     await user.type(screen.getByRole('textbox', { name: 'Notes for British Museum' }), 'Tip');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(
@@ -115,7 +115,7 @@ describe('ListItemRow — cancelling notes edit', () => {
     const user = userEvent.setup();
     const props = makeProps({ notes: null });
     render(<ListItemRow {...props} />);
-    await user.click(screen.getByRole('button', { name: '+ Add note' }));
+    await user.click(screen.getByRole('button', { name: 'Add note for British Museum' }));
     await user.type(screen.getByRole('textbox', { name: 'Notes for British Museum' }), 'Unsaved');
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(props.onSaveNotes).not.toHaveBeenCalled();
