@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import PublicProfilePage, {
   buildProfileOgDescription,
+  buildListJsonLd,
   getServerSideProps,
 } from '../../../pages/list/[username]';
 
@@ -91,6 +92,44 @@ describe('buildProfileOgDescription', () => {
   });
 });
 
+// ─── buildListJsonLd unit tests ───────────────────────────────────────────
+
+describe('buildListJsonLd', () => {
+  const items = [TODO_ITEM, DONE_ITEM];
+  const url = 'https://londonlist.vercel.app/list/alice';
+  const siteUrl = 'https://londonlist.vercel.app';
+
+  it('uses ItemList @type', () => {
+    const ld = buildListJsonLd('alice', items, url, siteUrl) as Record<string, unknown>;
+    expect(ld['@type']).toBe('ItemList');
+  });
+
+  it('sets numberOfItems from the items array', () => {
+    const ld = buildListJsonLd('alice', items, url, siteUrl) as Record<string, unknown>;
+    expect(ld.numberOfItems).toBe(2);
+  });
+
+  it('includes username in the list name', () => {
+    const ld = buildListJsonLd('alice', items, url, siteUrl) as Record<string, unknown>;
+    expect(String(ld.name)).toContain('alice');
+  });
+
+  it('builds itemListElement with position and place URL', () => {
+    const ld = buildListJsonLd('alice', items, url, siteUrl) as Record<string, unknown>;
+    const elements = ld.itemListElement as Array<Record<string, unknown>>;
+    expect(elements[0].position).toBe(1);
+    expect(String(elements[0].url)).toContain(TODO_ITEM.osm_id);
+    expect(elements[0].name).toBe('British Museum');
+    expect(elements[1].position).toBe(2);
+  });
+
+  it('returns an empty itemListElement for an empty list', () => {
+    const ld = buildListJsonLd('alice', [], url, siteUrl) as Record<string, unknown>;
+    expect(ld.numberOfItems).toBe(0);
+    expect(ld.itemListElement).toEqual([]);
+  });
+});
+
 // ─── Page states ──────────────────────────────────────────────────────────
 
 describe('PublicProfilePage — not_found state', () => {
@@ -136,6 +175,14 @@ describe('PublicProfilePage — found state', () => {
     render(<PublicProfilePage pageState="found" listData={listData} username="alice" />);
     expect(screen.getByText('museum')).toBeInTheDocument();
     expect(screen.getByText('attraction')).toBeInTheDocument();
+  });
+
+  it('links each list item to its place detail page', () => {
+    render(<PublicProfilePage pageState="found" listData={listData} username="alice" />);
+    const museumLink = screen.getByRole('link', { name: 'British Museum' });
+    expect(museumLink).toHaveAttribute('href', `/place/${TODO_ITEM.osm_id}`);
+    const towerLink = screen.getByRole('link', { name: 'Tower of London' });
+    expect(towerLink).toHaveAttribute('href', `/place/${DONE_ITEM.osm_id}`);
   });
 
   it('renders an empty state message when the list has no items', () => {
@@ -220,9 +267,21 @@ describe('PublicProfilePage — OG / Twitter meta tags', () => {
     expect(getMeta('property', 'og:url')?.getAttribute('content')).toContain('/list/alice');
   });
 
-  it('renders twitter:card "summary"', () => {
+  it('renders twitter:card "summary_large_image"', () => {
     render(<PublicProfilePage pageState="found" listData={listData} username="alice" />);
-    expect(getMeta('name', 'twitter:card')).toHaveAttribute('content', 'summary');
+    expect(getMeta('name', 'twitter:card')).toHaveAttribute('content', 'summary_large_image');
+  });
+
+  it('renders og:image with the username', () => {
+    render(<PublicProfilePage pageState="found" listData={listData} username="alice" />);
+    const ogImage = getMeta('property', 'og:image')?.getAttribute('content') ?? '';
+    expect(ogImage).toContain('alice');
+  });
+
+  it('renders twitter:image with the username', () => {
+    render(<PublicProfilePage pageState="found" listData={listData} username="alice" />);
+    const twitterImage = getMeta('name', 'twitter:image')?.getAttribute('content') ?? '';
+    expect(twitterImage).toContain('alice');
   });
 
   it('renders twitter:title including the username', () => {
