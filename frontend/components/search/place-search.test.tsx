@@ -126,7 +126,7 @@ describe('PlaceSearch — adding items', () => {
       target: { value: 'British Museum' },
     });
     await waitFor(() => screen.getByText('British Museum'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add British Museum to list' }));
     expect(screen.getByText(/please log in/i)).toBeInTheDocument();
   });
 
@@ -143,7 +143,7 @@ describe('PlaceSearch — adding items', () => {
       target: { value: 'British Museum' },
     });
     await waitFor(() => screen.getByText('British Museum'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add British Museum to list' }));
 
     await waitFor(() => {
       expect(mockCreate).toHaveBeenCalledWith(
@@ -173,7 +173,7 @@ describe('PlaceSearch — adding items', () => {
       target: { value: 'British Museum' },
     });
     await waitFor(() => screen.getByText('British Museum'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add British Museum to list' }));
 
     await waitFor(() => {
       const btn = screen.getByRole('button', { name: /Added/ });
@@ -191,7 +191,7 @@ describe('PlaceSearch — adding items', () => {
       target: { value: 'British Museum' },
     });
     await waitFor(() => screen.getByText('British Museum'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add British Museum to list' }));
 
     await waitFor(() => {
       expect(screen.getByText(/could not add to list/i)).toBeInTheDocument();
@@ -211,7 +211,7 @@ describe('PlaceSearch — adding items', () => {
       target: { value: 'British Museum' },
     });
     await waitFor(() => screen.getByText('British Museum'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add British Museum to list' }));
 
     await waitFor(() => {
       expect(screen.getByText(/could not add to list/i)).toBeInTheDocument();
@@ -247,7 +247,7 @@ describe('PlaceSearch — search edge cases', () => {
     render(<PlaceSearch listId="list-1" />);
     fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Thames' } });
     await waitFor(() => screen.getByText('River Thames'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add River Thames to list' }));
 
     await waitFor(() => {
       expect(mockCreate).toHaveBeenCalledWith(
@@ -386,7 +386,7 @@ describe('PlaceSearch — search edge cases', () => {
     render(<PlaceSearch listId="list-1" />);
     fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Unna' } });
     await waitFor(() => screen.getByText('Unnamed Place'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add Unnamed Place to list' }));
     await waitFor(() => {
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -447,7 +447,7 @@ describe('PlaceSearch — search edge cases', () => {
       target: { value: 'Mystery' },
     });
     await waitFor(() => screen.getByText('Mystery Place'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add Mystery Place to list' }));
 
     await waitFor(() => {
       expect(mockCreate).toHaveBeenCalledWith(
@@ -456,6 +456,22 @@ describe('PlaceSearch — search edge cases', () => {
         }),
       );
     });
+  });
+});
+
+describe('PlaceSearch — add button accessible name', () => {
+  it('gives each Add button a contextual aria-label including the place name', async () => {
+    mockUseMutation.mockReturnValue([jest.fn(), {}]);
+    const mockFetchFn = jest.fn().mockResolvedValue({
+      json: () => Promise.resolve(PHOTON_RESPONSE),
+    } as Response);
+    global.fetch = mockFetchFn;
+
+    render(<PlaceSearch />);
+    fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Bri' } });
+    await waitFor(() => screen.getByText('British Museum'));
+
+    expect(screen.getByRole('button', { name: 'Add British Museum to list' })).toBeInTheDocument();
   });
 });
 
@@ -504,7 +520,7 @@ describe('PlaceSearch — error announcements', () => {
     render(<PlaceSearch listId="list-1" />);
     fireEvent.change(screen.getByLabelText(/search for a place/i), { target: { value: 'Test' } });
     await waitFor(() => screen.getByText('Test Place'));
-    fireEvent.click(screen.getByRole('button', { name: '+ Add to list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add Test Place to list' }));
 
     await waitFor(() => {
       const alert = screen.getByRole('alert');
