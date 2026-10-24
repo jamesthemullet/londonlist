@@ -100,7 +100,7 @@ describe('list controller', () => {
         {
           documentId: 'list-1',
           name: 'My List',
-          user: { username: 'alice' },
+          user: { username: 'alice', isPro: false },
           viewCount: 5,
           description: 'desc',
           list_items: [{ category: 'food', completed: false }, { category: 'food', completed: true }, { category: 'travel', completed: false }],
@@ -126,6 +126,7 @@ describe('list controller', () => {
             viewCount: 5,
             itemCount: 3,
             categories: ['food', 'travel'],
+            isFeatured: false,
           },
           {
             documentId: 'list-2',
@@ -135,6 +136,38 @@ describe('list controller', () => {
             viewCount: 0,
             itemCount: 0,
             categories: [],
+            isFeatured: false,
+          },
+        ],
+      });
+    });
+
+    it('sets isFeatured true when list owner is Pro', async () => {
+      listDocuments.findMany.mockResolvedValue([
+        {
+          documentId: 'list-pro',
+          name: 'Pro List',
+          user: { username: 'prouser', isPro: true },
+          viewCount: 1,
+          description: null,
+          list_items: [],
+        },
+      ]);
+      const ctx = createCtx();
+
+      const result = await listController.getAllPublicLists(ctx);
+
+      expect(result).toEqual({
+        data: [
+          {
+            documentId: 'list-pro',
+            name: 'Pro List',
+            description: null,
+            username: 'prouser',
+            viewCount: 1,
+            itemCount: 0,
+            categories: [],
+            isFeatured: true,
           },
         ],
       });
