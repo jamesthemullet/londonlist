@@ -28,6 +28,51 @@
   max-width: 560px;
 }
 
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  background: #f0f0f0;
+  border: 1px solid #e0e0e0;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.filterChip:hover {
+  background: #e5e5e5;
+  color: #333;
+}
+
+.filterChipActive {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+.filterChipActive:hover {
+  background: #333;
+  border-color: #333;
+  color: #fff;
+}
+
+.noResults {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -253,5 +298,32 @@
 
   .signInNote {
     color: #666;
+  }
+
+  .filterChip {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #aaa;
+  }
+
+  .filterChip:hover {
+    background: #333;
+    color: #ddd;
+  }
+
+  .filterChipActive {
+    background: #eee;
+    border-color: #eee;
+    color: #111;
+  }
+
+  .filterChipActive:hover {
+    background: #ddd;
+    border-color: #ddd;
+    color: #111;
+  }
+
+  .noResults {
+    color: #aaa;
   }
 }
