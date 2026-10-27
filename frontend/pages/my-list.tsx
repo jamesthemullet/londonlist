@@ -662,7 +662,7 @@ export default function MyListPage() {
             </section>
 
             {isConfirmingDelete ? (
-              <div className={styles.deleteConfirm} role="alertdialog" aria-labelledby="delete-confirm-heading">
+              <div className={styles.deleteConfirm} role="alertdialog" aria-modal="true" aria-labelledby="delete-confirm-heading">
                 <p id="delete-confirm-heading" className={styles.deleteConfirmText}>
                   Delete &quot;{activeList.name}&quot;? This cannot be undone.
                 </p>
