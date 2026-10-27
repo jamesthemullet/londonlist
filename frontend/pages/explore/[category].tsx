@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../context/AppContext';
 import { buildOgImageUrl } from '../../lib/og-image';
+import { safeJsonLd } from '../../lib/json-ld';
 import { CATEGORY_META } from '../../lib/category-meta';
 import type { CategoryMeta } from '../../lib/category-meta';
 import styles from '../explore.module.css';
@@ -76,8 +77,8 @@ export default function CategoryExplorePage({ lists, category, meta }: Props) {
         <meta name="twitter:image" content={ogImage} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {jsonLd && (
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
         )}
       </Head>
       <main className={styles.main}>
@@ -137,6 +138,18 @@ export default function CategoryExplorePage({ lists, category, meta }: Props) {
               ))}
             </ul>
           </>
+        )}
+
+        {initialized && user && !user.isPro && (
+          <aside className={styles.proNudge} aria-label="Upgrade to Pro">
+            <p className={styles.proNudgeText}>
+              Want your list to stand out?{' '}
+              <Link href={`/pricing?ref=category-nudge-${category}`} className={styles.proNudgeLink}>
+                Upgrade to Pro
+              </Link>{' '}
+              to get a Featured badge on all your public lists.
+            </p>
+          </aside>
         )}
 
         <Link href="/explore" className={styles.backLink}>

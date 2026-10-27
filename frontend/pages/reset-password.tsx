@@ -50,7 +50,9 @@ export default function ResetPasswordPage() {
           <title>Set new password — London List</title>
           <meta name="description" content="Set a new password for your London List account." />
         </Head>
-        <SetNewPasswordForm code={code} />
+        <main>
+          <SetNewPasswordForm code={code} />
+        </main>
       </>
     );
   }
@@ -60,7 +62,9 @@ export default function ResetPasswordPage() {
         <title>Reset password — London List</title>
         <meta name="description" content="Reset your London List account password." />
       </Head>
-      <ForgotPasswordForm />
+      <main>
+        <ForgotPasswordForm />
+      </main>
     </>
   );
 }
@@ -73,7 +77,7 @@ function ForgotPasswordForm() {
   if (sent) {
     return (
       <section className={styles.container}>
-        <h3>Check your inbox</h3>
+        <h1>Check your inbox</h1>
         <p>
           If that address is registered, we&apos;ve sent a reset link to{' '}
           <strong>{formData.email}</strong>.
@@ -112,7 +116,7 @@ function SetNewPasswordForm({ code }: { code: string }) {
   if (success) {
     return (
       <section className={styles.container}>
-        <h3>Password updated</h3>
+        <h1>Password updated</h1>
         <p>Your password has been changed successfully.</p>
         <Link href="/login">Log in with your new password</Link>
       </section>
@@ -133,7 +137,7 @@ function SetNewPasswordForm({ code }: { code: string }) {
 
   return (
     <section className={styles.container}>
-      <h3>Set new password</h3>
+      <h1>Set new password</h1>
       <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
         <div>
           <label htmlFor="new-password">New password</label>

@@ -237,6 +237,58 @@ describe('CategoryExplorePage — conversion CTA', () => {
   });
 });
 
+describe('CategoryExplorePage — Pro upgrade nudge', () => {
+  it('shows Pro nudge for logged-in free users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      initialized: true,
+    });
+    renderMuseumPage();
+    expect(screen.getByRole('complementary', { name: /upgrade to pro/i })).toBeInTheDocument();
+  });
+
+  it('does not show Pro nudge for Pro users', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: true },
+      initialized: true,
+    });
+    renderMuseumPage();
+    expect(screen.queryByRole('complementary', { name: /upgrade to pro/i })).not.toBeInTheDocument();
+  });
+
+  it('does not show Pro nudge for unauthenticated users', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true });
+    renderMuseumPage();
+    expect(screen.queryByRole('complementary', { name: /upgrade to pro/i })).not.toBeInTheDocument();
+  });
+
+  it('Pro nudge upgrade link includes the category in the ref param', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      initialized: true,
+    });
+    renderMuseumPage();
+    const upgradeLink = screen.getByRole('link', { name: /upgrade to pro/i });
+    expect(upgradeLink).toHaveAttribute('href', '/pricing?ref=category-nudge-museum');
+  });
+
+  it('Pro nudge ref param uses the correct category slug', () => {
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', documentId: 'u1', email: 'a@b.com', username: 'alice', isPro: false },
+      initialized: true,
+    });
+    render(
+      <CategoryExplorePage
+        lists={[]}
+        category="restaurant"
+        meta={RESTAURANT_META}
+      />,
+    );
+    const upgradeLink = screen.getByRole('link', { name: /upgrade to pro/i });
+    expect(upgradeLink).toHaveAttribute('href', '/pricing?ref=category-nudge-restaurant');
+  });
+});
+
 describe('CategoryExplorePage — back link', () => {
   it('renders a back link to the explore page', () => {
     renderMuseumPage();

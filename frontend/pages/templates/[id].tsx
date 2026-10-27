@@ -8,6 +8,7 @@ import BookingLinks from '../../components/booking-links/booking-links';
 import UpgradeModal from '../../components/upgrade-modal/upgrade-modal';
 import { TEMPLATES } from '../../lib/templates';
 import type { Template } from '../../lib/templates';
+import { safeJsonLd } from '../../lib/json-ld';
 import { useAppContext } from '../../context/AppContext';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import styles from './[id].module.css';
@@ -164,8 +165,8 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
         <meta name="twitter:description" content={template.description} />
         <script
           type="application/ld+json"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
       </Head>
       <main className={styles.main}>

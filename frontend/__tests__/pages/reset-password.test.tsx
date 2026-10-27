@@ -62,6 +62,16 @@ describe('ForgotPassword — rendering', () => {
     expect(screen.getByRole('heading', { name: 'Forgot Password' })).toBeInTheDocument();
   });
 
+  it('renders the Forgot Password heading as an h1', () => {
+    render(<ResetPasswordPage />);
+    expect(screen.getByRole('heading', { name: 'Forgot Password', level: 1 })).toBeInTheDocument();
+  });
+
+  it('has a <main> landmark', () => {
+    render(<ResetPasswordPage />);
+    expect(screen.getByRole('main')).toBeInTheDocument();
+  });
+
   it('renders the email field', () => {
     render(<ResetPasswordPage />);
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
