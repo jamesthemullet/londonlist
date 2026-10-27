@@ -6,6 +6,7 @@ import BookingLinks from '../../../components/booking-links/booking-links';
 import RelatedPlaces from '../../../components/related-places/related-places';
 import type { PublicPlace } from '../../../lib/place';
 import { buildOgImageUrl } from '../../../lib/og-image';
+import { safeJsonLd } from '../../../lib/json-ld';
 import styles from './[id].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -91,8 +92,8 @@ export default function PlaceDetailPage({ place, relatedPlaces }: Props) {
         <meta name="twitter:image" content={ogImage} />
         <script
           type="application/ld+json"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: structured data, not user content
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
       </Head>
       <main className={styles.main}>

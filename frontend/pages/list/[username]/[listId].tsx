@@ -11,6 +11,7 @@ import ShareButtons from '../../../components/share-buttons/share-buttons';
 import OpenInMapsButton from '../../../components/open-in-maps-button/open-in-maps-button';
 import { buildOgImageUrl } from '../../../lib/og-image';
 import { buildPlaceUrl } from '../../../lib/place';
+import { safeJsonLd } from '../../../lib/json-ld';
 import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
@@ -352,8 +353,8 @@ export default function PublicListPage({ pageState, listData, username, listId, 
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={ogImage} />
         {jsonLd && (
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
         )}
       </Head>
       <main className={styles.main}>

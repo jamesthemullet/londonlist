@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useAppContext } from "../../context/AppContext";
 import { AREA_META, encodeAreaSlug } from "../../lib/area-meta";
 import { buildOgImageUrl } from "../../lib/og-image";
+import { safeJsonLd } from "../../lib/json-ld";
 import styles from "./area.module.css";
 
 const SITE_URL =
@@ -60,8 +61,8 @@ export default function AreaIndexPage() {
 				/>
 				<meta name="twitter:image" content={OG_IMAGE} />
 				{jsonLd && (
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 				)}
 			</Head>
 			<main className={styles.main}>

@@ -4,7 +4,9 @@ import type { GetServerSideProps } from 'next';
 import { useMemo, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { AREA_META, encodeAreaSlug } from '../lib/area-meta';
+import { CATEGORY_META } from '../lib/category-meta';
 import { buildOgImageUrl } from '../lib/og-image';
+import { safeJsonLd } from '../lib/json-ld';
 import styles from './explore.module.css';
 
 export type SortOption = 'most-places' | 'fewest-places' | 'alphabetical' | 'most-viewed';
@@ -85,6 +87,36 @@ export function buildFeaturedAreas(): FeaturedArea[] {
   });
 }
 
+export type FeaturedCategory = {
+  key: string;
+  label: string;
+  emoji: string;
+  href: string;
+};
+
+export const FEATURED_CATEGORY_KEYS = [
+  'museum',
+  'restaurant',
+  'cafe',
+  'bar',
+  'park',
+  'gallery',
+  'theatre',
+  'cinema',
+] as const;
+
+export function buildFeaturedCategories(): FeaturedCategory[] {
+  return FEATURED_CATEGORY_KEYS.map((key) => {
+    const meta = CATEGORY_META[key];
+    return {
+      key,
+      label: meta.label,
+      emoji: meta.emoji,
+      href: `/explore/${key}`,
+    };
+  });
+}
+
 export function sortLists(lists: PublicList[], sortBy: SortOption): PublicList[] {
   const copy = [...lists];
 
@@ -149,8 +181,8 @@ export default function ExplorePage({ lists }: Props) {
         <meta name="twitter:image" content={OG_IMAGE} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {lists.length > 0 && (
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildExplorePageJsonLd(lists, SITE_URL)) }} />
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildExplorePageJsonLd(lists, SITE_URL)) }} />
         )}
       </Head>
       <main className={styles.main}>
@@ -273,6 +305,20 @@ export default function ExplorePage({ lists }: Props) {
             </ul>
           </>
         )}
+
+        <section className={styles.areaSection} aria-label="Browse London by category">
+          <h2 className={styles.areaSectionHeading}>Browse by category</h2>
+          <ul className={styles.areaGrid}>
+            {buildFeaturedCategories().map((cat) => (
+              <li key={cat.key}>
+                <Link href={cat.href} className={styles.areaChip}>
+                  <span className={styles.areaChipEmoji} aria-hidden="true">{cat.emoji}</span>
+                  {cat.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <section className={styles.areaSection} aria-label="Browse London by area">
           <h2 className={styles.areaSectionHeading}>Browse London by area</h2>
