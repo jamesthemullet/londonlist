@@ -555,6 +555,7 @@ export default function MyListPage() {
                     ? `${SITE_URL}/list/${user.username}/${activeList.documentId}`
                     : undefined
                 }
+                isPro={user?.isPro ?? false}
               />
             </section>
             <section className={styles.section}>

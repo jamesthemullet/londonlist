@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client';
 import { useMutation, useQuery } from '@apollo/client/react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import Loader from '../Loader';
 import MilestoneCelebration from '../milestone-celebration/milestone-celebration';
@@ -8,6 +9,7 @@ import ProgressBar from '../progress-bar/progress-bar';
 import StreakBadge from '../streak-badge/streak-badge';
 import BookingLinks from '../booking-links/booking-links';
 import { useAuthHeader } from '../../hooks/use-auth-header';
+import { buildCsvRows, downloadCsv, sanitizeFilename } from '../../lib/list-export';
 import { useStreak } from '../../hooks/use-streak';
 import styles from './my-list.module.css';
 import type { MapItem } from '../map/list-map';
@@ -97,9 +99,10 @@ type Props = {
   listId: string;
   listName: string;
   shareUrl?: string;
+  isPro?: boolean;
 };
 
-export default function MyList({ listId, listName, shareUrl }: Props) {
+export default function MyList({ listId, listName, shareUrl, isPro = false }: Props) {
   const authHeader = useAuthHeader();
   const [showMap, setShowMap] = useState(true);
   const [celebrationMilestone, setCelebrationMilestone] = useState<Milestone | null>(null);
@@ -289,6 +292,27 @@ export default function MyList({ listId, listName, shareUrl }: Props) {
           </ul>
         </section>
       )}
+      <div className={styles.exportRow}>
+        {isPro ? (
+          <button
+            type="button"
+            className={styles.exportButton}
+            onClick={() => {
+              const csv = buildCsvRows(items);
+              downloadCsv(csv, `${sanitizeFilename(listName)}.csv`);
+            }}
+          >
+            Export list as CSV
+          </button>
+        ) : (
+          <p className={styles.exportLocked}>
+            <Link href="/pricing" className={styles.exportUpgradeLink}>
+              Upgrade to Pro
+            </Link>{' '}
+            to export your list as a CSV file.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
