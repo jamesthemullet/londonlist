@@ -18,14 +18,14 @@ describe("buildSitemapEntries", () => {
 		expect(home?.changefreq).toBe("daily");
 	});
 
-	it("includes static pages (explore, templates, pricing, register, login, area)", () => {
+	it("includes static pages (explore, templates, pricing, register, area) but not login", () => {
 		const entries = buildSitemapEntries([]);
 		const locs = entries.map((e) => e.loc);
 		expect(locs).toContain("/explore");
 		expect(locs).toContain("/templates");
 		expect(locs).toContain("/pricing");
 		expect(locs).toContain("/register");
-		expect(locs).toContain("/login");
+		expect(locs).not.toContain("/login");
 		expect(locs).toContain("/area");
 	});
 
@@ -67,10 +67,10 @@ describe("buildSitemapEntries", () => {
 
 	it("returns only static pages when the list is empty", () => {
 		const entries = buildSitemapEntries([]);
-		// homepage, explore, templates, N template detail pages, pricing, register, login,
-		// area index, N area detail pages, N category pages
+		// homepage, explore, templates, N template detail pages, pricing, register,
+		// area index, N area detail pages, N category pages (login removed — noindex)
 		const expectedStatic =
-			6 +
+			5 +
 			TEMPLATES.length +
 			1 +
 			Object.keys(AREA_META).length +
@@ -85,7 +85,7 @@ describe("buildSitemapEntries", () => {
 		];
 		const entries = buildSitemapEntries(lists);
 		const expectedStatic =
-			6 +
+			5 +
 			TEMPLATES.length +
 			1 +
 			Object.keys(AREA_META).length +
