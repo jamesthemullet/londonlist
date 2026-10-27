@@ -47,4 +47,17 @@ describe('OpenInMapsButton', () => {
     render(<OpenInMapsButton places={makePlaces(12)} />);
     expect(screen.queryByText(/upgrade to pro/i)).not.toBeInTheDocument();
   });
+
+  it('orders the route by nearest place rather than list order', () => {
+    const places = [
+      { lat: 51.5, lng: 0 },
+      { lat: 51.5, lng: 0.03 },
+      { lat: 51.5, lng: 0.01 },
+    ];
+    render(<OpenInMapsButton places={places} />);
+    expect(screen.getByRole('link')).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=51.5,0.03&waypoints=51.5%2C0%7C51.5%2C0.01',
+    );
+  });
 });

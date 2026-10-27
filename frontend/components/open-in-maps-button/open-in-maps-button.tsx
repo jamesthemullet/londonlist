@@ -1,4 +1,9 @@
-import { MAX_ROUTE_PLACES, buildGoogleMapsRouteUrl, type RoutePlace } from '../../lib/route-url';
+import {
+  MAX_ROUTE_PLACES,
+  buildGoogleMapsRouteUrl,
+  orderRoute,
+  type RoutePlace,
+} from '../../lib/route-url';
 import styles from './open-in-maps-button.module.css';
 
 type Props = {
@@ -7,7 +12,7 @@ type Props = {
 };
 
 export default function OpenInMapsButton({ places, className }: Props) {
-  const capped = places.slice(0, MAX_ROUTE_PLACES);
+  const capped = orderRoute(places).slice(0, MAX_ROUTE_PLACES);
   const hasMore = places.length > MAX_ROUTE_PLACES;
 
   if (capped.length === 0) return null;
