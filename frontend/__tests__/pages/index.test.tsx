@@ -109,6 +109,21 @@ describe('Home page — public lists', () => {
     expect(link).toHaveAttribute('href', '/list/alice/doc-1');
   });
 
+  it('links each author to their profile page without nesting anchors', async () => {
+    mockFetch({ data: PUBLIC_LISTS });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText('by alice')).toBeInTheDocument();
+    });
+
+    const authorLink = screen.getByText('by alice').closest('a');
+    expect(authorLink).toHaveAttribute('href', '/profile/alice');
+    // the author link must not be inside another anchor
+    expect(authorLink?.closest('a')?.parentElement?.closest('a')).toBeNull();
+  });
+
   it('does not render "Community lists" section when the API returns an empty array', async () => {
     mockFetch({ data: [] });
 
