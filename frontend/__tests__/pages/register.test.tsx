@@ -91,6 +91,11 @@ describe('RegisterRoute — rendering', () => {
     render(<RegisterRoute />);
     expect(screen.getByText(/3.20 characters/i)).toBeInTheDocument();
   });
+
+  it('has a <main> landmark', () => {
+    render(<RegisterRoute />);
+    expect(screen.getByRole('main')).toBeInTheDocument();
+  });
 });
 
 describe('RegisterRoute — form validation', () => {

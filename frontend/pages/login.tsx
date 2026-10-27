@@ -81,16 +81,18 @@ export default function LoginRoute() {
         <title>Log in — London List</title>
         <meta name="description" content="Log in to your London List account to manage your London to-do lists." />
       </Head>
-      <Form
-        title="Login"
-        buttonText="Login"
-        formData={formData}
-        setFormData={setFormData}
-        callback={handleLogin}
-        error={error}
-        isLogin={true}
-      />
-      <Link href="/reset-password">Forgot Password?</Link>
+      <main>
+        <Form
+          title="Login"
+          buttonText="Login"
+          formData={formData}
+          setFormData={setFormData}
+          callback={handleLogin}
+          error={error}
+          isLogin={true}
+        />
+        <Link href="/reset-password">Forgot Password?</Link>
+      </main>
     </>
   );
 }

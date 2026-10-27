@@ -22,7 +22,7 @@ export default function Form({
       <div>
         <div>
           <div>
-            <h3>{title}</h3>
+            <h1>{title}</h1>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); callback(); }}>
             <div>
