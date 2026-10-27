@@ -1,4 +1,5 @@
 import { AREA_META, encodeAreaSlug } from "./area-meta";
+import { CATEGORY_META } from "./category-meta";
 import { TEMPLATES } from "./templates";
 
 export type SitemapEntry = {
@@ -24,17 +25,6 @@ export type PublicPlaceForSitemap = {
 	osm_id: string;
 };
 
-export const EXPLORE_CATEGORIES = [
-	"museum",
-	"restaurant",
-	"bar",
-	"park",
-	"gallery",
-	"theatre",
-	"cinema",
-	"hotel",
-] as const;
-
 const TEMPLATE_DETAIL_PAGES: SitemapEntry[] = TEMPLATES.map((t) => ({
 	loc: `/templates/${t.id}`,
 	changefreq: "monthly",
@@ -49,7 +39,7 @@ const AREA_DETAIL_PAGES: SitemapEntry[] = Object.keys(AREA_META).map(
 	}),
 );
 
-const CATEGORY_PAGES: SitemapEntry[] = EXPLORE_CATEGORIES.map((cat) => ({
+const CATEGORY_PAGES: SitemapEntry[] = Object.keys(CATEGORY_META).map((cat) => ({
 	loc: `/explore/${cat}`,
 	changefreq: "weekly",
 	priority: "0.7",

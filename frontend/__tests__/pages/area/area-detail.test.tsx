@@ -35,6 +35,13 @@ jest.mock('../../../components/booking-links/booking-links', () => ({
   ),
 }));
 
+jest.mock('../../../components/add-to-list-button/add-to-list-button', () => ({
+  __esModule: true,
+  default: ({ name }: { name: string }) => (
+    <button type="button" data-testid={`add-to-list-${name}`}>Add {name}</button>
+  ),
+}));
+
 import { useAppContext } from '../../../context/AppContext';
 const mockUseAppContext = useAppContext as jest.Mock;
 
@@ -175,6 +182,41 @@ describe('AreaPage — populated state', () => {
   it('does not show the empty state when places are present', () => {
     render(<AreaPage {...BLOOMSBURY_PROPS} places={places} />);
     expect(screen.queryByText(/no places saved/i)).not.toBeInTheDocument();
+  });
+
+  it('renders place names as links to the place detail page', () => {
+    render(<AreaPage {...BLOOMSBURY_PROPS} places={places} />);
+    const museumLink = screen.getByRole('link', { name: 'British Museum' });
+    expect(museumLink).toHaveAttribute('href', '/place/relation/1525018');
+    const parkLink = screen.getByRole('link', { name: 'Russell Square' });
+    expect(parkLink).toHaveAttribute('href', '/place/way/123');
+  });
+
+  it('renders the add-to-list button for each place when logged in', () => {
+    render(<AreaPage {...BLOOMSBURY_PROPS} places={places} />);
+    expect(screen.getByTestId('add-to-list-British Museum')).toBeInTheDocument();
+    expect(screen.getByTestId('add-to-list-Russell Square')).toBeInTheDocument();
+  });
+});
+
+describe('AreaPage — add to list', () => {
+  it('does not show add-to-list buttons for logged-out users', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
+    render(<AreaPage {...BLOOMSBURY_PROPS} places={[MUSEUM_PLACE]} />);
+    expect(screen.queryByTestId('add-to-list-British Museum')).not.toBeInTheDocument();
+  });
+
+  it('does not show add-to-list buttons while context is uninitialised', () => {
+    mockUseAppContext.mockReturnValue({ user: mockUser, initialized: false, setUser: jest.fn() });
+    render(<AreaPage {...BLOOMSBURY_PROPS} places={[MUSEUM_PLACE]} />);
+    expect(screen.queryByTestId('add-to-list-British Museum')).not.toBeInTheDocument();
+  });
+
+  it('renders a plain span (not a link) for places with an unparseable osm_id', () => {
+    const badPlace = { ...MUSEUM_PLACE, osm_id: 'noslash', name: 'Mystery Place' };
+    render(<AreaPage {...BLOOMSBURY_PROPS} places={[badPlace]} />);
+    expect(screen.queryByRole('link', { name: 'Mystery Place' })).not.toBeInTheDocument();
+    expect(screen.getByText('Mystery Place')).toBeInTheDocument();
   });
 });
 

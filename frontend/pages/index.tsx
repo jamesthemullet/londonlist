@@ -10,6 +10,7 @@ import { useAuthHeader } from '../hooks/use-auth-header';
 import { useStreak } from '../hooks/use-streak';
 import { GET_MY_LISTS } from './my-list';
 import { buildOgImageUrl } from '../lib/og-image';
+import { safeJsonLd } from '../lib/json-ld';
 import { TEMPLATES } from '../lib/templates';
 import styles from './index.module.css';
 
@@ -104,8 +105,8 @@ export default function Home() {
         />
         <meta name="twitter:image" content={OG_IMAGE} />
         {buildWebSiteJsonLd(SITE_URL) && (
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebSiteJsonLd(SITE_URL)) }} />
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildWebSiteJsonLd(SITE_URL)) }} />
         )}
       </Head>
       <main className={styles.main}>
@@ -121,20 +122,21 @@ export default function Home() {
             <ul className={styles.listGrid}>
               {publicLists.map((list) => (
                 <li key={list.documentId}>
-                  <Link
-                    href={`/list/${list.username}/${list.documentId}`}
-                    className={styles.listCard}>
-                    <span className={styles.listName}>{list.name}</span>
+                  <div className={styles.listCard}>
+                    <Link
+                      href={`/list/${list.username}/${list.documentId}`}
+                      className={styles.listName}>
+                      {list.name}
+                    </Link>
                     {list.username && (
                       <Link
                         href={`/profile/${list.username}`}
                         className={styles.listAuthor}
-                        onClick={(e) => e.stopPropagation()}
                       >
                         by {list.username}
                       </Link>
                     )}
-                  </Link>
+                  </div>
                 </li>
               ))}
             </ul>

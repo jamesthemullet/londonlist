@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription, selectRelatedLists, getServerSideProps, buildPlaceUrl } from '../../../../pages/list/[username]/[listId]';
+import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription, selectRelatedLists, getServerSideProps } from '../../../../pages/list/[username]/[listId]';
+import { buildPlaceUrl } from '../../../../lib/place';
 
 jest.mock('../../../../context/AppContext', () => ({
   useAppContext: jest.fn(),

@@ -9,15 +9,11 @@ import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
 import { buildOgImageUrl } from '../../../lib/og-image';
+import { buildPlaceUrl } from '../../../lib/place';
+import { safeJsonLd } from '../../../lib/json-ld';
 import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
-
-export function buildPlaceUrl(osm_id: string): string | null {
-  const idx = osm_id.indexOf('/');
-  if (idx < 1 || idx === osm_id.length - 1) return null;
-  return `/place/${osm_id.slice(0, idx)}/${osm_id.slice(idx + 1)}`;
-}
 
 const ListMap = dynamic(() => import('../../../components/map/list-map'), {
   ssr: false,
@@ -356,8 +352,8 @@ export default function PublicListPage({ pageState, listData, username, listId, 
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={ogImage} />
         {jsonLd && (
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
         )}
       </Head>
       <main className={styles.main}>

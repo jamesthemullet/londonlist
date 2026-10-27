@@ -1,7 +1,7 @@
 import { AREA_META, encodeAreaSlug } from "../../lib/area-meta";
+import { CATEGORY_META } from "../../lib/category-meta";
 import {
 	buildSitemapEntries,
-	EXPLORE_CATEGORIES,
 	generateSitemapXml,
 } from "../../lib/sitemap";
 import type { PublicPlaceForSitemap } from "../../lib/sitemap";
@@ -74,7 +74,7 @@ describe("buildSitemapEntries", () => {
 			TEMPLATES.length +
 			1 +
 			Object.keys(AREA_META).length +
-			EXPLORE_CATEGORIES.length;
+			Object.keys(CATEGORY_META).length;
 		expect(entries.length).toBe(expectedStatic);
 	});
 
@@ -89,7 +89,7 @@ describe("buildSitemapEntries", () => {
 			TEMPLATES.length +
 			1 +
 			Object.keys(AREA_META).length +
-			EXPLORE_CATEGORIES.length;
+			Object.keys(CATEGORY_META).length;
 		expect(entries.length).toBe(expectedStatic + 2 + 2); // static + 2 profiles + 2 lists
 	});
 
@@ -150,7 +150,7 @@ describe("buildSitemapEntries", () => {
 
 	it("includes an entry for each explore category", () => {
 		const entries = buildSitemapEntries([]);
-		for (const cat of EXPLORE_CATEGORIES) {
+		for (const cat of Object.keys(CATEGORY_META)) {
 			const entry = entries.find((e) => e.loc === `/explore/${cat}`);
 			expect(entry).toBeDefined();
 			expect(entry?.changefreq).toBe("weekly");
