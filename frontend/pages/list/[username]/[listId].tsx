@@ -399,7 +399,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
             (i): i is typeof i & { lat: number; lng: number } => i.lat != null && i.lng != null,
           );
           return todoWithCoords.length > 0 ? (
-            <OpenInMapsButton places={todoWithCoords} isPro={true} />
+            <OpenInMapsButton places={todoWithCoords} />
           ) : null;
         })()}
         {items.length === 0 ? (

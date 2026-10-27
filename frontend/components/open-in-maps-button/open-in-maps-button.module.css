@@ -31,18 +31,3 @@
   opacity: 0.85;
 }
 
-.upgradeNote {
-  font-size: 0.8rem;
-  color: #555;
-  margin: 0;
-}
-
-.upgradeLink {
-  color: #1a73e8;
-  font-weight: 600;
-  text-decoration: underline;
-}
-
-.upgradeLink:hover {
-  color: #1557b0;
-}

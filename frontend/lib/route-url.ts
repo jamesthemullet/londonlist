@@ -3,8 +3,8 @@ export type RoutePlace = {
   lng: number;
 };
 
-export const FREE_ROUTE_LIMIT = 3;
-export const PRO_ROUTE_LIMIT = 9;
+// Google Maps directions URLs accept at most 9 waypoints plus a destination.
+export const MAX_ROUTE_PLACES = 10;
 
 export function buildGoogleMapsRouteUrl(places: RoutePlace[]): string {
   if (places.length === 0) return '';

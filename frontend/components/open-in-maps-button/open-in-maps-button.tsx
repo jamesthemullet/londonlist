@@ -1,22 +1,14 @@
-import Link from 'next/link';
-import {
-  FREE_ROUTE_LIMIT,
-  PRO_ROUTE_LIMIT,
-  buildGoogleMapsRouteUrl,
-  type RoutePlace,
-} from '../../lib/route-url';
+import { MAX_ROUTE_PLACES, buildGoogleMapsRouteUrl, type RoutePlace } from '../../lib/route-url';
 import styles from './open-in-maps-button.module.css';
 
 type Props = {
   places: RoutePlace[];
-  isPro?: boolean;
   className?: string;
 };
 
-export default function OpenInMapsButton({ places, isPro = false, className }: Props) {
-  const limit = isPro ? PRO_ROUTE_LIMIT : FREE_ROUTE_LIMIT;
-  const capped = places.slice(0, limit);
-  const hasMore = !isPro && places.length > FREE_ROUTE_LIMIT;
+export default function OpenInMapsButton({ places, className }: Props) {
+  const capped = places.slice(0, MAX_ROUTE_PLACES);
+  const hasMore = places.length > MAX_ROUTE_PLACES;
 
   if (capped.length === 0) return null;
 
@@ -38,14 +30,6 @@ export default function OpenInMapsButton({ places, isPro = false, className }: P
           </span>
         )}
       </a>
-      {hasMore && (
-        <p className={styles.upgradeNote}>
-          <Link href="/pricing" className={styles.upgradeLink}>
-            Upgrade to Pro
-          </Link>{' '}
-          to plan your full route ({places.length} places).
-        </p>
-      )}
     </div>
   );
 }

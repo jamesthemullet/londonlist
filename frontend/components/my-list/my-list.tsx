@@ -98,10 +98,9 @@ type Props = {
   listId: string;
   listName: string;
   shareUrl?: string;
-  isPro?: boolean;
 };
 
-export default function MyList({ listId, listName, shareUrl, isPro = false }: Props) {
+export default function MyList({ listId, listName, shareUrl }: Props) {
   const authHeader = useAuthHeader();
   const [showMap, setShowMap] = useState(true);
   const [celebrationMilestone, setCelebrationMilestone] = useState<Milestone | null>(null);
@@ -238,11 +237,7 @@ export default function MyList({ listId, listName, shareUrl, isPro = false }: Pr
           (i): i is typeof i & { lat: number; lng: number } => i.lat != null && i.lng != null,
         );
         return todoWithCoords.length > 0 ? (
-          <OpenInMapsButton
-            places={todoWithCoords}
-            isPro={isPro}
-            className={styles.openInMaps}
-          />
+          <OpenInMapsButton places={todoWithCoords} className={styles.openInMaps} />
         ) : null;
       })()}
       {todo.length > 0 && (

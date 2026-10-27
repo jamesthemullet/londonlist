@@ -1,4 +1,4 @@
-import { buildGoogleMapsRouteUrl, FREE_ROUTE_LIMIT, PRO_ROUTE_LIMIT } from '../../lib/route-url';
+import { buildGoogleMapsRouteUrl, MAX_ROUTE_PLACES } from '../../lib/route-url';
 
 describe('buildGoogleMapsRouteUrl', () => {
   it('returns empty string for empty array', () => {
@@ -42,12 +42,8 @@ describe('buildGoogleMapsRouteUrl', () => {
   });
 });
 
-describe('route limit constants', () => {
-  it('FREE_ROUTE_LIMIT is 3', () => {
-    expect(FREE_ROUTE_LIMIT).toBe(3);
-  });
-
-  it('PRO_ROUTE_LIMIT is 9', () => {
-    expect(PRO_ROUTE_LIMIT).toBe(9);
+describe('MAX_ROUTE_PLACES', () => {
+  it('allows 9 waypoints plus a destination', () => {
+    expect(MAX_ROUTE_PLACES).toBe(10);
   });
 });
