@@ -1,8 +1,9 @@
 import Head from 'next/head';
+import { buildOgImageUrl } from '../../lib/og-image';
 
 export default function Meta({ currentUrl }: { currentUrl: string }) {
   const siteAddress = 'https://londonlist.vercel.app';
-  const defaultImageUrl = `${siteAddress}/images/temp-seo-image.jpg`;
+  const defaultImageUrl = buildOgImageUrl({ title: 'London List — Your London Bucket List App' }, siteAddress);
   const description = 'Your to-do list for London — find curated lists of things to do in London';
   return (
     <Head>
@@ -18,15 +19,18 @@ export default function Meta({ currentUrl }: { currentUrl: string }) {
       <meta name="msapplication-config" content="/favicon/browserconfig.xml" />
       <meta name="theme-color" content="#000" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <meta name="description" content={description} />
-      <meta property="og:locale" content="en_GB" />
-      <meta property="og:type" content="website" />
-      <meta property="og:title" content="London List" />
-      <meta property="og:description" content={description} />
-      <meta property="og:site_name" content="London List" />
-      <meta property="og:url" content={`${siteAddress}${currentUrl}`} />
-      <meta property="og:image" content={defaultImageUrl} />
-      <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
+      <meta name="description" key="description" content={description} />
+      <meta property="og:locale" key="og:locale" content="en_GB" />
+      <meta property="og:type" key="og:type" content="website" />
+      <meta property="og:title" key="og:title" content="London List" />
+      <meta property="og:description" key="og:description" content={description} />
+      <meta property="og:site_name" key="og:site_name" content="London List" />
+      <meta property="og:url" key="og:url" content={`${siteAddress}${currentUrl}`} />
+      <meta property="og:image" key="og:image" content={defaultImageUrl} />
+      <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" key="twitter:title" content="London List" />
+      <meta name="twitter:description" key="twitter:description" content={description} />
+      <meta name="twitter:image" key="twitter:image" content={defaultImageUrl} />
     </Head>
   );
 }
