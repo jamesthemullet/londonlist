@@ -140,8 +140,9 @@ describe('AddToListButton — authenticated', () => {
   });
 
   it('shows an item limit error when FREE_ITEM_LIMIT_REACHED is returned', async () => {
-    const createListItemFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
+    const createListItemFn = jest.fn().mockResolvedValue({
+      data: null,
+      errors: [{ extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
     });
     mockUseMutation.mockReturnValue([createListItemFn, {}]);
     render(<AddToListButton {...DEFAULT_PROPS} />);

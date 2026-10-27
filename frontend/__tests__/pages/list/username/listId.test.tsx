@@ -882,10 +882,10 @@ describe('CopyListButton', () => {
   });
 
   it('shows an upgrade prompt when the free list limit is reached', async () => {
-    const limitError = Object.assign(new Error('Free plan limit reached'), {
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    const createListMock = jest.fn().mockResolvedValue({
+      data: null,
+      errors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
     });
-    const createListMock = jest.fn().mockRejectedValue(limitError);
     mockUseMutation
       .mockReturnValueOnce([createListMock, {}])
       .mockReturnValueOnce([jest.fn(), {}]);

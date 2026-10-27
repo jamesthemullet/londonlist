@@ -267,8 +267,9 @@ describe('TemplateCard — logged-in user', () => {
   });
 
   it('shows upgrade modal when FREE_LIST_LIMIT_REACHED error is returned', async () => {
-    const createMyListFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    const createMyListFn = jest.fn().mockResolvedValue({
+      data: null,
+      errors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
     });
     setupMocks({
       user: { username: 'alice', isPro: false },
@@ -285,8 +286,9 @@ describe('TemplateCard — logged-in user', () => {
   });
 
   it('dismisses upgrade modal when closed', async () => {
-    const createMyListFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    const createMyListFn = jest.fn().mockResolvedValue({
+      data: null,
+      errors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
     });
     setupMocks({
       user: { username: 'alice', isPro: false },

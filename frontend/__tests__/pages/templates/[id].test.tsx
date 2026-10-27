@@ -266,8 +266,9 @@ describe('CopyButton — logged-in user', () => {
   });
 
   it('calls onLimitReached when FREE_LIST_LIMIT_REACHED error is returned', async () => {
-    const createMyListFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    const createMyListFn = jest.fn().mockResolvedValue({
+      data: null,
+      errors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
     });
     const onLimitReached = jest.fn();
     setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
@@ -321,8 +322,9 @@ describe('CopyButton — logged-in user', () => {
 
 describe('TemplateDetailPage — upgrade modal', () => {
   it('shows upgrade modal when FREE_LIST_LIMIT_REACHED error is returned', async () => {
-    const createMyListFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    const createMyListFn = jest.fn().mockResolvedValue({
+      data: null,
+      errors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
     });
     setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
 
@@ -336,8 +338,9 @@ describe('TemplateDetailPage — upgrade modal', () => {
   });
 
   it('dismisses upgrade modal when closed', async () => {
-    const createMyListFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    const createMyListFn = jest.fn().mockResolvedValue({
+      data: null,
+      errors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
     });
     setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn });
 

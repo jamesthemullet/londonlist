@@ -91,8 +91,9 @@ describe('PlaceSearch — limit reached state', () => {
 describe('PlaceSearch — onLimitReached callback', () => {
   it('calls onLimitReached when the mutation returns FREE_ITEM_LIMIT_REACHED', async () => {
     const onLimitReached = jest.fn();
-    const mutationFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
+    const mutationFn = jest.fn().mockResolvedValue({
+      data: null,
+      errors: [{ extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
     });
     setupMutation(mutationFn);
 
