@@ -39,7 +39,7 @@ describe('OpenInMapsButton', () => {
   it('renders a Google Maps link for one place', () => {
     render(<OpenInMapsButton places={ONE_PLACE} />);
     const link = screen.getByRole('link');
-    expect(link).toHaveAttribute('href', expect.stringContaining('maps.google.com'));
+    expect(link).toHaveAttribute('href', expect.stringContaining('google.com/maps/search'));
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
