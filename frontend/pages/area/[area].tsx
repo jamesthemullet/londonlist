@@ -7,6 +7,7 @@ import { useAppContext } from "../../context/AppContext";
 import { AREA_META, decodeAreaSlug } from "../../lib/area-meta";
 import { buildOgImageUrl } from "../../lib/og-image";
 import { buildPlaceUrl } from "../../lib/place";
+import { safeJsonLd } from "../../lib/json-ld";
 import styles from "./area.module.css";
 
 const API_URL = process.env.STRAPI_URL || "http://127.0.0.1:1337";
@@ -121,8 +122,8 @@ export default function AreaPage({
 				<meta name="twitter:description" content={areaDescription} />
 				<meta name="twitter:image" content={ogImage} />
 				{jsonLd && (
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 				)}
 			</Head>
 			<main className={styles.main}>
