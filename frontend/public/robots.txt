@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /my-list
+Disallow: /account
+Disallow: /login
+Disallow: /reset-password
 Disallow: /api/
 
 Sitemap: https://londonlist.vercel.app/sitemap.xml

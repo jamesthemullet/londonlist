@@ -80,6 +80,7 @@ export default function LoginRoute() {
       <Head>
         <title>Log in — London List</title>
         <meta name="description" content="Log in to your London List account to manage your London to-do lists." />
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
       <main>
         <Form
