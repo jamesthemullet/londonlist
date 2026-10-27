@@ -124,6 +124,18 @@ describe('Home page — public lists', () => {
     expect(authorLink?.closest('a')?.parentElement?.closest('a')).toBeNull();
   });
 
+  it('omits the author link when a public list has no username', async () => {
+    mockFetch({ data: [{ documentId: 'doc-3', name: 'No Author List', username: null }] });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No Author List')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/^by /)).not.toBeInTheDocument();
+  });
+
   it('does not render "Community lists" section when the API returns an empty array', async () => {
     mockFetch({ data: [] });
 
