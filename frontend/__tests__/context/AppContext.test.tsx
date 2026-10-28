@@ -13,6 +13,7 @@ jest.mock('../../pages/_app', () => ({
 
 import Cookie from 'js-cookie';
 import { client } from '../../pages/_app';
+
 const mockCookieGet = Cookie.get as jest.Mock;
 const mockClientQuery = (client as unknown as { query: jest.Mock }).query;
 
@@ -25,6 +26,34 @@ function TestConsumer() {
       <span data-testid="isPro">{user ? String(user.isPro) : 'none'}</span>
     </div>
   );
+}
+
+function SetUserConsumer() {
+  const { user, setUser } = useAppContext();
+  return (
+    <div>
+      <span data-testid="username">{user?.username ?? 'none'}</span>
+      <button
+        type="button"
+        onClick={() =>
+          setUser({
+            id: '2',
+            documentId: 'u2',
+            email: 'bob@example.com',
+            username: 'bob',
+            isPro: false,
+          })
+        }
+      >
+        set user
+      </button>
+    </div>
+  );
+}
+
+function BadConsumer() {
+  useAppContext();
+  return null;
 }
 
 afterEach(() => {
@@ -130,29 +159,6 @@ describe('AppProvider', () => {
   it('allows setUser to update the displayed user', async () => {
     mockCookieGet.mockReturnValue(undefined);
 
-    function SetUserConsumer() {
-      const { user, setUser } = useAppContext();
-      return (
-        <div>
-          <span data-testid="username">{user?.username ?? 'none'}</span>
-          <button
-            type="button"
-            onClick={() =>
-              setUser({
-                id: '2',
-                documentId: 'u2',
-                email: 'bob@example.com',
-                username: 'bob',
-                isPro: false,
-              })
-            }
-          >
-            set user
-          </button>
-        </div>
-      );
-    }
-
     const { getByRole } = render(
       <AppProvider>
         <SetUserConsumer />
@@ -174,11 +180,6 @@ describe('AppProvider', () => {
 describe('useAppContext', () => {
   it('throws when used outside an AppProvider', () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    function BadConsumer() {
-      useAppContext();
-      return null;
-    }
 
     expect(() => render(<BadConsumer />)).toThrow(
       'useAppContext must be used within an AppProvider',
