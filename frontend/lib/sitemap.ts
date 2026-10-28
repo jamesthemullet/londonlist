@@ -52,7 +52,6 @@ const STATIC_PAGES: SitemapEntry[] = [
 	...TEMPLATE_DETAIL_PAGES,
 	{ loc: "/pricing", changefreq: "monthly", priority: "0.8" },
 	{ loc: "/register", changefreq: "monthly", priority: "0.5" },
-	{ loc: "/login", changefreq: "monthly", priority: "0.3" },
 	{ loc: "/area", changefreq: "weekly", priority: "0.8" },
 	...AREA_DETAIL_PAGES,
 	...CATEGORY_PAGES,

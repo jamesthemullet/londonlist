@@ -132,7 +132,7 @@ export default function RegisterRoute() {
         />
         <meta property="og:type" content="website" />
       </Head>
-      <section className={styles.container}>
+      <main className={styles.container}>
       <div>
         <h1>Sign Up</h1>
         {router.query?.ref === 'copy-list' && router.query?.srcUsername && (
@@ -192,7 +192,7 @@ export default function RegisterRoute() {
           </Button>
         </form>
       </div>
-      </section>
+      </main>
     </>
   );
 }
