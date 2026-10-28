@@ -100,7 +100,8 @@
 .ctaPrimary:focus-visible,
 .ctaSecondary:focus-visible,
 .directoryRow:focus-visible,
-.listCard:focus-visible,
+.listName:focus-visible,
+.listAuthor:focus-visible,
 .welcomeBanner:focus-visible,
 .proNudgeLink:focus-visible {
   outline: 3px solid var(--ink);
