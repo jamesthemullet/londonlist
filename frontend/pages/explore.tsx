@@ -6,6 +6,7 @@ import { useAppContext } from '../context/AppContext';
 import { AREA_META, encodeAreaSlug } from '../lib/area-meta';
 import { CATEGORY_META } from '../lib/category-meta';
 import { buildOgImageUrl } from '../lib/og-image';
+import { safeJsonLd } from '../lib/json-ld';
 import styles from './explore.module.css';
 
 export type SortOption = 'most-places' | 'fewest-places' | 'alphabetical' | 'most-viewed';
@@ -180,8 +181,8 @@ export default function ExplorePage({ lists }: Props) {
         <meta name="twitter:image" content={OG_IMAGE} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {lists.length > 0 && (
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildExplorePageJsonLd(lists, SITE_URL)) }} />
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildExplorePageJsonLd(lists, SITE_URL)) }} />
         )}
       </Head>
       <main className={styles.main}>
