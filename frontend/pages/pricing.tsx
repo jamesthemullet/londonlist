@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { safeJsonLd } from '../lib/json-ld';
 import styles from './pricing.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -168,8 +169,8 @@ export default function PricingPage() {
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Pricing — London List" />
         <meta name="twitter:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is server-generated; JSON.stringify output is XSS-safe */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildPricingJsonLd(SITE_URL)) }} />
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildPricingJsonLd(SITE_URL)) }} />
       </Head>
       <main className={styles.main}>
         <div className={styles.hero}>

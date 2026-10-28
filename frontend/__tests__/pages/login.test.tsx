@@ -68,6 +68,16 @@ describe('LoginRoute — rendering', () => {
     expect(screen.getByRole('heading', { name: 'Login' })).toBeInTheDocument();
   });
 
+  it('renders the Login heading as an h1', () => {
+    render(<LoginRoute />);
+    expect(screen.getByRole('heading', { name: 'Login', level: 1 })).toBeInTheDocument();
+  });
+
+  it('has a <main> landmark', () => {
+    render(<LoginRoute />);
+    expect(screen.getByRole('main')).toBeInTheDocument();
+  });
+
   it('renders the email field', () => {
     render(<LoginRoute />);
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
