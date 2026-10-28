@@ -110,6 +110,18 @@ describe('stripe controller', () => {
         expect.objectContaining({ line_items: [{ price: 'price_annual', quantity: 1 }] }),
       );
     });
+
+    it('throws when STRIPE_SECRET_KEY is not configured', async () => {
+      delete process.env.STRIPE_SECRET_KEY;
+      const ctx = createCtx({
+        state: { user: { id: 42, email: 'user@example.com' } },
+        request: { body: {} },
+      });
+
+      await expect(stripeController.createCheckoutSession(ctx)).rejects.toThrow(
+        'STRIPE_SECRET_KEY is not configured',
+      );
+    });
   });
 
   describe('confirmCheckoutSession', () => {
@@ -192,6 +204,25 @@ describe('stripe controller', () => {
 
       const result = await stripeController.confirmCheckoutSession(ctx);
 
+      expect(result).toEqual({ isPro: true });
+    });
+
+    it('falls back to metadata.userId when client_reference_id is absent', async () => {
+      mockStripeInstance.checkout.sessions.retrieve.mockResolvedValue({
+        client_reference_id: null,
+        metadata: { userId: '1' },
+        payment_status: 'paid',
+        customer: 'cus_123',
+        subscription: null,
+      });
+      const ctx = createCtx({
+        state: { user: { id: 1 } },
+        request: { body: { sessionId: 'cs_123' } },
+      });
+
+      const result = await stripeController.confirmCheckoutSession(ctx);
+
+      expect(ctx.forbidden).not.toHaveBeenCalled();
       expect(result).toEqual({ isPro: true });
     });
   });
@@ -283,6 +314,34 @@ describe('stripe controller', () => {
       expect(ctx.body).toEqual({ received: true });
     });
 
+    it('does not touch the database when checkout.session.completed has no userId', async () => {
+      mockStripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: { object: { client_reference_id: null, metadata: {}, customer: 'cus_7' } },
+      });
+      const ctx = webhookCtx();
+
+      await stripeController.webhook(ctx);
+
+      expect(dbQuery.update).not.toHaveBeenCalled();
+      expect(ctx.status).toBe(200);
+    });
+
+    it('activates pro on checkout.session.completed using metadata.userId when client_reference_id is absent', async () => {
+      mockStripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: { object: { client_reference_id: null, metadata: { userId: '7' }, customer: 'cus_7' } },
+      });
+      const ctx = webhookCtx();
+
+      await stripeController.webhook(ctx);
+
+      expect(dbQuery.update).toHaveBeenCalledWith({
+        where: { id: '7' },
+        data: { isPro: true, stripeCustomerId: 'cus_7' },
+      });
+    });
+
     it('deactivates pro on customer.subscription.deleted', async () => {
       mockStripeInstance.webhooks.constructEvent.mockReturnValue({
         type: 'customer.subscription.deleted',
@@ -329,6 +388,19 @@ describe('stripe controller', () => {
         where: { stripeCustomerId: 'cus_7' },
         data: { isPro: true },
       });
+    });
+
+    it('takes no action on customer.subscription.updated with a status that is neither active nor inactive', async () => {
+      mockStripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'customer.subscription.updated',
+        data: { object: { customer: 'cus_7', status: 'incomplete' } },
+      });
+      const ctx = webhookCtx();
+
+      await stripeController.webhook(ctx);
+
+      expect(dbQuery.updateMany).not.toHaveBeenCalled();
+      expect(ctx.status).toBe(200);
     });
 
     it('acknowledges unhandled event types without touching the database', async () => {
