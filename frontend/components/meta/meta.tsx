@@ -3,7 +3,7 @@ import { buildOgImageUrl } from '../../lib/og-image';
 
 export default function Meta({ currentUrl }: { currentUrl: string }) {
   const siteAddress = 'https://londonlist.vercel.app';
-  const defaultImageUrl = buildOgImageUrl({ title: 'London List' }, siteAddress);
+  const defaultImageUrl = buildOgImageUrl({ title: 'London List — Your London Bucket List App' }, siteAddress);
   const description = 'Your to-do list for London — find curated lists of things to do in London';
   return (
     <Head>
@@ -27,6 +27,10 @@ export default function Meta({ currentUrl }: { currentUrl: string }) {
       <meta property="og:site_name" key="og:site_name" content="London List" />
       <meta property="og:url" key="og:url" content={`${siteAddress}${currentUrl}`} />
       <meta property="og:image" key="og:image" content={defaultImageUrl} />
+      <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" key="twitter:title" content="London List" />
+      <meta name="twitter:description" key="twitter:description" content={description} />
+      <meta name="twitter:image" key="twitter:image" content={defaultImageUrl} />
     </Head>
   );
 }
