@@ -87,8 +87,7 @@ export default function Home() {
           name="description"
           content="Build your London bucket list. Add places to visit, track your adventures, and share curated lists with friends. Free to use."
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="canonical" href={`${SITE_URL}/`} />
         <meta property="og:title" content="London List — Your London Bucket List App" />
         <meta
           property="og:description"
