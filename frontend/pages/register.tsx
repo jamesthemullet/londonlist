@@ -186,7 +186,7 @@ export default function RegisterRoute() {
               autoComplete="new-password"
             />
           </div>
-          {error && <p className={styles.error}>Error: {error.message}</p>}
+          {error && <p className={styles.error} role="alert">Error: {error.message}</p>}
           <Button type="submit" disabled={!isFormValid}>
             Sign Up
           </Button>
