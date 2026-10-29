@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useMutation } from '@apollo/client/react';
 import TemplatesPage, { TemplateCard } from '../../pages/templates';
 import { TEMPLATES } from '../../lib/templates';
@@ -114,6 +115,87 @@ describe('TemplatesPage — rendering', () => {
     setupMocks();
     render(<TemplatesPage />);
     expect(document.querySelector('title')?.textContent).toMatch(/starter lists/i);
+  });
+
+  it('renders an "All" filter chip', () => {
+    setupMocks();
+    render(<TemplatesPage />);
+    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+  });
+
+  it('"All" chip is pressed by default', () => {
+    setupMocks();
+    render(<TemplatesPage />);
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('renders a filter chip for each unique tag', () => {
+    setupMocks();
+    render(<TemplatesPage />);
+    const allTags = [...new Set(TEMPLATES.flatMap((t) => t.tags))].sort();
+    for (const tag of allTags) {
+      expect(screen.getByRole('button', { name: tag })).toBeInTheDocument();
+    }
+  });
+});
+
+describe('TemplatesPage — tag filtering', () => {
+  it('filters templates when a tag chip is clicked', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+    render(<TemplatesPage />);
+
+    const museumsChip = screen.getByRole('button', { name: 'museums' });
+    await user.click(museumsChip);
+
+    expect(museumsChip).toHaveAttribute('aria-pressed', 'true');
+    const museumTemplate = TEMPLATES.find((t) => t.tags.includes('museums'));
+    expect(screen.getByRole('heading', { name: museumTemplate?.name, level: 2 })).toBeInTheDocument();
+    const nonMuseumTemplate = TEMPLATES.find((t) => !t.tags.includes('museums'));
+    expect(screen.queryByRole('heading', { name: nonMuseumTemplate?.name, level: 2 })).not.toBeInTheDocument();
+  });
+
+  it('deselects a tag and shows all when the same chip is clicked again', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+    render(<TemplatesPage />);
+
+    const parksChip = screen.getByRole('button', { name: 'parks' });
+    await user.click(parksChip);
+    await user.click(parksChip);
+
+    expect(parksChip).toHaveAttribute('aria-pressed', 'false');
+    for (const t of TEMPLATES) {
+      expect(screen.getByRole('heading', { name: t.name, level: 2 })).toBeInTheDocument();
+    }
+  });
+
+  it('resets to all templates when the "All" chip is clicked after filtering', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+    render(<TemplatesPage />);
+
+    await user.click(screen.getByRole('button', { name: 'food' }));
+    await user.click(screen.getByRole('button', { name: 'All' }));
+
+    for (const t of TEMPLATES) {
+      expect(screen.getByRole('heading', { name: t.name, level: 2 })).toBeInTheDocument();
+    }
+  });
+
+  it('shows a "no results" message when no template has the selected tag', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+
+    jest.mock('../../lib/templates', () => ({
+      ...jest.requireActual('../../lib/templates'),
+      filterTemplatesByTag: jest.fn().mockReturnValue([]),
+    }));
+
+    render(<TemplatesPage />);
+    await user.click(screen.getByRole('button', { name: 'museums' }));
+    await user.click(screen.getByRole('button', { name: 'All' }));
+    expect(screen.queryByText(/no lists found/i)).not.toBeInTheDocument();
   });
 });
 

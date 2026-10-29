@@ -54,6 +54,27 @@ describe('Meta component', () => {
     expect(content).toMatch(/^https?:\/\//);
   });
 
+  it('uses the /api/og endpoint for the OG image, not a static asset', () => {
+    render(<Meta currentUrl="/" />);
+    const ogImage =
+      q('meta[property="og:image"]') ?? document.head.querySelector('meta[property="og:image"]');
+    const content = ogImage?.getAttribute('content') ?? '';
+    expect(content).toContain('/api/og');
+  });
+
+  it('does not include a link to a non-existent feed.xml', () => {
+    render(<Meta currentUrl="/" />);
+    const feedLink = document.querySelector('link[href="/feed.xml"]');
+    expect(feedLink).toBeNull();
+  });
+
+  it('renders twitter:card meta tag', () => {
+    render(<Meta currentUrl="/" />);
+    const twitterCard =
+      q('meta[name="twitter:card"]') ?? document.head.querySelector('meta[name="twitter:card"]');
+    expect(twitterCard?.getAttribute('content')).toBe('summary_large_image');
+  });
+
   it('renders a description meta tag with correct text', () => {
     render(<Meta currentUrl="/" />);
     const desc =
