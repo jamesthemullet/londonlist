@@ -117,12 +117,12 @@ test.describe('My list item management', () => {
     await expect(page.getByText('Your list is empty.')).toBeVisible();
 
     await page.getByLabel('Search for a place in London').fill('Tate Modern');
-    await expect(page.getByRole('button', { name: '+ Add to list' })).toBeVisible({
+    await expect(page.getByRole('button', { name: 'Add Tate Modern to list' })).toBeVisible({
       timeout: 5000,
     });
 
-    await page.getByRole('button', { name: '+ Add to list' }).click();
-    await expect(page.getByRole('button', { name: 'Added ✓' })).toBeVisible();
+    await page.getByRole('button', { name: 'Add Tate Modern to list' }).click();
+    await expect(page.getByRole('button', { name: 'Added Tate Modern to list' })).toBeVisible();
 
     await expect(page.getByRole('heading', { name: 'To do (1)' })).toBeVisible({ timeout: 5000 });
   });

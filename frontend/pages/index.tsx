@@ -122,20 +122,21 @@ export default function Home() {
             <ul className={styles.listGrid}>
               {publicLists.map((list) => (
                 <li key={list.documentId}>
-                  <Link
-                    href={`/list/${list.username}/${list.documentId}`}
-                    className={styles.listCard}>
-                    <span className={styles.listName}>{list.name}</span>
+                  <div className={styles.listCard}>
+                    <Link
+                      href={`/list/${list.username}/${list.documentId}`}
+                      className={styles.listName}>
+                      {list.name}
+                    </Link>
                     {list.username && (
                       <Link
                         href={`/profile/${list.username}`}
                         className={styles.listAuthor}
-                        onClick={(e) => e.stopPropagation()}
                       >
                         by {list.username}
                       </Link>
                     )}
-                  </Link>
+                  </div>
                 </li>
               ))}
             </ul>

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useMutation } from '@apollo/client/react';
 import { useRouter } from 'next/router';
@@ -90,6 +90,11 @@ describe('RegisterRoute — rendering', () => {
   it('shows a username format hint', () => {
     render(<RegisterRoute />);
     expect(screen.getByText(/3.20 characters/i)).toBeInTheDocument();
+  });
+
+  it('has a <main> landmark', () => {
+    render(<RegisterRoute />);
+    expect(screen.getByRole('main')).toBeInTheDocument();
   });
 });
 
@@ -244,6 +249,42 @@ describe('RegisterRoute — successful registration', () => {
     await waitFor(() => {
       expect(mockCookieSet).toHaveBeenCalledWith('token', 'reg-jwt', expect.any(Object));
     });
+  });
+
+  it('does not call the mutation when the form is submitted while invalid', async () => {
+    const mockRegister = jest.fn();
+    mockUseMutation.mockReturnValue([mockRegister, { loading: false, error: null }]);
+
+    const { container } = render(<RegisterRoute />);
+
+    // leave the form empty/invalid and submit the <form> directly, bypassing
+    // the disabled Sign Up button
+    const form = container.querySelector('form');
+    if (!form) throw new Error('form not found');
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(mockRegister).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not set the user or redirect when the mutation resolves without a user', async () => {
+    const mockRegister = jest.fn().mockResolvedValue({
+      data: { register: { jwt: 'reg-jwt', user: null } },
+    });
+    mockUseMutation.mockReturnValue([mockRegister, { loading: false, error: null }]);
+
+    render(<RegisterRoute />);
+
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
+
+    await waitFor(() => {
+      expect(mockRegister).toHaveBeenCalled();
+    });
+    expect(mockSetUser).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockCookieSet).not.toHaveBeenCalled();
   });
 });
 
