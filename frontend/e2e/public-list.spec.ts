@@ -50,7 +50,7 @@ test.describe('Public list detail page — not found', () => {
     await page.goto('/list/nonexistent-user/fake-list-id');
 
     await expect(page.getByRole('link', { name: /London List/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /Explore/i })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: /Explore/i })).toBeVisible();
   });
 });
 
@@ -85,7 +85,7 @@ test.describe('Profile page — not found', () => {
     await page.goto('/profile/nonexistent-user-xyz');
 
     await expect(page.getByRole('link', { name: /London List/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /Explore/i })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: /Explore/i })).toBeVisible();
   });
 });
 
@@ -98,7 +98,7 @@ test.describe('Public list page — conversion banner', () => {
 
     await page.goto('/list/nonexistent-user/fake-list-id');
 
-    const registerLink = page.getByRole('link', { name: /register|sign up|create/i });
+    const registerLink = page.getByRole('banner').getByRole('link', { name: /register|sign up|create/i });
     if (await registerLink.isVisible()) {
       await expect(registerLink).toBeVisible();
     }
