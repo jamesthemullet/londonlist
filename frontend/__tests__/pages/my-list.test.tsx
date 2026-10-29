@@ -78,6 +78,13 @@ jest.mock('../../components/welcome-checklist/welcome-checklist', () => ({
   ),
 }));
 
+jest.mock('../../components/share-buttons/share-buttons', () => ({
+  __esModule: true,
+  default: ({ url, title }: { url: string; title: string; showCopyLink?: boolean }) => (
+    <div data-testid="share-buttons" data-url={url} data-title={title} />
+  ),
+}));
+
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 const mockUseAppContext = useAppContext as jest.Mock;
@@ -614,6 +621,45 @@ describe('MyListPage — share section', () => {
     render(<MyListPage />);
 
     expect(screen.getByRole('heading', { name: 'Share' })).toBeInTheDocument();
+  });
+
+  it('shows social share buttons when the list is public', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.getByTestId('share-buttons')).toBeInTheDocument();
+  });
+
+  it('does not show social share buttons when the list is private', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PRIVATE_LIST } });
+
+    render(<MyListPage />);
+
+    expect(screen.queryByTestId('share-buttons')).not.toBeInTheDocument();
+  });
+
+  it('passes the correct URL to ShareButtons', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    const shareButtons = screen.getByTestId('share-buttons');
+    expect(shareButtons.getAttribute('data-url')).toContain('/list/alice/list-pub');
+  });
+
+  it('passes the correct title to ShareButtons', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    const shareButtons = screen.getByTestId('share-buttons');
+    expect(shareButtons.getAttribute('data-title')).toContain('My Public List');
+    expect(shareButtons.getAttribute('data-title')).toContain('alice');
   });
 });
 
