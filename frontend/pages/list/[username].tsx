@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../context/AppContext';
+import { buildOgImageUrl } from '../../lib/og-image';
 import styles from './[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -27,6 +28,27 @@ type Props = {
   listData: PublicListData | null;
   username: string;
 };
+
+export function buildListJsonLd(
+  username: string,
+  items: ListItem[],
+  ogUrl: string,
+  siteUrl: string,
+): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${username}'s London List`,
+    url: ogUrl,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      url: `${siteUrl}/place/${item.osm_id}`,
+    })),
+  };
+}
 
 export function buildProfileOgDescription(listData: PublicListData): string {
   const { data: items, username } = listData;
@@ -69,6 +91,11 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
   const ogTitle = `${username}'s London List`;
   const ogDescription = listData ? buildProfileOgDescription(listData) : `${username}'s London list`;
   const ogUrl = `${SITE_URL}/list/${username}`;
+  const ogImage = buildOgImageUrl(
+    { title: ogTitle, username, itemCount: items.length, doneCount: done.length },
+    SITE_URL,
+  );
+  const jsonLd = buildListJsonLd(username, items, ogUrl, SITE_URL);
 
   return (
     <>
@@ -76,14 +103,19 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
         <title>{username}&apos;s London List</title>
         <meta name="description" content={ogDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="canonical" href={ogUrl} />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="London List" />
         <meta property="og:title" content={ogTitle} />
         <meta property="og:description" content={ogDescription} />
         <meta property="og:url" content={ogUrl} />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" content={ogImage} />
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data, not user content */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{username}&apos;s List</h1>
@@ -97,7 +129,7 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
                 <ul className={styles.list}>
                   {todo.map((item) => (
                     <li key={item.documentId} className={styles.item}>
-                      <span className={styles.name}>{item.name}</span>
+                      <Link href={`/place/${item.osm_id}`} className={styles.name}>{item.name}</Link>
                       {item.category && <span className={styles.category}>{item.category}</span>}
                     </li>
                   ))}
@@ -110,7 +142,7 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
                 <ul className={styles.list}>
                   {done.map((item) => (
                     <li key={item.documentId} className={styles.item}>
-                      <span className={styles.nameDone}>{item.name}</span>
+                      <Link href={`/place/${item.osm_id}`} className={styles.nameDone}>{item.name}</Link>
                       {item.category && <span className={styles.category}>{item.category}</span>}
                     </li>
                   ))}

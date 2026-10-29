@@ -12,6 +12,21 @@ export type Template = {
   items: TemplateItem[];
 };
 
+export function getAllTemplateTags(templates: Template[]): string[] {
+  const seen = new Set<string>();
+  for (const t of templates) {
+    for (const tag of t.tags) {
+      seen.add(tag);
+    }
+  }
+  return [...seen].sort();
+}
+
+export function filterTemplatesByTag(templates: Template[], tag: string | null): Template[] {
+  if (!tag) return templates;
+  return templates.filter((t) => t.tags.includes(tag));
+}
+
 export const TEMPLATES: Template[] = [
   {
     id: 'london-weekend-icons',
