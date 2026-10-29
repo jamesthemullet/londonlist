@@ -34,6 +34,13 @@ jest.mock('../booking-links/booking-links', () => ({
   ),
 }));
 
+jest.mock('../open-in-maps-button/open-in-maps-button', () => ({
+  __esModule: true,
+  default: ({ places }: { places: { lat: number; lng: number }[] }) => (
+    <div data-testid="open-in-maps-mock" data-place-count={places.length} />
+  ),
+}));
+
 const mockUseQuery = useQuery as unknown as jest.Mock;
 const mockUseMutation = useMutation as unknown as jest.Mock;
 

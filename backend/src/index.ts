@@ -1,11 +1,11 @@
 import { FREE_LIST_LIMIT, FREE_ITEM_LIMIT } from './lib/plan-limits';
 import { findUserByUsername } from './lib/find-user-by-username';
 
-function isOwnedBy(doc: unknown, userId: number): boolean {
+export function isOwnedBy(doc: unknown, userId: number): boolean {
   return ((doc as { user?: { id: number } | null } | null)?.user?.id) === userId;
 }
 
-function requireUser(context: { state?: { user?: unknown } }) {
+export function requireUser(context: { state?: { user?: unknown } }) {
   const user = context.state?.user as { id: number } | undefined;
   if (!user) throw new Error('Forbidden access');
   return user;

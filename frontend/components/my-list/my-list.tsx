@@ -7,6 +7,7 @@ import MilestoneCelebration from '../milestone-celebration/milestone-celebration
 import ProgressBar from '../progress-bar/progress-bar';
 import StreakBadge from '../streak-badge/streak-badge';
 import BookingLinks from '../booking-links/booking-links';
+import OpenInMapsButton from '../open-in-maps-button/open-in-maps-button';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import { useStreak } from '../../hooks/use-streak';
 import styles from './my-list.module.css';
@@ -231,6 +232,14 @@ export default function MyList({ listId, listName, shareUrl }: Props) {
       {showMap && mapItems.length === 0 && (
         <p className={styles.mapNoCoords}>No places with location data yet — add more from the search above.</p>
       )}
+      {(() => {
+        const todoWithCoords = todo.filter(
+          (i): i is typeof i & { lat: number; lng: number } => i.lat != null && i.lng != null,
+        );
+        return todoWithCoords.length > 0 ? (
+          <OpenInMapsButton places={todoWithCoords} className={styles.openInMaps} />
+        ) : null;
+      })()}
       {todo.length > 0 && (
         <section>
           <h2 className={styles.sectionHeading}>To do ({todo.length})</h2>
