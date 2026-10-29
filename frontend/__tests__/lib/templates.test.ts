@@ -1,4 +1,4 @@
-import { TEMPLATES } from '../../lib/templates';
+import { TEMPLATES, getAllTemplateTags, filterTemplatesByTag } from '../../lib/templates';
 import type { Template } from '../../lib/templates';
 
 describe('TEMPLATES data', () => {
@@ -95,5 +95,66 @@ describe('Template type structure', () => {
       expect(typed.tags).toBeDefined();
       expect(typed.items).toBeDefined();
     }
+  });
+});
+
+describe('getAllTemplateTags', () => {
+  const SAMPLE: Template[] = [
+    { id: 'a', name: 'A', description: 'd', tags: ['museums', 'culture'], items: [] },
+    { id: 'b', name: 'B', description: 'd', tags: ['food', 'culture'], items: [] },
+    { id: 'c', name: 'C', description: 'd', tags: ['parks'], items: [] },
+  ];
+
+  it('returns a sorted array of unique tags', () => {
+    expect(getAllTemplateTags(SAMPLE)).toEqual(['culture', 'food', 'museums', 'parks']);
+  });
+
+  it('returns an empty array for an empty input', () => {
+    expect(getAllTemplateTags([])).toEqual([]);
+  });
+
+  it('returns all tags from TEMPLATES without duplicates', () => {
+    const tags = getAllTemplateTags(TEMPLATES);
+    const unique = new Set(tags);
+    expect(unique.size).toBe(tags.length);
+  });
+
+  it('is sorted alphabetically', () => {
+    const tags = getAllTemplateTags(TEMPLATES);
+    expect(tags).toEqual([...tags].sort());
+  });
+});
+
+describe('filterTemplatesByTag', () => {
+  const SAMPLE: Template[] = [
+    { id: 'a', name: 'A', description: 'd', tags: ['museums', 'culture'], items: [] },
+    { id: 'b', name: 'B', description: 'd', tags: ['food', 'culture'], items: [] },
+    { id: 'c', name: 'C', description: 'd', tags: ['parks'], items: [] },
+  ];
+
+  it('returns all templates when tag is null', () => {
+    expect(filterTemplatesByTag(SAMPLE, null)).toHaveLength(3);
+  });
+
+  it('returns only templates with the given tag', () => {
+    const result = filterTemplatesByTag(SAMPLE, 'culture');
+    expect(result).toHaveLength(2);
+    expect(result.map((t) => t.id)).toEqual(['a', 'b']);
+  });
+
+  it('returns a single template when the tag is unique', () => {
+    const result = filterTemplatesByTag(SAMPLE, 'parks');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('c');
+  });
+
+  it('returns an empty array when no template has the given tag', () => {
+    expect(filterTemplatesByTag(SAMPLE, 'nightlife')).toHaveLength(0);
+  });
+
+  it('does not mutate the original array', () => {
+    const original = [...SAMPLE];
+    filterTemplatesByTag(SAMPLE, 'culture');
+    expect(SAMPLE).toEqual(original);
   });
 });

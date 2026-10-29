@@ -11,7 +11,7 @@ against four jobs:
 - **Fun** — no metric, just delight
 
 Every feature is broken into a **PR sequence** — each step small enough for a human to review in
-about 15 minutes. Genuinely atomic changes are left as one PR.
+about 15 minutes. Genuinely atomic changes are left as one PR. Tick a step off once its PR merges.
 
 ## Now (ship in weeks — reuses existing infra)
 
@@ -19,31 +19,31 @@ about 15 minutes. Genuinely atomic changes are left as one PR.
 Each place currently only exists inside search results and the saved list — give each one its
 own crawlable, shareable URL.
 
-1. GraphQL query for a single place by slug/ID — pure function + tests, reusing the existing
-   Apollo Client setup against the Strapi API.
-2. A place detail page (`pages/place/[slug].tsx`) rendering it.
+- [x] GraphQL query for a single place by slug/ID — pure function + tests, reusing the existing
+  Apollo Client setup against the Strapi API.
+- [x] A place detail page (`pages/place/[slug].tsx`) rendering it.
 
 ### 2. Related/nearby places — *Engagement, Retention*
 Once individual place pages exist (feature 1), surface a few nearby or same-category places at
 the bottom.
 
-1. GraphQL query: places sharing category/area with a given place — pure function + tests.
-2. Component rendering the related-places list on the place detail page.
+- [x] GraphQL query: places sharing category/area with a given place — pure function + tests.
+- [x] Component rendering the related-places list on the place detail page.
 
 ### 3. Browse by area — *Acquisition, Engagement*
 A dedicated way to browse places by London area/borough, rather than only via search.
 
-1. GraphQL query: places filtered by area — pure function + tests.
-2. An area listing page + area filter UI, reusing the search results component's rendering.
+- [x] GraphQL query: places filtered by area — pure function + tests.
+- [x] An area listing page + area filter UI, reusing the search results component's rendering.
 
 ## Next (this quarter — moderate new build)
 
 ### 4. List sharing — *Acquisition, Fun*
 Let a user share their personal to-do list (or a subset of it) via a public link.
 
-1. A shareable-slug field/endpoint for a user's list — pure function + tests.
-2. A read-only shared-list page rendering it.
-3. A "share my list" UI action generating and copying the link.
+- [x] A shareable-slug field/endpoint for a user's list — pure function + tests.
+- [x] A read-only shared-list page rendering it.
+- [x] A "share my list" UI action generating and copying the link.
 
 ---
 *London List — product roadmap, 2 September 2026*
