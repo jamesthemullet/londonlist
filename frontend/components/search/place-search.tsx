@@ -252,6 +252,7 @@ export default function PlaceSearch({ label, listId, itemCount, isPro, freeItemL
                 <button
                   type="button"
                   className={styles.addButton}
+                  aria-label={added.has(key) ? `Added ${featureName(r.properties)} to list` : `Add ${featureName(r.properties)} to list`}
                   disabled={added.has(key)}
                   onClick={() => handleAdd(r)}
                 >

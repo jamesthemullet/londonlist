@@ -51,6 +51,13 @@ jest.mock('next/dynamic', () => () => {
   return MockListMap;
 });
 
+jest.mock('../../../../components/open-in-maps-button/open-in-maps-button', () => ({
+  __esModule: true,
+  default: ({ places }: { places: { lat: number; lng: number }[] }) => (
+    <div data-testid="open-in-maps-mock" data-place-count={places.length} />
+  ),
+}));
+
 import { useAppContext } from '../../../../context/AppContext';
 const mockUseAppContext = useAppContext as jest.Mock;
 

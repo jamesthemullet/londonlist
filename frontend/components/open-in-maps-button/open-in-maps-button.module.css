@@ -1,0 +1,33 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  background: #1a73e8;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+  width: fit-content;
+}
+
+.button:hover,
+.button:focus-visible {
+  background: #1557b0;
+}
+
+.limitNote {
+  font-weight: 400;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+

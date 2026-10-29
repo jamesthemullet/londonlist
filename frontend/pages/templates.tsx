@@ -6,7 +6,7 @@ import { useState } from 'react';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
-import { TEMPLATES } from '../lib/templates';
+import { TEMPLATES, getAllTemplateTags, filterTemplatesByTag } from '../lib/templates';
 import type { Template, TemplateItem } from '../lib/templates';
 import { getGraphQLErrorCode } from '../lib/graphql-error';
 import styles from './templates.module.css';
@@ -172,10 +172,19 @@ export function TemplateCard({ template }: TemplateCardProps) {
 }
 
 export default function TemplatesPage() {
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  const allTags = getAllTemplateTags(TEMPLATES);
+  const visibleTemplates = filterTemplatesByTag(TEMPLATES, activeTag);
+
   const ogTitle = 'London Starter Lists — London List';
   const ogDescription =
     'Ready-made London itineraries curated by locals. Copy one to your account and start exploring.';
   const ogUrl = `${SITE_URL}/templates`;
+
+  function handleTagClick(tag: string) {
+    setActiveTag((prev) => (prev === tag ? null : tag));
+  }
 
   return (
     <>
@@ -201,13 +210,39 @@ export default function TemplatesPage() {
           </p>
         </div>
 
-        <ul className={styles.grid} aria-label="Template lists">
-          {TEMPLATES.map((template) => (
-            <li key={template.id} className={styles.gridItem}>
-              <TemplateCard template={template} />
-            </li>
+        <nav className={styles.filterRow} aria-label="Filter by tag">
+          <button
+            type="button"
+            className={activeTag === null ? `${styles.filterChip} ${styles.filterChipActive}` : styles.filterChip}
+            onClick={() => setActiveTag(null)}
+            aria-pressed={activeTag === null}
+          >
+            All
+          </button>
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              className={activeTag === tag ? `${styles.filterChip} ${styles.filterChipActive}` : styles.filterChip}
+              onClick={() => handleTagClick(tag)}
+              aria-pressed={activeTag === tag}
+            >
+              {tag}
+            </button>
           ))}
-        </ul>
+        </nav>
+
+        {visibleTemplates.length === 0 ? (
+          <p className={styles.noResults}>No lists found for &ldquo;{activeTag}&rdquo;.</p>
+        ) : (
+          <ul className={styles.grid} aria-label="Template lists">
+            {visibleTemplates.map((template) => (
+              <li key={template.id} className={styles.gridItem}>
+                <TemplateCard template={template} />
+              </li>
+            ))}
+          </ul>
+        )}
       </main>
     </>
   );

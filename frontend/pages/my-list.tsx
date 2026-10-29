@@ -376,6 +376,7 @@ export default function MyListPage() {
         <title>My Lists — London List</title>
         <meta name="description" content="Your London to-do lists" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
