@@ -40,6 +40,7 @@ type ResolverMap = {
     listItems: { resolve: Resolve };
   };
   Mutation: {
+    createListItem: { resolve: Resolve };
     updateListItem: { resolve: Resolve };
     deleteListItem: { resolve: Resolve };
   };
@@ -226,5 +227,137 @@ describe('GraphQL resolvers — ownership checks', () => {
       expect(listItemDocuments.delete).toHaveBeenCalledWith({ documentId: 'item-1' });
       expect(result).toEqual({ documentId: 'item-1' });
     });
+  });
+});
+
+describe('createListItem', () => {
+  const context = { state: { user: { id: 1 } } };
+
+  function getCreateListItemResolvers(options: {
+    list?: { user: { id: number } } | null;
+    isPro?: boolean;
+    existingItemCount?: number;
+  }) {
+    const listDocuments = { findOne: jest.fn().mockResolvedValue(options.list ?? null) };
+    const listItemDocuments = {
+      findMany: jest.fn().mockResolvedValue(
+        Array.from({ length: options.existingItemCount ?? 0 }, (_, i) => ({ documentId: `item-${i}` })),
+      ),
+      create: jest.fn().mockResolvedValue({ documentId: 'new-item' }),
+    };
+    const findOne = jest.fn().mockResolvedValue(
+      options.isPro === undefined ? null : { id: 1, isPro: options.isPro },
+    );
+    const resolvers = getResolvers({
+      documents: jest.fn((uid: string) => {
+        if (uid === 'api::list.list') return listDocuments;
+        if (uid === 'api::list-item.list-item') return listItemDocuments;
+        return {};
+      }),
+      db: { query: jest.fn(() => ({ findOne })) },
+    });
+
+    return { resolvers, listDocuments, listItemDocuments };
+  }
+
+  it('throws Forbidden access when the list is not owned by the caller', async () => {
+    const { resolvers, listItemDocuments } = getCreateListItemResolvers({
+      list: { user: { id: 2 } },
+    });
+
+    await expect(
+      resolvers.Mutation.createListItem.resolve(
+        null,
+        { data: { name: 'Item', list: 'list-1' } },
+        context,
+      ),
+    ).rejects.toThrow('Forbidden access');
+    expect(listItemDocuments.create).not.toHaveBeenCalled();
+  });
+
+  it('throws Forbidden access when the list does not exist', async () => {
+    const { resolvers, listItemDocuments } = getCreateListItemResolvers({ list: null });
+
+    await expect(
+      resolvers.Mutation.createListItem.resolve(
+        null,
+        { data: { name: 'Item', list: 'list-1' } },
+        context,
+      ),
+    ).rejects.toThrow('Forbidden access');
+    expect(listItemDocuments.create).not.toHaveBeenCalled();
+  });
+
+  it('throws Free plan item limit reached when a non-Pro owner is at the limit', async () => {
+    const { resolvers, listItemDocuments } = getCreateListItemResolvers({
+      list: { user: { id: 1 } },
+      isPro: false,
+      existingItemCount: 20,
+    });
+
+    await expect(
+      resolvers.Mutation.createListItem.resolve(
+        null,
+        { data: { name: 'Item', list: 'list-1' } },
+        context,
+      ),
+    ).rejects.toMatchObject({
+      message: 'Free plan item limit reached',
+      extensions: { code: 'FREE_ITEM_LIMIT_REACHED' },
+    });
+    expect(listItemDocuments.create).not.toHaveBeenCalled();
+  });
+
+  it('creates the item for a non-Pro owner under the free item limit', async () => {
+    const { resolvers, listItemDocuments } = getCreateListItemResolvers({
+      list: { user: { id: 1 } },
+      isPro: false,
+      existingItemCount: 19,
+    });
+
+    const result = await resolvers.Mutation.createListItem.resolve(
+      null,
+      { data: { name: 'Item', list: 'list-1' } },
+      context,
+    );
+
+    expect(listItemDocuments.create).toHaveBeenCalledWith({
+      data: { name: 'Item', user: 1, list: 'list-1' },
+    });
+    expect(result).toEqual({ documentId: 'new-item' });
+  });
+
+  it('creates the item for a Pro owner without checking the free item limit', async () => {
+    const { resolvers, listItemDocuments } = getCreateListItemResolvers({
+      list: { user: { id: 1 } },
+      isPro: true,
+    });
+
+    await resolvers.Mutation.createListItem.resolve(
+      null,
+      { data: { name: 'Item', list: 'list-1' } },
+      context,
+    );
+
+    expect(listItemDocuments.findMany).not.toHaveBeenCalled();
+    expect(listItemDocuments.create).toHaveBeenCalledWith({
+      data: { name: 'Item', user: 1, list: 'list-1' },
+    });
+  });
+
+  it('creates the item with no list and skips ownership/limit checks when no list is supplied', async () => {
+    const { resolvers, listDocuments, listItemDocuments } = getCreateListItemResolvers({});
+
+    const result = await resolvers.Mutation.createListItem.resolve(
+      null,
+      { data: { name: 'Item' } },
+      context,
+    );
+
+    expect(listDocuments.findOne).not.toHaveBeenCalled();
+    expect(listItemDocuments.create).toHaveBeenCalledWith({
+      data: { name: 'Item', user: 1, list: null },
+    });
+    expect(result).toEqual({ documentId: 'new-item' });
   });
 });
