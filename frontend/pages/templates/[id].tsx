@@ -8,6 +8,7 @@ import BookingLinks from '../../components/booking-links/booking-links';
 import UpgradeModal from '../../components/upgrade-modal/upgrade-modal';
 import { TEMPLATES } from '../../lib/templates';
 import type { Template } from '../../lib/templates';
+import { getGraphQLErrorCode } from '../../lib/graphql-error';
 import { safeJsonLd } from '../../lib/json-ld';
 import { useAppContext } from '../../context/AppContext';
 import { useAuthHeader } from '../../hooks/use-auth-header';
@@ -70,14 +71,23 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
   async function handleCopy() {
     setCopyState('copying');
     try {
-      const { data } = await createMyList({
+      const listResult = await createMyList({
         variables: { name: template.name },
         context: { headers: authHeader },
       });
-      const newListId = data?.createMyList?.documentId;
-      if (!newListId) throw new Error('Failed to create list');
+      const errCode = getGraphQLErrorCode(listResult);
+      if (errCode === 'FREE_LIST_LIMIT_REACHED') {
+        setCopyState('idle');
+        onLimitReached();
+        return;
+      }
+      const newListId = listResult.data?.createMyList?.documentId;
+      if (!newListId) {
+        setCopyState('error');
+        return;
+      }
       for (const item of template.items) {
-        await createListItem({
+        const itemResult = await createListItem({
           variables: {
             osm_id: item.osm_id,
             name: item.name,
@@ -86,17 +96,14 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
           },
           context: { headers: authHeader },
         });
+        if (itemResult.error) {
+          setCopyState('error');
+          return;
+        }
       }
       setCopyState('done');
-    } catch (err) {
-      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
-      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
-      if (code === 'FREE_LIST_LIMIT_REACHED') {
-        setCopyState('idle');
-        onLimitReached();
-      } else {
-        setCopyState('error');
-      }
+    } catch {
+      setCopyState('error');
     }
   }
 
