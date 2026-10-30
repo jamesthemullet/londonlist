@@ -61,6 +61,9 @@ export default function ListVisibilityToggle({
           >
             {copied ? "Copied!" : "Copy link"}
           </button>
+          <span role="status" aria-live="polite" className={styles.srOnly}>
+            {copied ? "Link copied to clipboard" : ""}
+          </span>
         </div>
       )}
     </div>
