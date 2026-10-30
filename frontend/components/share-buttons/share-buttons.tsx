@@ -4,9 +4,10 @@ import styles from './share-buttons.module.css';
 type Props = {
   url: string;
   title: string;
+  showCopyLink?: boolean;
 };
 
-export default function ShareButtons({ url, title }: Props) {
+export default function ShareButtons({ url, title, showCopyLink = true }: Props) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -31,13 +32,15 @@ export default function ShareButtons({ url, title }: Props) {
     <div className={styles.container}>
       <span className={styles.label}>Share this list</span>
       <div className={styles.buttons}>
-        <button
-          type="button"
-          className={styles.button}
-          onClick={handleCopy}
-        >
-          {copied ? 'Copied!' : 'Copy link'}
-        </button>
+        {showCopyLink && (
+          <button
+            type="button"
+            className={styles.button}
+            onClick={handleCopy}
+          >
+            {copied ? 'Copied!' : 'Copy link'}
+          </button>
+        )}
         <a
           href={twitterUrl}
           className={styles.buttonLink}

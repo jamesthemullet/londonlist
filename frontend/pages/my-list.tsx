@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import ListVisibilityToggle from '../components/list-visibility-toggle/list-visibility-toggle';
 import MyList from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
+import ShareButtons from '../components/share-buttons/share-buttons';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
 import WelcomeChecklist from '../components/welcome-checklist/welcome-checklist';
 import { useAppContext } from '../context/AppContext';
@@ -642,6 +643,11 @@ export default function MyListPage() {
                       {copied ? 'Copied!' : 'Copy link'}
                     </button>
                   </div>
+                  <ShareButtons
+                    url={`${SITE_URL}/list/${user.username}/${activeList.documentId}`}
+                    title={`${activeList.name} — ${user.username}'s London List`}
+                    showCopyLink={false}
+                  />
                   {user?.isPro ? (
                     <p className={styles.viewCountStat}>
                       <span className={styles.viewCountNumber}>{activeList.viewCount ?? 0}</span>{' '}
@@ -664,7 +670,7 @@ export default function MyListPage() {
             </section>
 
             {isConfirmingDelete ? (
-              <div className={styles.deleteConfirm} role="alertdialog" aria-labelledby="delete-confirm-heading">
+              <div className={styles.deleteConfirm} role="alertdialog" aria-modal="true" aria-labelledby="delete-confirm-heading">
                 <p id="delete-confirm-heading" className={styles.deleteConfirmText}>
                   Delete &quot;{activeList.name}&quot;? This cannot be undone.
                 </p>

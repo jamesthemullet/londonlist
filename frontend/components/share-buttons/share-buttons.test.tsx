@@ -120,4 +120,21 @@ describe('ShareButtons', () => {
     expect(decoded).toContain(TEST_TITLE);
     expect(decoded).toContain(TEST_URL);
   });
+
+  it('shows the Copy link button by default', () => {
+    render(<ShareButtons url={TEST_URL} title={TEST_TITLE} />);
+    expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+  });
+
+  it('hides the Copy link button when showCopyLink is false', () => {
+    render(<ShareButtons url={TEST_URL} title={TEST_TITLE} showCopyLink={false} />);
+    expect(screen.queryByRole('button', { name: 'Copy link' })).not.toBeInTheDocument();
+  });
+
+  it('still renders social links when showCopyLink is false', () => {
+    render(<ShareButtons url={TEST_URL} title={TEST_TITLE} showCopyLink={false} />);
+    expect(screen.getByRole('link', { name: /share on x/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /whatsapp/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /share on facebook/i })).toBeInTheDocument();
+  });
 });
