@@ -38,6 +38,10 @@ type Resolve = (parent: unknown, args: unknown, context: unknown) => Promise<unk
 type ResolverMap = {
   Query: {
     listItems: { resolve: Resolve };
+    place: { resolve: Resolve };
+    placesByArea: { resolve: Resolve };
+    relatedPlaces: { resolve: Resolve };
+    allPlaces: { resolve: Resolve };
   };
   Mutation: {
     createListItem: { resolve: Resolve };
@@ -572,5 +576,121 @@ describe('createListItem', () => {
       data: { name: 'Item', user: 1, list: null },
     });
     expect(result).toEqual({ documentId: 'new-item' });
+  });
+});
+
+describe('public place queries', () => {
+  const anonymousContext = {};
+
+  function strapiWithListItems(items: unknown[]) {
+    const findMany = jest.fn().mockResolvedValue(items);
+    const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+    return { resolvers, findMany };
+  }
+
+  describe('place', () => {
+    it('returns null when no item matches the osm_id', async () => {
+      const { resolvers } = strapiWithListItems([]);
+
+      const result = await resolvers.Query.place.resolve(null, { osm_id: 'missing' }, anonymousContext);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns the place for an anonymous caller with no user in context', async () => {
+      const item = {
+        osm_id: 'x1',
+        name: 'Tower Bridge',
+        category: 'landmark',
+        area: 'Southwark',
+        lat: 51.5,
+        lng: -0.08,
+      };
+      const { resolvers } = strapiWithListItems([item]);
+
+      const result = await resolvers.Query.place.resolve(null, { osm_id: 'x1' }, anonymousContext);
+
+      expect(result).toEqual(item);
+    });
+  });
+
+  describe('placesByArea', () => {
+    it('dedupes items that share the same osm_id', async () => {
+      const items = [
+        { osm_id: 'a', name: 'A', category: null, area: 'Soho', lat: null, lng: null },
+        { osm_id: 'a', name: 'A dup', category: null, area: 'Soho', lat: null, lng: null },
+        { osm_id: 'b', name: 'B', category: null, area: 'Soho', lat: null, lng: null },
+      ];
+      const { resolvers } = strapiWithListItems(items);
+
+      const result = await resolvers.Query.placesByArea.resolve(null, { area: 'Soho' }, anonymousContext);
+
+      expect(result).toEqual([
+        { osm_id: 'a', name: 'A', category: null, area: 'Soho', lat: null, lng: null },
+        { osm_id: 'b', name: 'B', category: null, area: 'Soho', lat: null, lng: null },
+      ]);
+    });
+  });
+
+  describe('relatedPlaces', () => {
+    it('returns an empty array when the target place has no category', async () => {
+      const { resolvers } = strapiWithListItems([{ osm_id: 'x', category: null }]);
+
+      const result = await resolvers.Query.relatedPlaces.resolve(null, { osm_id: 'x' }, anonymousContext);
+
+      expect(result).toEqual([]);
+    });
+
+    it('caps results at 12 even when a higher limit is requested', async () => {
+      const target = { osm_id: 'x', category: 'museum' };
+      const candidates = Array.from({ length: 20 }, (_, i) => ({
+        osm_id: `c${i}`,
+        name: `C${i}`,
+        category: 'museum',
+        lat: null,
+        lng: null,
+      }));
+      let call = 0;
+      const findMany = jest.fn(() => {
+        call += 1;
+        return Promise.resolve(call === 1 ? [target] : candidates);
+      });
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      const result = await resolvers.Query.relatedPlaces.resolve(
+        null,
+        { osm_id: 'x', limit: 50 },
+        anonymousContext,
+      );
+
+      expect(result).toHaveLength(12);
+    });
+  });
+
+  describe('allPlaces', () => {
+    it('dedupes items that share the same osm_id and caps at the requested limit', async () => {
+      const items = [
+        { osm_id: 'a', name: 'A', category: null, area: null, lat: null, lng: null },
+        { osm_id: 'a', name: 'A dup', category: null, area: null, lat: null, lng: null },
+        { osm_id: 'b', name: 'B', category: null, area: null, lat: null, lng: null },
+        { osm_id: 'c', name: 'C', category: null, area: null, lat: null, lng: null },
+      ];
+      const { resolvers } = strapiWithListItems(items);
+
+      const result = await resolvers.Query.allPlaces.resolve(null, { limit: 2 }, anonymousContext);
+
+      expect(result).toEqual([
+        { osm_id: 'a', name: 'A', category: null, area: null, lat: null, lng: null },
+        { osm_id: 'b', name: 'B', category: null, area: null, lat: null, lng: null },
+      ]);
+    });
+
+    it('never requests more than the hard cap of 10000, regardless of the requested limit', async () => {
+      const { resolvers, findMany } = strapiWithListItems([]);
+
+      await resolvers.Query.allPlaces.resolve(null, { limit: 50000 }, anonymousContext);
+
+      expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ limit: 30000 }));
+    });
   });
 });
