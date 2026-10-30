@@ -46,6 +46,7 @@ type ResolverMap = {
     createMyList: { resolve: Resolve };
     updateMyList: { resolve: Resolve };
     deleteMyList: { resolve: Resolve };
+    copyPublicList: { resolve: Resolve };
   };
 };
 
@@ -439,6 +440,108 @@ describe('GraphQL resolvers — ownership checks', () => {
       });
       expect(listDocuments.delete).toHaveBeenCalledWith({ documentId: 'list-1' });
       expect(result).toBe(true);
+    });
+  });
+
+  describe('copyPublicList', () => {
+    function strapiFor(options: {
+      sourceUser?: { id: number; username: string };
+      sourceList?: unknown;
+      isPro?: boolean;
+      existingLists?: unknown[];
+    }) {
+      const listDocuments = {
+        findOne: jest.fn().mockResolvedValue(options.sourceList ?? null),
+        findMany: jest.fn().mockResolvedValue(options.existingLists ?? []),
+        create: jest.fn().mockResolvedValue({ documentId: 'new-list' }),
+      };
+      const listItemDocuments = {
+        findMany: jest.fn().mockResolvedValue([]),
+        create: jest.fn().mockResolvedValue({ documentId: 'new-item' }),
+      };
+      const userQuery = {
+        findMany: jest.fn().mockResolvedValue(options.sourceUser ? [options.sourceUser] : []),
+        findOne: jest.fn().mockResolvedValue({ id: 1, isPro: options.isPro ?? false }),
+      };
+      return {
+        documents: jest.fn((uid: string) => {
+          if (uid === 'api::list.list') return listDocuments;
+          if (uid === 'api::list-item.list-item') return listItemDocuments;
+          return {};
+        }),
+        db: { query: jest.fn(() => userQuery) },
+        listDocuments,
+      };
+    }
+
+    it('throws Source user not found when the source username does not resolve', async () => {
+      const strapi = strapiFor({ sourceUser: undefined });
+      const resolvers = getResolvers(strapi);
+
+      await expect(
+        resolvers.Mutation.copyPublicList.resolve(
+          null,
+          { sourceDocumentId: 'list-1', sourceUsername: 'nobody' },
+          context,
+        ),
+      ).rejects.toThrow('Source user not found');
+      expect(strapi.listDocuments.create).not.toHaveBeenCalled();
+    });
+
+    it('throws List not found when the source list does not exist or is not owned by the source user', async () => {
+      const strapi = strapiFor({
+        sourceUser: { id: 2, username: 'bob' },
+        sourceList: null,
+      });
+      const resolvers = getResolvers(strapi);
+
+      await expect(
+        resolvers.Mutation.copyPublicList.resolve(
+          null,
+          { sourceDocumentId: 'list-1', sourceUsername: 'bob' },
+          context,
+        ),
+      ).rejects.toThrow('List not found');
+      expect(strapi.listDocuments.create).not.toHaveBeenCalled();
+    });
+
+    it('throws List is private when the source list is not public', async () => {
+      const strapi = strapiFor({
+        sourceUser: { id: 2, username: 'bob' },
+        sourceList: { user: { id: 2 }, isPublic: false, name: 'Private List' },
+      });
+      const resolvers = getResolvers(strapi);
+
+      await expect(
+        resolvers.Mutation.copyPublicList.resolve(
+          null,
+          { sourceDocumentId: 'list-1', sourceUsername: 'bob' },
+          context,
+        ),
+      ).rejects.toThrow('List is private');
+      expect(strapi.listDocuments.create).not.toHaveBeenCalled();
+    });
+
+    it('throws the free-plan list limit error when a non-pro caller is at the limit', async () => {
+      const strapi = strapiFor({
+        sourceUser: { id: 2, username: 'bob' },
+        sourceList: { user: { id: 2 }, isPublic: true, name: 'Public List' },
+        isPro: false,
+        existingLists: [{ documentId: 'l1' }, { documentId: 'l2' }, { documentId: 'l3' }],
+      });
+      const resolvers = getResolvers(strapi);
+
+      await expect(
+        resolvers.Mutation.copyPublicList.resolve(
+          null,
+          { sourceDocumentId: 'list-1', sourceUsername: 'bob' },
+          context,
+        ),
+      ).rejects.toMatchObject({
+        message: 'Free plan list limit reached',
+        extensions: { code: 'FREE_LIST_LIMIT_REACHED' },
+      });
+      expect(strapi.listDocuments.create).not.toHaveBeenCalled();
     });
   });
 });
