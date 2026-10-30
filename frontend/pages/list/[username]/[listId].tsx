@@ -12,6 +12,7 @@ import OpenInMapsButton from '../../../components/open-in-maps-button/open-in-ma
 import { buildOgImageUrl } from '../../../lib/og-image';
 import { buildPlaceUrl } from '../../../lib/place';
 import { safeJsonLd } from '../../../lib/json-ld';
+import { getGraphQLErrorCode } from '../../../lib/graphql-error';
 import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
@@ -144,14 +145,22 @@ export function CopyListButton({ items, listName }: CopyListButtonProps) {
   async function handleCopy() {
     setCopyState('copying');
     try {
-      const { data } = await createMyList({
+      const listResult = await createMyList({
         variables: { name: listName },
         context: { headers: authHeader },
       });
-      const newListId = data?.createMyList?.documentId;
-      if (!newListId) throw new Error('Failed to create list');
+      const errCode = getGraphQLErrorCode(listResult);
+      if (errCode === 'FREE_LIST_LIMIT_REACHED') {
+        setCopyState('limit_reached');
+        return;
+      }
+      const newListId = listResult.data?.createMyList?.documentId;
+      if (!newListId) {
+        setCopyState('error');
+        return;
+      }
       for (const item of items) {
-        await createListItem({
+        const itemResult = await createListItem({
           variables: {
             osm_id: item.osm_id,
             name: item.name,
@@ -160,16 +169,14 @@ export function CopyListButton({ items, listName }: CopyListButtonProps) {
           },
           context: { headers: authHeader },
         });
+        if (itemResult.error) {
+          setCopyState('error');
+          return;
+        }
       }
       setCopyState('done');
-    } catch (err) {
-      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
-      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
-      if (code === 'FREE_LIST_LIMIT_REACHED') {
-        setCopyState('limit_reached');
-      } else {
-        setCopyState('error');
-      }
+    } catch {
+      setCopyState('error');
     }
   }
 

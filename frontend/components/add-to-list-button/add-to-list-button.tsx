@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useAuthHeader } from '../../hooks/use-auth-header';
+import { getGraphQLErrorCode } from '../../lib/graphql-error';
 import styles from './add-to-list-button.module.css';
 
 type Props = {
@@ -107,21 +108,16 @@ export default function AddToListButton({ osm_id, name, category, lat, lng }: Pr
         context: { headers: authHeader },
         refetchQueries: ['GetMyList'],
       });
-      if (!result.data?.createListItem) {
+      const errCode = getGraphQLErrorCode(result);
+      if (errCode === 'FREE_ITEM_LIMIT_REACHED') {
+        setError("You've reached the free item limit. Upgrade to Pro for unlimited items.");
+      } else if (errCode || !result.data?.createListItem) {
         setError('Could not add to list. Please try again.');
-        return;
-      }
-      setAdded(true);
-    } catch (err) {
-      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
-      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
-      if (code === 'FREE_ITEM_LIMIT_REACHED') {
-        setError(
-          "You've reached the free item limit. Upgrade to Pro for unlimited items.",
-        );
       } else {
-        setError('Could not add to list. Please try again.');
+        setAdded(true);
       }
+    } catch {
+      setError('Could not add to list. Please try again.');
     } finally {
       setAdding(false);
     }

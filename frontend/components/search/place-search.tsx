@@ -5,6 +5,7 @@ import Cookie from 'js-cookie';
 import { useEffect, useState } from 'react';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import useDebounce from '../../hooks/use-debounce';
+import { getGraphQLErrorCode } from '../../lib/graphql-error';
 import styles from './place-search.module.css';
 
 type PhotonFeature = {
@@ -165,19 +166,16 @@ export default function PlaceSearch({ label, listId, itemCount, isPro, freeItemL
         },
         refetchQueries: ['GetMyList'],
       });
-      if (!result.data?.createListItem) {
-        setAddError('Could not add to list. Please try again.');
-        return;
-      }
-      setAdded((prev) => new Set(prev).add(key));
-    } catch (err) {
-      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
-      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
-      if (code === 'FREE_ITEM_LIMIT_REACHED') {
+      const errCode = getGraphQLErrorCode(result);
+      if (errCode === 'FREE_ITEM_LIMIT_REACHED') {
         if (onLimitReached) onLimitReached();
-      } else {
+      } else if (errCode || !result.data?.createListItem) {
         setAddError('Could not add to list. Please try again.');
+      } else {
+        setAdded((prev) => new Set(prev).add(key));
       }
+    } catch {
+      setAddError('Could not add to list. Please try again.');
     }
   }
 

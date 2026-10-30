@@ -1,3 +1,4 @@
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { useRouter } from 'next/router';
@@ -760,10 +761,12 @@ describe('MyListPage — upgrade gate when free user is at list limit', () => {
 
 describe('MyListPage — create list error handling', () => {
   it('opens the upgrade modal when backend returns FREE_LIST_LIMIT_REACHED', async () => {
-    const limitError = {
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
-    };
-    const mockCreate = jest.fn().mockRejectedValue(limitError);
+    const mockCreate = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+      }),
+    });
     mockUseMutation.mockImplementation((query: unknown) => {
       const str = Array.isArray(query) ? String(query[0]) : '';
       if (str.includes('CreateMyList')) return [mockCreate, {}];
@@ -786,8 +789,12 @@ describe('MyListPage — create list error handling', () => {
   });
 
   it('shows an error message when list creation fails for other reasons', async () => {
-    const genericError = { graphQLErrors: [{ extensions: { code: 'INTERNAL_SERVER_ERROR' } }] };
-    const mockCreate = jest.fn().mockRejectedValue(genericError);
+    const mockCreate = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'INTERNAL_SERVER_ERROR' } }],
+      }),
+    });
     mockUseMutation.mockImplementation((query: unknown) => {
       const str = Array.isArray(query) ? String(query[0]) : '';
       if (str.includes('CreateMyList')) return [mockCreate, {}];

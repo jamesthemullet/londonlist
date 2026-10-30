@@ -1,3 +1,4 @@
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import AddToListButton from './add-to-list-button';
@@ -140,8 +141,11 @@ describe('AddToListButton — authenticated', () => {
   });
 
   it('shows an item limit error when FREE_ITEM_LIMIT_REACHED is returned', async () => {
-    const createListItemFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
+    const createListItemFn = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
+      }),
     });
     mockUseMutation.mockReturnValue([createListItemFn, {}]);
     render(<AddToListButton {...DEFAULT_PROPS} />);
