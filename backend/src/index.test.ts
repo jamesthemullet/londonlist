@@ -1,4 +1,5 @@
 import indexPlugin, { isOwnedBy, requireUser } from './index';
+import { FREE_ITEM_LIMIT } from './lib/plan-limits';
 
 describe('isOwnedBy', () => {
   it('returns true when the document user id matches', () => {
@@ -42,6 +43,7 @@ type ResolverMap = {
   Mutation: {
     updateListItem: { resolve: Resolve };
     deleteListItem: { resolve: Resolve };
+    createListItem: { resolve: Resolve };
   };
 };
 
@@ -224,6 +226,150 @@ describe('GraphQL resolvers — ownership checks', () => {
       );
 
       expect(listItemDocuments.delete).toHaveBeenCalledWith({ documentId: 'item-1' });
+      expect(result).toEqual({ documentId: 'item-1' });
+    });
+  });
+
+  describe('createListItem', () => {
+    it('throws Forbidden access when the target list is not owned by the caller', async () => {
+      const listDocuments = { findOne: jest.fn().mockResolvedValue({ user: { id: 2 } }) };
+      const listItemDocuments = { create: jest.fn() };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) => {
+          if (uid === 'api::list.list') return listDocuments;
+          if (uid === 'api::list-item.list-item') return listItemDocuments;
+          return {};
+        }),
+      });
+
+      await expect(
+        resolvers.Mutation.createListItem.resolve(
+          null,
+          { data: { list: 'list-1', name: 'Item' } },
+          context,
+        ),
+      ).rejects.toThrow('Forbidden access');
+      expect(listItemDocuments.create).not.toHaveBeenCalled();
+    });
+
+    it('throws Forbidden access when the target list does not exist', async () => {
+      const listDocuments = { findOne: jest.fn().mockResolvedValue(null) };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) => (uid === 'api::list.list' ? listDocuments : {})),
+      });
+
+      await expect(
+        resolvers.Mutation.createListItem.resolve(
+          null,
+          { data: { list: 'list-1', name: 'Item' } },
+          context,
+        ),
+      ).rejects.toThrow('Forbidden access');
+    });
+
+    it('throws Free plan item limit reached when a free user already has FREE_ITEM_LIMIT items in the list', async () => {
+      const listDocuments = { findOne: jest.fn().mockResolvedValue({ user: { id: 1 } }) };
+      const listItemDocuments = {
+        findMany: jest
+          .fn()
+          .mockResolvedValue(
+            Array.from({ length: FREE_ITEM_LIMIT }, (_, i) => ({ documentId: `item-${i}` })),
+          ),
+        create: jest.fn(),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) => {
+          if (uid === 'api::list.list') return listDocuments;
+          if (uid === 'api::list-item.list-item') return listItemDocuments;
+          return {};
+        }),
+        db: { query: jest.fn(() => ({ findOne: jest.fn().mockResolvedValue({ isPro: false }) })) },
+      });
+
+      await expect(
+        resolvers.Mutation.createListItem.resolve(
+          null,
+          { data: { list: 'list-1', name: 'Item' } },
+          context,
+        ),
+      ).rejects.toThrow('Free plan item limit reached');
+      expect(listItemDocuments.create).not.toHaveBeenCalled();
+    });
+
+    it('creates the item when a free user is under the item limit', async () => {
+      const listDocuments = { findOne: jest.fn().mockResolvedValue({ user: { id: 1 } }) };
+      const listItemDocuments = {
+        findMany: jest.fn().mockResolvedValue([{ documentId: 'item-0' }]),
+        create: jest.fn().mockResolvedValue({ documentId: 'item-1' }),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) => {
+          if (uid === 'api::list.list') return listDocuments;
+          if (uid === 'api::list-item.list-item') return listItemDocuments;
+          return {};
+        }),
+        db: { query: jest.fn(() => ({ findOne: jest.fn().mockResolvedValue({ isPro: false }) })) },
+      });
+
+      const result = await resolvers.Mutation.createListItem.resolve(
+        null,
+        { data: { list: 'list-1', name: 'Item' } },
+        context,
+      );
+
+      expect(listItemDocuments.create).toHaveBeenCalledWith({
+        data: { name: 'Item', user: 1, list: 'list-1' },
+      });
+      expect(result).toEqual({ documentId: 'item-1' });
+    });
+
+    it('creates the item for a Pro user without checking the item limit', async () => {
+      const listDocuments = { findOne: jest.fn().mockResolvedValue({ user: { id: 1 } }) };
+      const listItemDocuments = {
+        findMany: jest.fn(),
+        create: jest.fn().mockResolvedValue({ documentId: 'item-99' }),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) => {
+          if (uid === 'api::list.list') return listDocuments;
+          if (uid === 'api::list-item.list-item') return listItemDocuments;
+          return {};
+        }),
+        db: { query: jest.fn(() => ({ findOne: jest.fn().mockResolvedValue({ isPro: true }) })) },
+      });
+
+      const result = await resolvers.Mutation.createListItem.resolve(
+        null,
+        { data: { list: 'list-1', name: 'Item' } },
+        context,
+      );
+
+      expect(listItemDocuments.findMany).not.toHaveBeenCalled();
+      expect(listItemDocuments.create).toHaveBeenCalled();
+      expect(result).toEqual({ documentId: 'item-99' });
+    });
+
+    it('creates the item without ownership or limit checks when no list is given', async () => {
+      const listDocuments = { findOne: jest.fn() };
+      const listItemDocuments = { create: jest.fn().mockResolvedValue({ documentId: 'item-1' }) };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) => {
+          if (uid === 'api::list.list') return listDocuments;
+          if (uid === 'api::list-item.list-item') return listItemDocuments;
+          return {};
+        }),
+      });
+
+      const result = await resolvers.Mutation.createListItem.resolve(
+        null,
+        { data: { name: 'Item' } },
+        context,
+      );
+
+      expect(listDocuments.findOne).not.toHaveBeenCalled();
+      expect(listItemDocuments.create).toHaveBeenCalledWith({
+        data: { name: 'Item', user: 1, list: null },
+      });
       expect(result).toEqual({ documentId: 'item-1' });
     });
   });
