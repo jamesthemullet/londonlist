@@ -43,6 +43,9 @@ type ResolverMap = {
     createListItem: { resolve: Resolve };
     updateListItem: { resolve: Resolve };
     deleteListItem: { resolve: Resolve };
+    createMyList: { resolve: Resolve };
+    updateMyList: { resolve: Resolve };
+    deleteMyList: { resolve: Resolve };
   };
 };
 
@@ -359,5 +362,220 @@ describe('createListItem', () => {
       data: { name: 'Item', user: 1, list: null },
     });
     expect(result).toEqual({ documentId: 'new-item' });
+  });
+});
+
+describe('createMyList', () => {
+  const context = { state: { user: { id: 1 } } };
+
+  function getCreateMyListResolvers(options: { isPro?: boolean; existingListCount?: number }) {
+    const listDocuments = {
+      findMany: jest.fn().mockResolvedValue(
+        Array.from({ length: options.existingListCount ?? 0 }, (_, i) => ({ documentId: `list-${i}` })),
+      ),
+      create: jest.fn().mockResolvedValue({ id: 42, documentId: 'new-list' }),
+    };
+    const findOne = jest.fn().mockResolvedValue(
+      options.isPro === undefined ? null : { id: 1, isPro: options.isPro },
+    );
+    const updateMany = jest.fn();
+    const resolvers = getResolvers({
+      documents: jest.fn((uid: string) => (uid === 'api::list.list' ? listDocuments : {})),
+      db: { query: jest.fn(() => ({ findOne, updateMany })) },
+    });
+
+    return { resolvers, listDocuments, updateMany };
+  }
+
+  it('throws Free plan limit reached when a non-Pro user is at the list limit', async () => {
+    const { resolvers, listDocuments } = getCreateMyListResolvers({
+      isPro: false,
+      existingListCount: 3,
+    });
+
+    await expect(
+      resolvers.Mutation.createMyList.resolve(null, { name: 'My list' }, context),
+    ).rejects.toMatchObject({
+      message: 'Free plan limit reached',
+      extensions: { code: 'FREE_LIST_LIMIT_REACHED' },
+    });
+    expect(listDocuments.create).not.toHaveBeenCalled();
+  });
+
+  it('creates the list for a non-Pro user under the free list limit', async () => {
+    const { resolvers, listDocuments } = getCreateMyListResolvers({
+      isPro: false,
+      existingListCount: 2,
+    });
+
+    const result = await resolvers.Mutation.createMyList.resolve(
+      null,
+      { name: 'My list', description: 'desc' },
+      context,
+    );
+
+    expect(listDocuments.create).toHaveBeenCalledWith({
+      data: { name: 'My list', description: 'desc', isPublic: false, user: 1 },
+    });
+    expect(result).toEqual({ id: 42, documentId: 'new-list' });
+  });
+
+  it('creates the list for a Pro user without checking the free list limit', async () => {
+    const { resolvers, listDocuments } = getCreateMyListResolvers({
+      isPro: true,
+      existingListCount: 5,
+    });
+
+    await resolvers.Mutation.createMyList.resolve(null, { name: 'My list' }, context);
+
+    expect(listDocuments.create).toHaveBeenCalledWith({
+      data: { name: 'My list', description: null, isPublic: false, user: 1 },
+    });
+  });
+
+  it('migrates pre-existing unassigned items into the first list created', async () => {
+    const { resolvers, updateMany } = getCreateMyListResolvers({ isPro: false, existingListCount: 0 });
+
+    const result = await resolvers.Mutation.createMyList.resolve(null, { name: 'My list' }, context);
+
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { user: 1, list: null },
+      data: { list: 42 },
+    });
+    expect(result).toEqual({ id: 42, documentId: 'new-list' });
+  });
+
+  it('does not migrate unassigned items when the user already has a list', async () => {
+    const { resolvers, updateMany } = getCreateMyListResolvers({ isPro: false, existingListCount: 1 });
+
+    await resolvers.Mutation.createMyList.resolve(null, { name: 'My list' }, context);
+
+    expect(updateMany).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateMyList', () => {
+  const context = { state: { user: { id: 1 } } };
+
+  function getUpdateMyListResolvers(list: { user: { id: number } } | null) {
+    const listDocuments = {
+      findOne: jest.fn().mockResolvedValue(list),
+      update: jest.fn().mockResolvedValue({ documentId: 'list-1', name: 'Updated' }),
+    };
+    const resolvers = getResolvers({
+      documents: jest.fn((uid: string) => (uid === 'api::list.list' ? listDocuments : {})),
+    });
+
+    return { resolvers, listDocuments };
+  }
+
+  it('throws Forbidden access when the list is not owned by the caller', async () => {
+    const { resolvers, listDocuments } = getUpdateMyListResolvers({ user: { id: 2 } });
+
+    await expect(
+      resolvers.Mutation.updateMyList.resolve(
+        null,
+        { documentId: 'list-1', name: 'Updated' },
+        context,
+      ),
+    ).rejects.toThrow('Forbidden access');
+    expect(listDocuments.update).not.toHaveBeenCalled();
+  });
+
+  it('throws Forbidden access when the list does not exist', async () => {
+    const { resolvers, listDocuments } = getUpdateMyListResolvers(null);
+
+    await expect(
+      resolvers.Mutation.updateMyList.resolve(
+        null,
+        { documentId: 'list-1', name: 'Updated' },
+        context,
+      ),
+    ).rejects.toThrow('Forbidden access');
+    expect(listDocuments.update).not.toHaveBeenCalled();
+  });
+
+  it('updates only the supplied fields when owned by the caller', async () => {
+    const { resolvers, listDocuments } = getUpdateMyListResolvers({ user: { id: 1 } });
+
+    const result = await resolvers.Mutation.updateMyList.resolve(
+      null,
+      { documentId: 'list-1', name: 'Updated' },
+      context,
+    );
+
+    expect(listDocuments.update).toHaveBeenCalledWith({
+      documentId: 'list-1',
+      data: { name: 'Updated' },
+    });
+    expect(result).toEqual({ documentId: 'list-1', name: 'Updated' });
+  });
+
+  it('includes isPublic and description when supplied', async () => {
+    const { resolvers, listDocuments } = getUpdateMyListResolvers({ user: { id: 1 } });
+
+    await resolvers.Mutation.updateMyList.resolve(
+      null,
+      { documentId: 'list-1', isPublic: true, description: 'new desc' },
+      context,
+    );
+
+    expect(listDocuments.update).toHaveBeenCalledWith({
+      documentId: 'list-1',
+      data: { isPublic: true, description: 'new desc' },
+    });
+  });
+});
+
+describe('deleteMyList', () => {
+  const context = { state: { user: { id: 1 } } };
+
+  function getDeleteMyListResolvers(list: { user: { id: number } } | null) {
+    const listDocuments = {
+      findOne: jest.fn().mockResolvedValue(list),
+      delete: jest.fn().mockResolvedValue({ documentId: 'list-1' }),
+    };
+    const deleteMany = jest.fn();
+    const resolvers = getResolvers({
+      documents: jest.fn((uid: string) => (uid === 'api::list.list' ? listDocuments : {})),
+      db: { query: jest.fn(() => ({ deleteMany })) },
+    });
+
+    return { resolvers, listDocuments, deleteMany };
+  }
+
+  it('throws Forbidden access when the list is not owned by the caller', async () => {
+    const { resolvers, listDocuments, deleteMany } = getDeleteMyListResolvers({ user: { id: 2 } });
+
+    await expect(
+      resolvers.Mutation.deleteMyList.resolve(null, { documentId: 'list-1' }, context),
+    ).rejects.toThrow('Forbidden access');
+    expect(listDocuments.delete).not.toHaveBeenCalled();
+    expect(deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('throws Forbidden access when the list does not exist', async () => {
+    const { resolvers, listDocuments } = getDeleteMyListResolvers(null);
+
+    await expect(
+      resolvers.Mutation.deleteMyList.resolve(null, { documentId: 'list-1' }, context),
+    ).rejects.toThrow('Forbidden access');
+    expect(listDocuments.delete).not.toHaveBeenCalled();
+  });
+
+  it('deletes the list and its items when owned by the caller', async () => {
+    const { resolvers, listDocuments, deleteMany } = getDeleteMyListResolvers({ user: { id: 1 } });
+
+    const result = await resolvers.Mutation.deleteMyList.resolve(
+      null,
+      { documentId: 'list-1' },
+      context,
+    );
+
+    expect(deleteMany).toHaveBeenCalledWith({
+      where: { list: { document_id: 'list-1' } },
+    });
+    expect(listDocuments.delete).toHaveBeenCalledWith({ documentId: 'list-1' });
+    expect(result).toBe(true);
   });
 });
