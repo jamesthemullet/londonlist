@@ -1,3 +1,4 @@
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useMutation } from '@apollo/client/react';
@@ -348,9 +349,33 @@ describe('TemplateCard — logged-in user', () => {
     });
   });
 
+  it('shows an error instead of done when an item fails to copy', async () => {
+    const createMyListFn = jest.fn().mockResolvedValue({
+      data: { createMyList: { documentId: 'new-id' } },
+    });
+    const createListItemFn = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
+      }),
+    });
+    setupMocks({ user: { username: 'alice', isPro: false }, createMyListFn, createListItemFn });
+
+    render(<TemplateCard template={SAMPLE_TEMPLATE} />);
+    fireEvent.click(screen.getByRole('button', { name: /\+ copy to my lists/i }));
+
+    await waitFor(() => {
+      expect(createListItemFn).toHaveBeenCalledTimes(1);
+    });
+    expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
+  });
+
   it('shows upgrade modal when FREE_LIST_LIMIT_REACHED error is returned', async () => {
-    const createMyListFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    const createMyListFn = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+      }),
     });
     setupMocks({
       user: { username: 'alice', isPro: false },
@@ -367,8 +392,11 @@ describe('TemplateCard — logged-in user', () => {
   });
 
   it('dismisses upgrade modal when closed', async () => {
-    const createMyListFn = jest.fn().mockRejectedValue({
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+    const createMyListFn = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+      }),
     });
     setupMocks({
       user: { username: 'alice', isPro: false },

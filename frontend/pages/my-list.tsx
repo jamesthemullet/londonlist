@@ -13,6 +13,7 @@ import WelcomeChecklist from '../components/welcome-checklist/welcome-checklist'
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import { usePlanLimits } from '../hooks/use-plan-limits';
+import { getGraphQLErrorCode } from '../lib/graphql-error';
 import styles from './my-list.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
@@ -273,16 +274,16 @@ export default function MyListPage() {
     setCreateListError(null);
     try {
       const result = await createList({ variables: { name } });
-      const newList = result.data?.createMyList;
-      if (newList) setActiveListId(newList.documentId);
-    } catch (err) {
-      const graphqlErr = err as { graphQLErrors?: Array<{ extensions?: { code?: string } }> };
-      const code = graphqlErr.graphQLErrors?.[0]?.extensions?.code;
-      if (code === 'FREE_LIST_LIMIT_REACHED') {
+      const errCode = getGraphQLErrorCode(result);
+      if (errCode === 'FREE_LIST_LIMIT_REACHED') {
         setShowUpgradeModal(true);
-      } else {
+      } else if (errCode || !result.data?.createMyList) {
         setCreateListError('Could not create list. Please try again.');
+      } else {
+        setActiveListId(result.data.createMyList.documentId);
       }
+    } catch {
+      setCreateListError('Could not create list. Please try again.');
     }
   };
 

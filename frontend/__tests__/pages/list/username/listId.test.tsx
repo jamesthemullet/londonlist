@@ -1,3 +1,4 @@
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PublicListPage, { buildItemListJsonLd, CopyListButton, buildOgDescription, selectRelatedLists, getServerSideProps } from '../../../../pages/list/[username]/[listId]';
 import { buildPlaceUrl } from '../../../../lib/place';
@@ -888,11 +889,36 @@ describe('CopyListButton', () => {
     });
   });
 
-  it('shows an upgrade prompt when the free list limit is reached', async () => {
-    const limitError = Object.assign(new Error('Free plan limit reached'), {
-      graphQLErrors: [{ extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+  it('shows an error instead of done when an item fails to copy', async () => {
+    const createListMock = jest.fn().mockResolvedValue({
+      data: { createMyList: { documentId: 'new-id' } },
     });
-    const createListMock = jest.fn().mockRejectedValue(limitError);
+    const createItemMock = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
+      }),
+    });
+    mockUseMutation
+      .mockReturnValueOnce([createListMock, {}])
+      .mockReturnValueOnce([createItemMock, {}]);
+
+    render(<CopyListButton items={ITEMS} listName="Weekend Wanders" />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Copy this list' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
+    });
+    expect(createItemMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows an upgrade prompt when the free list limit is reached', async () => {
+    const createListMock = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'FREE_LIST_LIMIT_REACHED' } }],
+      }),
+    });
     mockUseMutation
       .mockReturnValueOnce([createListMock, {}])
       .mockReturnValueOnce([jest.fn(), {}]);
@@ -911,10 +937,12 @@ describe('CopyListButton', () => {
   });
 
   it('shows a generic error rather than the upgrade prompt for non-limit errors', async () => {
-    const otherError = Object.assign(new Error('Server error'), {
-      graphQLErrors: [{ extensions: { code: 'INTERNAL_SERVER_ERROR' } }],
+    const createListMock = jest.fn().mockResolvedValue({
+      data: null,
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'INTERNAL_SERVER_ERROR' } }],
+      }),
     });
-    const createListMock = jest.fn().mockRejectedValue(otherError);
     mockUseMutation
       .mockReturnValueOnce([createListMock, {}])
       .mockReturnValueOnce([jest.fn(), {}]);
