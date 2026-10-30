@@ -220,18 +220,21 @@ export default function MyList({ listId, listName, shareUrl }: Props) {
           className={styles.mapToggle}
           onClick={() => setShowMap((s) => !s)}
           aria-expanded={showMap}
+          aria-controls="list-map-region"
         >
           {showMap ? 'Hide map' : 'Show map'}
         </button>
       </div>
-      {showMap && mapItems.length > 0 && (
-        <div className={styles.mapContainer}>
-          <ListMap items={mapItems} />
-        </div>
-      )}
-      {showMap && mapItems.length === 0 && (
-        <p className={styles.mapNoCoords}>No places with location data yet — add more from the search above.</p>
-      )}
+      <div id="list-map-region">
+        {showMap && mapItems.length > 0 && (
+          <div className={styles.mapContainer}>
+            <ListMap items={mapItems} />
+          </div>
+        )}
+        {showMap && mapItems.length === 0 && (
+          <p className={styles.mapNoCoords}>No places with location data yet — add more from the search above.</p>
+        )}
+      </div>
       {(() => {
         const todoWithCoords = todo.filter(
           (i): i is typeof i & { lat: number; lng: number } => i.lat != null && i.lng != null,
