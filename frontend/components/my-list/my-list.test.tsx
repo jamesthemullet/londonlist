@@ -388,7 +388,10 @@ describe('MyList — map toggle', () => {
 
     render(<MyList listId="list-1" listName="My List" />);
 
-    expect(screen.getByRole('button', { name: 'Hide map' })).toHaveAttribute('aria-expanded', 'true');
+    const btn = screen.getByRole('button', { name: 'Hide map' });
+    expect(btn).toHaveAttribute('aria-expanded', 'true');
+    expect(btn).toHaveAttribute('aria-controls', 'list-map-region');
+    expect(document.getElementById('list-map-region')).toBeInTheDocument();
   });
 
   it('sets aria-expanded=false after hiding the map', async () => {
