@@ -160,7 +160,7 @@ export function CopyListButton({ items, listName }: CopyListButtonProps) {
         return;
       }
       for (const item of items) {
-        await createListItem({
+        const itemResult = await createListItem({
           variables: {
             osm_id: item.osm_id,
             name: item.name,
@@ -169,6 +169,10 @@ export function CopyListButton({ items, listName }: CopyListButtonProps) {
           },
           context: { headers: authHeader },
         });
+        if (itemResult.error) {
+          setCopyState('error');
+          return;
+        }
       }
       setCopyState('done');
     } catch {

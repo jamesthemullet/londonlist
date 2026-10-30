@@ -87,7 +87,7 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
         return;
       }
       for (const item of template.items) {
-        await createListItem({
+        const itemResult = await createListItem({
           variables: {
             osm_id: item.osm_id,
             name: item.name,
@@ -96,6 +96,10 @@ export function CopyButton({ template, onLimitReached }: CopyButtonProps) {
           },
           context: { headers: authHeader },
         });
+        if (itemResult.error) {
+          setCopyState('error');
+          return;
+        }
       }
       setCopyState('done');
     } catch {

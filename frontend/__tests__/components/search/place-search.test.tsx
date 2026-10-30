@@ -1,3 +1,4 @@
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useMutation } from '@apollo/client/react';
@@ -93,7 +94,9 @@ describe('PlaceSearch — onLimitReached callback', () => {
     const onLimitReached = jest.fn();
     const mutationFn = jest.fn().mockResolvedValue({
       data: null,
-      errors: [{ extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
+      error: new CombinedGraphQLErrors({
+        errors: [{ message: 'Failed', extensions: { code: 'FREE_ITEM_LIMIT_REACHED' } }],
+      }),
     });
     setupMutation(mutationFn);
 
