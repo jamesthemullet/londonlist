@@ -172,6 +172,32 @@ describe('UpgradeModal — interactions', () => {
   });
 });
 
+describe('UpgradeModal — focus trap', () => {
+  it('traps focus forward: Tab at last focusable element wraps to first', () => {
+    render(<UpgradeModal isOpen={true} onClose={jest.fn()} />);
+    const maybeBtn = screen.getByRole('button', { name: /maybe later/i });
+    maybeBtn.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: /close upgrade modal/i }));
+  });
+
+  it('traps focus backward: Shift+Tab at first focusable element wraps to last', () => {
+    render(<UpgradeModal isOpen={true} onClose={jest.fn()} />);
+    const closeBtn = screen.getByRole('button', { name: /close upgrade modal/i });
+    closeBtn.focus();
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: /maybe later/i }));
+  });
+
+  it('does not trap focus when Tab is pressed on a middle element', () => {
+    render(<UpgradeModal isOpen={true} onClose={jest.fn()} />);
+    const link = screen.getByRole('link', { name: /see pro plans/i });
+    link.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(document.activeElement).toBe(link);
+  });
+});
+
 describe('UpgradeModal — open/closed transitions', () => {
   it('does not register keyboard listeners when closed', () => {
     const onClose = jest.fn();
