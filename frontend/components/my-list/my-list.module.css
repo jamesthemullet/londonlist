@@ -105,6 +105,11 @@
   background: #fff0f0;
 }
 
+.deleteButton:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
+}
+
 .visitedAt {
   font-size: 0.75rem;
   color: #999;
@@ -137,6 +142,11 @@
   color: #c724b1;
 }
 
+.notesText:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
+}
+
 .notesAdd {
   background: none;
   border: none;
@@ -149,6 +159,11 @@
 
 .notesAdd:hover {
   color: #c724b1;
+}
+
+.notesAdd:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
 }
 
 .notesEdit {
@@ -196,6 +211,11 @@
   background: #a51d99;
 }
 
+.notesSave:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
+}
+
 .notesCancel {
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
@@ -204,6 +224,11 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.notesCancel:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
 }
 
 .mapToggleRow {
@@ -224,6 +249,11 @@
 .mapToggle:hover {
   background: #c724b1;
   color: #fff;
+}
+
+.mapToggle:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
 }
 
 .mapContainer {
