@@ -92,6 +92,14 @@ describe('RegisterRoute — rendering', () => {
     expect(screen.getByText(/3.20 characters/i)).toBeInTheDocument();
   });
 
+  it('links the username hint to the username input via aria-describedby', () => {
+    render(<RegisterRoute />);
+    const usernameInput = screen.getByLabelText('Username');
+    expect(usernameInput).toHaveAttribute('aria-describedby', 'username-hint');
+    expect(document.getElementById('username-hint')).toBeInTheDocument();
+    expect(document.getElementById('username-hint')).toHaveTextContent(/3.20 characters/i);
+  });
+
   it('has a <main> landmark', () => {
     render(<RegisterRoute />);
     expect(screen.getByRole('main')).toBeInTheDocument();
