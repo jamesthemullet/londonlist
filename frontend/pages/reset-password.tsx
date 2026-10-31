@@ -161,10 +161,11 @@ function SetNewPasswordForm({ code }: { code: string }) {
             onChange={(e) => setConfirm(e.target.value)}
             className={styles.input}
             aria-invalid={mismatch || undefined}
+            aria-describedby={mismatch ? 'password-mismatch-error' : undefined}
           />
         </div>
         {mismatch && (
-          <p role="alert" className={styles.error}>
+          <p id="password-mismatch-error" role="alert" className={styles.error}>
             Passwords do not match.
           </p>
         )}
