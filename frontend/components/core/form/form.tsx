@@ -35,6 +35,7 @@ export default function Form({
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className={styles.input}
+                aria-describedby={error ? 'form-error' : undefined}
               />
             </div>
             {isLogin && (
@@ -48,10 +49,11 @@ export default function Form({
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className={styles.input}
+                  aria-describedby={error ? 'form-error' : undefined}
                 />
               </div>
             )}
-            {error && <p className={styles.error} role="alert">Error: {error.message}</p>}
+            {error && <p id="form-error" className={styles.error} role="alert">Error: {error.message}</p>}
             <Button type="submit" disabled={isEmailInvalid}>
               {buttonText}
             </Button>
