@@ -542,6 +542,20 @@ describe('MyListPage — share section', () => {
     expect((urlInput as HTMLInputElement).value).toContain('/list/alice/list-pub');
   });
 
+  it('selects the URL text when the public URL input is focused', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
+
+    render(<MyListPage />);
+
+    const urlInput = screen.getByRole('textbox', { name: 'Public list URL' }) as HTMLInputElement;
+    const selectSpy = jest.spyOn(urlInput, 'select');
+
+    fireEvent.focus(urlInput);
+
+    expect(selectSpy).toHaveBeenCalled();
+  });
+
   it('shows a "Copy link" button when the list is public', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
@@ -795,6 +809,28 @@ describe('MyListPage — create list error handling', () => {
         errors: [{ message: 'Failed', extensions: { code: 'INTERNAL_SERVER_ERROR' } }],
       }),
     });
+    mockUseMutation.mockImplementation((query: unknown) => {
+      const str = Array.isArray(query) ? String(query[0]) : '';
+      if (str.includes('CreateMyList')) return [mockCreate, {}];
+      return [jest.fn().mockResolvedValue({ data: {} }), {}];
+    });
+    mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
+
+    render(<MyListPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: '+ New list' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'New list name' }), {
+      target: { value: 'New List' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/Could not create list/);
+    });
+  });
+
+  it('shows an error message when the createList mutation rejects', async () => {
+    const mockCreate = jest.fn().mockRejectedValue(new Error('network error'));
     mockUseMutation.mockImplementation((query: unknown) => {
       const str = Array.isArray(query) ? String(query[0]) : '';
       if (str.includes('CreateMyList')) return [mockCreate, {}];
