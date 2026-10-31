@@ -37,6 +37,11 @@ type Resolve = (parent: unknown, args: unknown, context: unknown) => Promise<unk
 
 type ResolverMap = {
   Query: {
+    planLimits: { resolve: Resolve };
+    place: { resolve: Resolve };
+    placesByArea: { resolve: Resolve };
+    relatedPlaces: { resolve: Resolve };
+    allPlaces: { resolve: Resolve };
     listItems: { resolve: Resolve };
   };
   Mutation: {
@@ -57,11 +62,335 @@ function getResolvers(strapi: unknown): ResolverMap {
     plugin: jest.fn(() => ({ service: jest.fn(() => ({ use })) })),
   };
 
-  (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({ strapi: mockStrapi });
+  (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({
+    strapi: mockStrapi,
+  });
 
   const factory = use.mock.calls[0][0] as () => { resolvers: ResolverMap };
   return factory().resolvers;
 }
+
+describe('GraphQL resolvers — public place queries', () => {
+  const anonymousContext = { state: {} };
+
+  describe('planLimits', () => {
+    it('returns the free plan limits without requiring a user', async () => {
+      const resolvers = getResolvers({});
+
+      const result = await resolvers.Query.planLimits.resolve(null, {}, anonymousContext);
+
+      expect(result).toEqual({ freeListLimit: 3, freeItemLimit: 20 });
+    });
+  });
+
+  describe('place', () => {
+    it('returns a place for an anonymous caller', async () => {
+      const listItemDocuments = {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([
+            {
+              osm_id: 'osm-1',
+              name: 'Tate Modern',
+              category: 'museum',
+              area: 'Southwark',
+              lat: 1,
+              lng: 2,
+            },
+          ]),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      const result = await resolvers.Query.place.resolve(
+        null,
+        { osm_id: 'osm-1' },
+        anonymousContext,
+      );
+
+      expect(result).toEqual({
+        osm_id: 'osm-1',
+        name: 'Tate Modern',
+        category: 'museum',
+        area: 'Southwark',
+        lat: 1,
+        lng: 2,
+      });
+    });
+
+    it('returns null when no matching item exists', async () => {
+      const listItemDocuments = { findMany: jest.fn().mockResolvedValue([]) };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      const result = await resolvers.Query.place.resolve(
+        null,
+        { osm_id: 'missing' },
+        anonymousContext,
+      );
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('placesByArea', () => {
+    it('dedupes items sharing the same osm_id for an anonymous caller', async () => {
+      const listItemDocuments = {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            osm_id: 'osm-1',
+            name: 'Tate Modern',
+            category: 'museum',
+            area: 'Southwark',
+            lat: 1,
+            lng: 2,
+          },
+          {
+            osm_id: 'osm-1',
+            name: 'Tate Modern (dup)',
+            category: 'museum',
+            area: 'Southwark',
+            lat: 1,
+            lng: 2,
+          },
+          {
+            osm_id: 'osm-2',
+            name: 'Borough Market',
+            category: 'market',
+            area: 'Southwark',
+            lat: 3,
+            lng: 4,
+          },
+        ]),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      const result = await resolvers.Query.placesByArea.resolve(
+        null,
+        { area: 'Southwark' },
+        anonymousContext,
+      );
+
+      expect(result).toEqual([
+        {
+          osm_id: 'osm-1',
+          name: 'Tate Modern',
+          category: 'museum',
+          area: 'Southwark',
+          lat: 1,
+          lng: 2,
+        },
+        {
+          osm_id: 'osm-2',
+          name: 'Borough Market',
+          category: 'market',
+          area: 'Southwark',
+          lat: 3,
+          lng: 4,
+        },
+      ]);
+    });
+
+    it('returns an empty array when no items are found for the area', async () => {
+      const listItemDocuments = { findMany: jest.fn().mockResolvedValue([]) };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      const result = await resolvers.Query.placesByArea.resolve(
+        null,
+        { area: 'Nowhere' },
+        anonymousContext,
+      );
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('relatedPlaces', () => {
+    it('returns an empty array when the target place has no category', async () => {
+      const listItemDocuments = {
+        findMany: jest.fn().mockResolvedValue([{ osm_id: 'osm-1', category: null }]),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      const result = await resolvers.Query.relatedPlaces.resolve(
+        null,
+        { osm_id: 'osm-1' },
+        anonymousContext,
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('caps the result length at 12 even when a higher limit is requested', async () => {
+      const candidates = Array.from({ length: 20 }, (_, i) => ({
+        osm_id: `osm-related-${i}`,
+        name: `Place ${i}`,
+        category: 'museum',
+        lat: 1,
+        lng: 2,
+      }));
+      const listItemDocuments = {
+        findMany: jest
+          .fn()
+          .mockResolvedValueOnce([{ osm_id: 'osm-1', category: 'museum' }])
+          .mockResolvedValueOnce(candidates),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      const result = await resolvers.Query.relatedPlaces.resolve(
+        null,
+        { osm_id: 'osm-1', limit: 50 },
+        anonymousContext,
+      );
+
+      expect(result).toHaveLength(12);
+    });
+
+    it('dedupes candidates sharing the same osm_id', async () => {
+      const listItemDocuments = {
+        findMany: jest
+          .fn()
+          .mockResolvedValueOnce([{ osm_id: 'osm-1', category: 'museum' }])
+          .mockResolvedValueOnce([
+            { osm_id: 'osm-2', name: 'Natural History Museum', category: 'museum', lat: 1, lng: 2 },
+            {
+              osm_id: 'osm-2',
+              name: 'Natural History Museum (dup)',
+              category: 'museum',
+              lat: 1,
+              lng: 2,
+            },
+          ]),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      const result = await resolvers.Query.relatedPlaces.resolve(
+        null,
+        { osm_id: 'osm-1' },
+        anonymousContext,
+      );
+
+      expect(result).toEqual([
+        { osm_id: 'osm-2', name: 'Natural History Museum', category: 'museum', lat: 1, lng: 2 },
+      ]);
+    });
+  });
+
+  describe('allPlaces', () => {
+    it('caps the fetch limit at 10000 even when a higher limit is requested', async () => {
+      const listItemDocuments = { findMany: jest.fn().mockResolvedValue([]) };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      await resolvers.Query.allPlaces.resolve(null, { limit: 50000 }, anonymousContext);
+
+      expect(listItemDocuments.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ limit: 30000 }),
+      );
+    });
+
+    it('defaults the cap to 5000 when no limit is requested', async () => {
+      const listItemDocuments = { findMany: jest.fn().mockResolvedValue([]) };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      await resolvers.Query.allPlaces.resolve(null, {}, anonymousContext);
+
+      expect(listItemDocuments.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ limit: 15000 }),
+      );
+    });
+
+    it('dedupes items sharing the same osm_id', async () => {
+      const listItemDocuments = {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            osm_id: 'osm-1',
+            name: 'Tate Modern',
+            category: 'museum',
+            area: 'Southwark',
+            lat: 1,
+            lng: 2,
+          },
+          {
+            osm_id: 'osm-1',
+            name: 'Tate Modern (dup)',
+            category: 'museum',
+            area: 'Southwark',
+            lat: 1,
+            lng: 2,
+          },
+          {
+            osm_id: 'osm-2',
+            name: 'Borough Market',
+            category: 'market',
+            area: 'Southwark',
+            lat: 3,
+            lng: 4,
+          },
+        ]),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      const result = await resolvers.Query.allPlaces.resolve(null, {}, anonymousContext);
+
+      expect(result).toEqual([
+        {
+          osm_id: 'osm-1',
+          name: 'Tate Modern',
+          category: 'museum',
+          area: 'Southwark',
+          lat: 1,
+          lng: 2,
+        },
+        {
+          osm_id: 'osm-2',
+          name: 'Borough Market',
+          category: 'market',
+          area: 'Southwark',
+          lat: 3,
+          lng: 4,
+        },
+      ]);
+    });
+  });
+});
 
 describe('GraphQL resolvers — ownership checks', () => {
   const context = { state: { user: { id: 1 } } };
@@ -234,11 +563,7 @@ describe('GraphQL resolvers — ownership checks', () => {
   });
 
   describe('createMyList', () => {
-    function strapiFor(options: {
-      isPro?: boolean;
-      existingLists?: unknown[];
-      created?: unknown;
-    }) {
+    function strapiFor(options: { isPro?: boolean; existingLists?: unknown[]; created?: unknown }) {
       const listDocuments = {
         findMany: jest.fn().mockResolvedValue(options.existingLists ?? []),
         create: jest.fn().mockResolvedValue(options.created ?? { documentId: 'new-list' }),
@@ -249,7 +574,9 @@ describe('GraphQL resolvers — ownership checks', () => {
         db: {
           query: jest.fn((uid: string) => {
             if (uid === 'plugin::users-permissions.user') {
-              return { findOne: jest.fn().mockResolvedValue({ id: 1, isPro: options.isPro ?? false }) };
+              return {
+                findOne: jest.fn().mockResolvedValue({ id: 1, isPro: options.isPro ?? false }),
+              };
             }
             return listItemQuery;
           }),
@@ -556,14 +883,18 @@ describe('createListItem', () => {
   }) {
     const listDocuments = { findOne: jest.fn().mockResolvedValue(options.list ?? null) };
     const listItemDocuments = {
-      findMany: jest.fn().mockResolvedValue(
-        Array.from({ length: options.existingItemCount ?? 0 }, (_, i) => ({ documentId: `item-${i}` })),
-      ),
+      findMany: jest
+        .fn()
+        .mockResolvedValue(
+          Array.from({ length: options.existingItemCount ?? 0 }, (_, i) => ({
+            documentId: `item-${i}`,
+          })),
+        ),
       create: jest.fn().mockResolvedValue({ documentId: 'new-item' }),
     };
-    const findOne = jest.fn().mockResolvedValue(
-      options.isPro === undefined ? null : { id: 1, isPro: options.isPro },
-    );
+    const findOne = jest
+      .fn()
+      .mockResolvedValue(options.isPro === undefined ? null : { id: 1, isPro: options.isPro });
     const resolvers = getResolvers({
       documents: jest.fn((uid: string) => {
         if (uid === 'api::list.list') return listDocuments;
