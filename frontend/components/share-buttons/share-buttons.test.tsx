@@ -137,4 +137,12 @@ describe('ShareButtons', () => {
     expect(screen.getByRole('link', { name: /whatsapp/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /share on facebook/i })).toBeInTheDocument();
   });
+
+  it('social share links include "(opens in new tab)" in their accessible names', () => {
+    render(<ShareButtons url={TEST_URL} title={TEST_TITLE} />);
+    expect(screen.getByRole('link', { name: /share on x \(twitter\) \(opens in new tab\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /share on whatsapp \(opens in new tab\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /share on facebook \(opens in new tab\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /share on pinterest \(opens in new tab\)/i })).toBeInTheDocument();
+  });
 });
