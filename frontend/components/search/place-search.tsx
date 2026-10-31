@@ -203,7 +203,7 @@ export default function PlaceSearch({ label, listId, itemCount, isPro, freeItemL
   }
 
   return (
-    <div className={`${styles.container} ${label ? styles.prominent : ''}`}>
+    <search className={`${styles.container} ${label ? styles.prominent : ''}`}>
       {!isPro && itemCount !== undefined && (
         <p className={styles.itemCounter}>
           {itemCount}/{freeItemLimit} places on free plan
@@ -267,6 +267,6 @@ export default function PlaceSearch({ label, listId, itemCount, isPro, freeItemL
       {query.length >= 3 && !searching && results.length === 0 && (
         <p className={styles.noResults}>No places found in London for &ldquo;{query}&rdquo;</p>
       )}
-    </div>
+    </search>
   );
 }
