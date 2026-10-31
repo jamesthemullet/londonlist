@@ -53,6 +53,25 @@ describe('Form — rendering', () => {
     expect(alert).toBeInTheDocument();
     expect(alert).toHaveTextContent('Error: Invalid credentials');
   });
+
+  it('links the email input to the error via aria-describedby when an error is present', () => {
+    render(<Form {...baseProps} error={{ message: 'Invalid credentials' }} />);
+    const emailInput = screen.getByLabelText('Email');
+    expect(emailInput).toHaveAttribute('aria-describedby', 'form-error');
+    expect(document.getElementById('form-error')).toBeInTheDocument();
+  });
+
+  it('does not set aria-describedby on the email input when there is no error', () => {
+    render(<Form {...baseProps} error={null} />);
+    const emailInput = screen.getByLabelText('Email');
+    expect(emailInput).not.toHaveAttribute('aria-describedby');
+  });
+
+  it('links the password input to the error via aria-describedby when an error is present', () => {
+    render(<Form {...baseProps} isLogin={true} error={{ message: 'Invalid credentials' }} />);
+    const passwordInput = screen.getByLabelText('Password');
+    expect(passwordInput).toHaveAttribute('aria-describedby', 'form-error');
+  });
 });
 
 describe('Form — email validation', () => {
