@@ -274,6 +274,15 @@ describe('SetNewPassword — validation', () => {
     expect(screen.getByText('Passwords do not match.')).toBeInTheDocument();
   });
 
+  it('links the mismatch error to the confirm-password input via aria-describedby', async () => {
+    render(<ResetPasswordPage />);
+    await userEvent.type(screen.getByLabelText('New password'), 'password123');
+    await userEvent.type(screen.getByLabelText('Confirm new password'), 'different');
+    const confirmInput = screen.getByLabelText('Confirm new password');
+    expect(confirmInput).toHaveAttribute('aria-describedby', 'password-mismatch-error');
+    expect(document.getElementById('password-mismatch-error')).toBeInTheDocument();
+  });
+
   it('does not show a mismatch error when confirm field is still empty', async () => {
     render(<ResetPasswordPage />);
     await userEvent.type(screen.getByLabelText('New password'), 'password123');

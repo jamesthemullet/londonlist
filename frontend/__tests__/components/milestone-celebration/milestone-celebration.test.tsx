@@ -52,8 +52,8 @@ describe('MilestoneCelebration', () => {
         shareUrl="https://londonlist.co.uk/list/alice/abc123"
       />,
     );
-    const twitterLink = screen.getByRole('link', { name: 'Share progress on X (Twitter)' });
-    const whatsappLink = screen.getByRole('link', { name: 'Share progress on WhatsApp' });
+    const twitterLink = screen.getByRole('link', { name: 'Share progress on X (Twitter) (opens in new tab)' });
+    const whatsappLink = screen.getByRole('link', { name: 'Share progress on WhatsApp (opens in new tab)' });
     expect(twitterLink).toBeInTheDocument();
     expect(twitterLink).toHaveAttribute('href', expect.stringContaining('twitter.com'));
     expect(whatsappLink).toBeInTheDocument();
@@ -67,11 +67,11 @@ describe('MilestoneCelebration', () => {
         shareUrl="https://londonlist.co.uk/list/alice/abc123"
       />,
     );
-    expect(screen.getByRole('link', { name: 'Share progress on X (Twitter)' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Share progress on X (Twitter) (opens in new tab)' })).toHaveAttribute(
       'target',
       '_blank',
     );
-    expect(screen.getByRole('link', { name: 'Share progress on WhatsApp' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Share progress on WhatsApp (opens in new tab)' })).toHaveAttribute(
       'target',
       '_blank',
     );

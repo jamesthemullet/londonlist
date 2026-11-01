@@ -75,7 +75,7 @@ export default function MilestoneCelebration({ milestone, listName, shareUrl, on
               target="_blank"
               rel="noopener noreferrer"
               className={styles.shareLink}
-              aria-label="Share progress on X (Twitter)"
+              aria-label="Share progress on X (Twitter) (opens in new tab)"
             >
               X / Twitter
             </a>
@@ -86,7 +86,7 @@ export default function MilestoneCelebration({ milestone, listName, shareUrl, on
               target="_blank"
               rel="noopener noreferrer"
               className={styles.shareLink}
-              aria-label="Share progress on WhatsApp"
+              aria-label="Share progress on WhatsApp (opens in new tab)"
             >
               WhatsApp
             </a>

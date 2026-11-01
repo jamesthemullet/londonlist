@@ -26,7 +26,7 @@ export default function OpenInMapsButton({ places, className }: Props) {
         className={styles.button}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`Plan a route for ${capped.length} place${capped.length === 1 ? '' : 's'} in Google Maps`}
+        aria-label={`Plan a route for ${capped.length} place${capped.length === 1 ? '' : 's'} in Google Maps (opens in new tab)`}
       >
         <span aria-hidden="true">🗺</span> Plan route in Google Maps
         {hasMore && (

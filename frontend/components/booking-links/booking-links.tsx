@@ -24,7 +24,7 @@ export default function BookingLinks({ name, category }: Props) {
           className={styles.link}
           target="_blank"
           rel="noopener noreferrer sponsored"
-          aria-label={`${link.label} at ${name} via ${link.provider}`}
+          aria-label={`${link.label} at ${name} via ${link.provider} (opens in new tab)`}
         >
           {link.label} <span className={styles.provider}>via {link.provider}</span>
           <span className={styles.arrow} aria-hidden="true"> ↗</span>

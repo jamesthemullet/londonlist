@@ -427,6 +427,7 @@ export default function MyListPage() {
           {lists.map((list) => (
             <button
               key={list.documentId}
+              id={`tab-${list.documentId}`}
               type="button"
               role="tab"
               aria-selected={list.documentId === activeListId}
@@ -500,7 +501,10 @@ export default function MyListPage() {
         )}
 
         {activeList && (
-          <>
+          <div
+            role="tabpanel"
+            aria-labelledby={`tab-${activeListId}`}
+          >
             {isRenaming ? (
               <form
                 className={styles.renameForm}
@@ -704,7 +708,7 @@ export default function MyListPage() {
                 )}
               </div>
             )}
-          </>
+          </div>
         )}
       </main>
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
