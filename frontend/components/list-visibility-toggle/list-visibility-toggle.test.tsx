@@ -174,4 +174,20 @@ describe('ListVisibilityToggle — share URL', () => {
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
+
+  it('share link includes "(opens in new tab)" in its accessible name', () => {
+    render(
+      <ListVisibilityToggle
+        listDocumentId="list-abc"
+        isPublic={true}
+        onToggle={jest.fn()}
+        listName="My List"
+      />,
+    );
+
+    const link = screen.getByRole('link');
+    expect(link).toHaveAccessibleName(
+      `${EXPECTED_ORIGIN}/list/alice/list-abc (opens in new tab)`,
+    );
+  });
 });
