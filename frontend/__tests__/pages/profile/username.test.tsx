@@ -269,10 +269,10 @@ describe('getServerSideProps', () => {
 
   beforeEach(() => { jest.resetAllMocks(); });
 
-  it('returns not_found pageState when the API returns 404', async () => {
+  it('returns notFound: true when the API returns 404', async () => {
     global.fetch = jest.fn().mockResolvedValue({ status: 404, ok: false });
     const result = await getServerSideProps(makeContext('bob'));
-    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
+    expect(result).toEqual({ notFound: true });
   });
 
   it('returns found pageState with profileData on a successful response', async () => {
@@ -282,15 +282,15 @@ describe('getServerSideProps', () => {
     expect(result).toEqual({ props: { pageState: 'found', profileData, username: 'bob' } });
   });
 
-  it('returns not_found pageState for a non-ok, non-404 response', async () => {
+  it('returns notFound: true for a non-ok, non-404 response', async () => {
     global.fetch = jest.fn().mockResolvedValue({ status: 500, ok: false });
     const result = await getServerSideProps(makeContext('bob'));
-    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
+    expect(result).toEqual({ notFound: true });
   });
 
-  it('returns not_found pageState when fetch throws', async () => {
+  it('returns notFound: true when fetch throws', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
     const result = await getServerSideProps(makeContext('bob'));
-    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
+    expect(result).toEqual({ notFound: true });
   });
 });

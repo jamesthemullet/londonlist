@@ -7,7 +7,10 @@ import { type FormEvent, useEffect, useState } from 'react';
 import Loader from '../components/Loader';
 import { Button } from '../components/core/button/button';
 import { useAppContext } from '../context/AppContext';
+import { buildOgImageUrl } from '../lib/og-image';
 import styles from './register.module.css';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 const COPY_PUBLIC_LIST = gql`
   mutation CopyPublicList($sourceDocumentId: ID!, $sourceUsername: String!) {
@@ -131,6 +134,13 @@ export default function RegisterRoute() {
           content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${SITE_URL}/register`} />
+        <meta property="og:image" content={buildOgImageUrl({ title: 'Create your free account — London List' }, SITE_URL)} />
+        <link rel="canonical" href={`${SITE_URL}/register`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Create your free account — London List" />
+        <meta name="twitter:description" content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city." />
+        <meta name="twitter:image" content={buildOgImageUrl({ title: 'Create your free account — London List' }, SITE_URL)} />
       </Head>
       <main className={styles.container}>
       <div>

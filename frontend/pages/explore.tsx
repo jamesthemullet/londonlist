@@ -171,7 +171,9 @@ export default function ExplorePage({ lists }: Props) {
           content="Browse curated lists of things to do in London — hidden gems, restaurants, museums, parks, and more."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${SITE_URL}/explore`} />
         <meta property="og:image" content={OG_IMAGE} />
+        <link rel="canonical" href={`${SITE_URL}/explore`} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Explore London Lists" />
         <meta

@@ -301,6 +301,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
       <>
         <Head>
           <title>{username}&apos;s List — London List</title>
+          <meta name="robots" content="noindex, nofollow" />
         </Head>
         <main className={styles.main}>
           <h1 className={styles.heading}>{username}&apos;s List</h1>
@@ -576,7 +577,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
       return { props: { pageState: 'private', listData: null, username, listId, otherLists: [], relatedLists: [] } };
     }
     if (listRes.status === 404) {
-      return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
+      return { notFound: true };
     }
     if (listRes.ok) {
       const data: PublicListData = await listRes.json();
@@ -597,8 +598,8 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
 
       return { props: { pageState: 'found', listData: data, username, listId, otherLists, relatedLists } };
     }
-    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
+    return { notFound: true };
   } catch {
-    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
+    return { notFound: true };
   }
 };
