@@ -1,4 +1,9 @@
-import { buildOgImageUrl } from '../../lib/og-image';
+import {
+  buildOgImageUrl,
+  fontSizeForOgTitle,
+  formatOgPlacesMeta,
+  truncateOgTitle,
+} from '../../lib/og-image';
 
 const SITE = 'https://londonlist.co.uk';
 
@@ -81,5 +86,59 @@ describe('buildOgImageUrl', () => {
     const url = buildOgImageUrl({ title: 'East London Markets' }, SITE);
     const parsed = new URL(url);
     expect(parsed.searchParams.get('title')).toBe('East London Markets');
+  });
+});
+
+describe('truncateOgTitle', () => {
+  it('leaves short titles untouched', () => {
+    expect(truncateOgTitle('Weekend Wanders')).toBe('Weekend Wanders');
+  });
+
+  it('truncates titles longer than 80 characters by default', () => {
+    const longTitle = 'a'.repeat(100);
+    expect(truncateOgTitle(longTitle)).toBe('a'.repeat(80));
+  });
+
+  it('respects a custom max length', () => {
+    expect(truncateOgTitle('Weekend Wanders', 7)).toBe('Weekend');
+  });
+});
+
+describe('formatOgPlacesMeta', () => {
+  it('returns an empty string when there are no places', () => {
+    expect(formatOgPlacesMeta(0, 0)).toBe('');
+  });
+
+  it('uses singular "place" for a single item', () => {
+    expect(formatOgPlacesMeta(1, 0)).toBe('1 place');
+  });
+
+  it('uses plural "places" for multiple items', () => {
+    expect(formatOgPlacesMeta(5, 0)).toBe('5 places');
+  });
+
+  it('appends the visited count when there are visited places', () => {
+    expect(formatOgPlacesMeta(5, 3)).toBe('5 places · 3 visited');
+  });
+
+  it('omits the visited count when nothing is visited yet', () => {
+    expect(formatOgPlacesMeta(5, 0)).toBe('5 places');
+  });
+});
+
+describe('fontSizeForOgTitle', () => {
+  it('uses the largest size for short titles', () => {
+    expect(fontSizeForOgTitle('Short')).toBe(72);
+    expect(fontSizeForOgTitle('a'.repeat(30))).toBe(72);
+  });
+
+  it('uses the medium size for moderately long titles', () => {
+    expect(fontSizeForOgTitle('a'.repeat(31))).toBe(62);
+    expect(fontSizeForOgTitle('a'.repeat(50))).toBe(62);
+  });
+
+  it('uses the smallest size for long titles', () => {
+    expect(fontSizeForOgTitle('a'.repeat(51))).toBe(52);
+    expect(fontSizeForOgTitle('a'.repeat(80))).toBe(52);
   });
 });
