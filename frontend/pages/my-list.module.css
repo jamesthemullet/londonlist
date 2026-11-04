@@ -161,11 +161,12 @@
   border: 1px solid #c724b1;
   border-radius: 20px;
   font-size: 0.9rem;
-  outline: none;
   width: 10rem;
 }
 
-.newListInput:focus {
+.newListInput:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
   box-shadow: 0 0 0 2px rgba(199, 36, 177, 0.25);
 }
 
@@ -216,10 +217,11 @@
   border: 1px solid #c724b1;
   border-radius: 6px;
   font-size: 0.95rem;
-  outline: none;
 }
 
-.renameInput:focus {
+.renameInput:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
   box-shadow: 0 0 0 2px rgba(199, 36, 177, 0.25);
 }
 
@@ -292,10 +294,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  outline: none;
 }
 
-.shareUrl:focus {
+.shareUrl:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
   border-color: #c724b1;
   box-shadow: 0 0 0 2px rgba(199, 36, 177, 0.15);
 }
@@ -389,11 +392,12 @@
   font-size: 0.9rem;
   font-family: inherit;
   resize: vertical;
-  outline: none;
   line-height: 1.5;
 }
 
-.descriptionTextarea:focus {
+.descriptionTextarea:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
   box-shadow: 0 0 0 2px rgba(199, 36, 177, 0.25);
 }
 

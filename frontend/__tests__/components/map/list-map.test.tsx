@@ -26,15 +26,20 @@ describe('ListMap', () => {
     expect(screen.getByTestId('map-container')).toBeInTheDocument();
   });
 
-  it('has accessible aria-label on the map', () => {
+  it('has a region landmark with accessible label', () => {
     render(<ListMap items={[BRITISH_MUSEUM]} />);
-    expect(screen.getByLabelText('Map showing list places')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Map showing list places' })).toBeInTheDocument();
   });
 
   it('renders a marker for each item with coordinates', () => {
     render(<ListMap items={[BRITISH_MUSEUM, TOWER_OF_LONDON]} />);
     const markers = screen.getAllByTestId('map-marker');
     expect(markers).toHaveLength(2);
+  });
+
+  it('renders a marker with a title matching the place name', () => {
+    render(<ListMap items={[BRITISH_MUSEUM]} />);
+    expect(screen.getByTestId('map-marker')).toHaveAttribute('title', 'British Museum');
   });
 
   it('renders a popup with the place name', () => {
