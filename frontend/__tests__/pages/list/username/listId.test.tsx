@@ -1748,13 +1748,13 @@ describe('getServerSideProps', () => {
     expect(result).toEqual({ props: { pageState: 'private', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
   });
 
-  it('returns not_found pageState when the list API returns 404', async () => {
+  it('returns notFound: true when the list API returns 404', async () => {
     global.fetch = jest.fn()
       .mockResolvedValueOnce({ status: 404, ok: false })
       .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
       .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
     const result = await getServerSideProps(makeContext('alice', 'list-abc'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+    expect(result).toEqual({ notFound: true });
   });
 
   it('returns found pageState with listData, otherLists and relatedLists when all fetches succeed', async () => {
@@ -1791,19 +1791,19 @@ describe('getServerSideProps', () => {
     expect(result.props.relatedLists).toEqual([]);
   });
 
-  it('returns not_found pageState for a non-ok list response', async () => {
+  it('returns notFound: true for a non-ok list response', async () => {
     global.fetch = jest.fn()
       .mockResolvedValueOnce({ status: 500, ok: false })
       .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
       .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
     const result = await getServerSideProps(makeContext('alice', 'list-abc'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+    expect(result).toEqual({ notFound: true });
   });
 
-  it('returns not_found pageState when fetch throws', async () => {
+  it('returns notFound: true when fetch throws', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
     const result = await getServerSideProps(makeContext('alice', 'list-abc'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+    expect(result).toEqual({ notFound: true });
   });
 
   it('excludes the current list from otherLists', async () => {

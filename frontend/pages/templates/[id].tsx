@@ -10,6 +10,7 @@ import { TEMPLATES } from '../../lib/templates';
 import type { Template } from '../../lib/templates';
 import { getGraphQLErrorCode } from '../../lib/graphql-error';
 import { safeJsonLd } from '../../lib/json-ld';
+import { buildOgImageUrl } from '../../lib/og-image';
 import { useAppContext } from '../../context/AppContext';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import styles from './[id].module.css';
@@ -154,6 +155,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
   const jsonLd = buildTemplateJsonLd(template, SITE_URL);
   const pageTitle = `${template.name} — London Starter List`;
   const canonicalUrl = `${SITE_URL}/templates/${template.id}`;
+  const ogImage = buildOgImageUrl({ title: pageTitle, itemCount: template.items.length }, SITE_URL);
 
   return (
     <>
@@ -167,9 +169,11 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={template.description} />
         <meta property="og:url" content={canonicalUrl} />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={template.description} />
+        <meta name="twitter:image" content={ogImage} />
         <script
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS

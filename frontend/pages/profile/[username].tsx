@@ -166,14 +166,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
   try {
     const res = await fetch(`${API_URL}/api/lists/public/${username}`);
     if (res.status === 404) {
-      return { props: { pageState: 'not_found', profileData: null, username } };
+      return { notFound: true };
     }
     if (res.ok) {
       const data: ProfileData = await res.json();
       return { props: { pageState: 'found', profileData: data, username } };
     }
-    return { props: { pageState: 'not_found', profileData: null, username } };
+    return { notFound: true };
   } catch {
-    return { props: { pageState: 'not_found', profileData: null, username } };
+    return { notFound: true };
   }
 };

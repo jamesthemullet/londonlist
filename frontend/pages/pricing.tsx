@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { buildOgImageUrl } from '../lib/og-image';
 import { safeJsonLd } from '../lib/json-ld';
 import styles from './pricing.module.css';
 
@@ -166,9 +167,11 @@ export default function PricingPage() {
         <meta property="og:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
         <meta property="og:url" content={`${SITE_URL}/pricing`} />
         <meta property="og:locale" content="en_GB" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:image" content={buildOgImageUrl({ title: 'Pricing — London List' }, SITE_URL)} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Pricing — London List" />
         <meta name="twitter:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
+        <meta name="twitter:image" content={buildOgImageUrl({ title: 'Pricing — London List' }, SITE_URL)} />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildPricingJsonLd(SITE_URL)) }} />
       </Head>
