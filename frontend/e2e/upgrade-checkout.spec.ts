@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import type { Route, Request as PlaywrightRequest } from '@playwright/test';
 
 const GRAPHQL_URL = '**/graphql';
+const STRAPI_CREATE_CHECKOUT_SESSION_URL = '**/api/stripe/create-checkout-session';
+const STRIPE_CHECKOUT_URL = 'https://checkout.stripe.com/**';
 
 const MOCK_USER = {
   id: '1',
@@ -170,6 +172,42 @@ test.describe('Upgrade modal — my-list page at free limit', () => {
     await page.mouse.click(10, 10);
 
     await expect(page.getByRole('dialog')).not.toBeVisible();
+  });
+});
+
+test.describe('Pricing page — logged-in free user', () => {
+  test.beforeEach(async ({ context, page }) => {
+    await context.clearCookies();
+    await context.addCookies([
+      { name: 'token', value: 'fake_auth_token', url: 'http://localhost:3000' },
+    ]);
+
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, { __me: MOCK_USER }),
+    );
+  });
+
+  test('clicking "Start 14-day free trial" calls create-checkout-session and redirects to the Stripe URL', async ({
+    page,
+  }) => {
+    let checkoutRequestBody: unknown;
+    await page.route(STRAPI_CREATE_CHECKOUT_SESSION_URL, async (route, request) => {
+      checkoutRequestBody = request.postDataJSON();
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ url: 'https://checkout.stripe.com/pay/cs_test_123' }),
+      });
+    });
+    await page.route(STRIPE_CHECKOUT_URL, (route) =>
+      route.fulfill({ contentType: 'text/html', body: '<html><body>Stripe Checkout</body></html>' }),
+    );
+
+    await page.goto('/pricing');
+
+    await page.getByRole('button', { name: 'Start 14-day free trial' }).click();
+
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
+    expect(checkoutRequestBody).toMatchObject({ billingPeriod: 'monthly' });
   });
 });
 
