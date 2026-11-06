@@ -164,12 +164,12 @@
 
 .period {
   font-size: 0.9rem;
-  color: #888;
+  color: #595959;
 }
 
 .annualNote {
   font-size: 0.82rem;
-  color: #888;
+  color: #595959;
   margin: 0;
 }
 
@@ -249,7 +249,7 @@
 
 .ctaNote {
   font-size: 0.8rem;
-  color: #888;
+  color: #595959;
   margin: 0;
   text-align: center;
 }

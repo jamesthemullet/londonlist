@@ -12,12 +12,12 @@
 
 .stats {
   font-size: 0.875rem;
-  color: #888;
+  color: #595959;
   margin: 0 0 2rem;
 }
 
 .empty {
-  color: #888;
+  color: #595959;
   font-size: 0.95rem;
 }
 
@@ -80,7 +80,7 @@
 
 .emptyCount {
   background: #f5f5f5;
-  color: #888;
+  color: #595959;
 }
 
 .conversionBanner {
