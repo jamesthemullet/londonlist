@@ -94,12 +94,12 @@
 
 .count {
   font-size: 0.85rem;
-  color: #888;
+  color: #595959;
   margin: 0;
 }
 
 .empty {
-  color: #888;
+  color: #595959;
   font-size: 0.95rem;
   margin: 0;
 }
@@ -142,7 +142,7 @@
 
 .author {
   font-size: 0.8rem;
-  color: #888;
+  color: #595959;
 }
 
 .itemCount {
@@ -153,13 +153,13 @@
 
 .viewCount {
   font-size: 0.78rem;
-  color: #888;
+  color: #595959;
   margin-top: 0.125rem;
 }
 
 .categoryList {
   font-size: 0.75rem;
-  color: #888;
+  color: #595959;
   text-transform: capitalize;
   margin-top: 0.125rem;
 }
@@ -227,7 +227,7 @@
 
 .breadcrumb {
   font-size: 0.85rem;
-  color: #888;
+  color: #595959;
   display: flex;
   align-items: center;
   gap: 0.25rem;
