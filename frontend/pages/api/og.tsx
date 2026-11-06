@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
+import { buildOgMeta, ogTitleFontSize, truncateOgTitle } from '../../lib/og-image';
 
 export const config = {
   runtime: 'edge',
@@ -7,17 +8,14 @@ export const config = {
 
 export default function handler(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const title = (searchParams.get('title') ?? 'My London List').slice(0, 80);
+  const title = truncateOgTitle(searchParams.get('title') ?? 'My London List');
   const username = searchParams.get('u') ?? '';
   const itemCount = Number(searchParams.get('n') ?? '0');
   const doneCount = Number(searchParams.get('d') ?? '0');
 
-  const meta =
-    itemCount > 0
-      ? `${itemCount} ${itemCount === 1 ? 'place' : 'places'}${doneCount > 0 ? ` · ${doneCount} visited` : ''}`
-      : '';
+  const meta = buildOgMeta(itemCount, doneCount);
 
-  const fontSize = title.length > 50 ? 52 : title.length > 30 ? 62 : 72;
+  const fontSize = ogTitleFontSize(title);
 
   return new ImageResponse(
     (
