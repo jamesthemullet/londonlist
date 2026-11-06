@@ -173,3 +173,40 @@ test.describe('Upgrade modal — my-list page at free limit', () => {
   });
 });
 
+test.describe('Pricing page — logged-in free user starts checkout', () => {
+  test.beforeEach(async ({ context, page }) => {
+    await context.clearCookies();
+    await context.addCookies([
+      { name: 'token', value: 'fake_auth_token', url: 'http://localhost:3000' },
+    ]);
+
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, {
+        __me: MOCK_USER,
+      }),
+    );
+  });
+
+  test('clicking "Start 14-day free trial" calls create-checkout-session and redirects to the Stripe URL', async ({
+    page,
+  }) => {
+    await page.route('**/api/stripe/create-checkout-session', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ url: 'https://checkout.stripe.com/mock-session' }),
+      });
+    });
+    await page.route('https://checkout.stripe.com/**', async (route) => {
+      await route.fulfill({ contentType: 'text/html', body: '<html><body>Stripe Checkout</body></html>' });
+    });
+
+    await page.goto('/pricing');
+    await expect(page.getByText(/You.ll need to sign in first/)).not.toBeVisible({ timeout: 5000 });
+
+    await page.getByRole('button', { name: 'Start 14-day free trial' }).click();
+
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
+    expect(page.url()).toContain('checkout.stripe.com');
+  });
+});
+
