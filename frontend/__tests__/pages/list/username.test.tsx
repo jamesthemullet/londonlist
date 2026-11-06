@@ -132,13 +132,6 @@ describe('buildListJsonLd', () => {
 
 // ─── Page states ──────────────────────────────────────────────────────────
 
-describe('PublicProfilePage — not_found state', () => {
-  it('renders "User not found" when pageState is not_found', () => {
-    render(<PublicProfilePage pageState="not_found" listData={null} username="alice" />);
-    expect(screen.getByText('User not found.')).toBeInTheDocument();
-  });
-});
-
 describe('PublicProfilePage — private state', () => {
   it('renders "This list is private" when pageState is private', () => {
     render(<PublicProfilePage pageState="private" listData={null} username="alice" />);
@@ -303,10 +296,10 @@ describe('getServerSideProps', () => {
 
   beforeEach(() => { jest.resetAllMocks(); });
 
-  it('returns not_found pageState when the API returns 404', async () => {
+  it('returns notFound when the API returns 404', async () => {
     global.fetch = jest.fn().mockResolvedValue({ status: 404, ok: false });
     const result = await getServerSideProps(makeContext('alice'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice' } });
+    expect(result).toEqual({ notFound: true });
   });
 
   it('returns private pageState when the API returns 403', async () => {
@@ -322,15 +315,15 @@ describe('getServerSideProps', () => {
     expect(result).toEqual({ props: { pageState: 'found', listData, username: 'alice' } });
   });
 
-  it('returns not_found pageState for a non-ok, non-403/404 response', async () => {
+  it('returns notFound for a non-ok, non-403/404 response', async () => {
     global.fetch = jest.fn().mockResolvedValue({ status: 500, ok: false });
     const result = await getServerSideProps(makeContext('alice'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice' } });
+    expect(result).toEqual({ notFound: true });
   });
 
-  it('returns not_found pageState when fetch throws', async () => {
+  it('returns notFound when fetch throws', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
     const result = await getServerSideProps(makeContext('alice'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice' } });
+    expect(result).toEqual({ notFound: true });
   });
 });
