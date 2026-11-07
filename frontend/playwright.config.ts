@@ -19,10 +19,18 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: 'yarn dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  webServer: [
+    {
+      command: 'node e2e/mock-api/server.mjs',
+      url: 'http://127.0.0.1:1337/api/lists/public',
+      reuseExistingServer: !process.env.CI,
+      timeout: 10000,
+    },
+    {
+      command: 'yarn dev',
+      url: 'http://localhost:3000',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+    },
+  ],
 });
