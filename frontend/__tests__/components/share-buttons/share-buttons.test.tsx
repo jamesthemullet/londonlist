@@ -19,19 +19,19 @@ describe('ShareButtons', () => {
 
   it('renders all social share links', () => {
     render(<ShareButtons {...props} />);
-    expect(screen.getByRole('link', { name: 'Share on X (Twitter)' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Share on WhatsApp' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Share on Facebook' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Share on Pinterest' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Share on X (Twitter) (opens in new tab)' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Share on WhatsApp (opens in new tab)' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Share on Facebook (opens in new tab)' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Share on Pinterest (opens in new tab)' })).toBeInTheDocument();
   });
 
   it('social links open in a new tab', () => {
     render(<ShareButtons {...props} />);
     for (const name of [
-      'Share on X (Twitter)',
-      'Share on WhatsApp',
-      'Share on Facebook',
-      'Share on Pinterest',
+      'Share on X (Twitter) (opens in new tab)',
+      'Share on WhatsApp (opens in new tab)',
+      'Share on Facebook (opens in new tab)',
+      'Share on Pinterest (opens in new tab)',
     ]) {
       expect(screen.getByRole('link', { name })).toHaveAttribute('target', '_blank');
     }
@@ -40,11 +40,11 @@ describe('ShareButtons', () => {
   it('social links include the encoded URL', () => {
     render(<ShareButtons {...props} />);
     const encoded = encodeURIComponent(props.url);
-    expect(screen.getByRole('link', { name: 'Share on X (Twitter)' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Share on X (Twitter) (opens in new tab)' })).toHaveAttribute(
       'href',
       expect.stringContaining(encoded),
     );
-    expect(screen.getByRole('link', { name: 'Share on Facebook' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Share on Facebook (opens in new tab)' })).toHaveAttribute(
       'href',
       expect.stringContaining(encoded),
     );

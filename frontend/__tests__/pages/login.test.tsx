@@ -150,6 +150,24 @@ describe('LoginRoute — successful login', () => {
     });
   });
 
+  it('does not call setUser or redirect when the mutation resolves without a user', async () => {
+    const mockLogin = jest.fn().mockResolvedValue({ data: undefined });
+    mockUseMutation.mockReturnValue([mockLogin, { loading: false, error: null }]);
+
+    render(<LoginRoute />);
+
+    await userEvent.type(screen.getByLabelText('Email'), 'alice@test.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Login' }));
+
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalled();
+    });
+    expect(mockSetUser).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockCookieSet).not.toHaveBeenCalled();
+  });
+
   it('stores the JWT in a cookie after a successful login', async () => {
     const fakeUser = { id: '1', documentId: 'doc-1', username: 'alice', email: 'alice@test.com' };
     const mockLogin = jest.fn().mockResolvedValue({

@@ -46,6 +46,7 @@ export default function ListVisibilityToggle({
               className={styles.shareLink}
               target="_blank"
               rel="noreferrer"
+              aria-label={`${shareUrl} (opens in new tab)`}
             >
               {shareUrl}
             </a>

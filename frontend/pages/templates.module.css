@@ -150,7 +150,7 @@
 .placesHeading {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #888;
+  color: #595959;
   margin: 0 0 0.15rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -250,7 +250,7 @@
 
 .signInNote {
   font-size: 0.8rem;
-  color: #888;
+  color: #595959;
   text-align: center;
   margin: 0;
 }
@@ -293,11 +293,11 @@
   }
 
   .placesHeading {
-    color: #666;
+    color: #aaa;
   }
 
   .signInNote {
-    color: #666;
+    color: #aaa;
   }
 
   .filterChip {

@@ -116,6 +116,7 @@ export default function PlaceDetailPage({ place, relatedPlaces }: Props) {
             href={`https://www.openstreetmap.org/${place.osm_id}`}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="View on OpenStreetMap (opens in new tab)"
           >
             View on OpenStreetMap ↗
           </a>

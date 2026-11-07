@@ -797,3 +797,112 @@ describe('public place queries', () => {
     });
   });
 });
+
+describe('bootstrap', () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalFrontendUrl = process.env.FRONTEND_URL;
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
+    process.env.FRONTEND_URL = originalFrontendUrl;
+  });
+
+  function strapiWithRoleAndPermission(options: {
+    role?: { id: number; type: string } | null;
+    existingPermission?: { id: number; enabled: boolean } | null;
+  }) {
+    const role = options.role === undefined ? { id: 10, type: 'authenticated' } : options.role;
+    const roleQuery = { findOne: jest.fn().mockResolvedValue(role) };
+    const permissionQuery = {
+      findOne: jest.fn().mockResolvedValue(options.existingPermission ?? null),
+      create: jest.fn().mockResolvedValue(undefined),
+      update: jest.fn().mockResolvedValue(undefined),
+    };
+    const strapi = {
+      db: {
+        query: jest.fn((uid: string) =>
+          uid === 'plugin::users-permissions.role' ? roleQuery : permissionQuery,
+        ),
+      },
+    };
+    return { strapi, roleQuery, permissionQuery };
+  }
+
+  it('throws when NODE_ENV is production and FRONTEND_URL is not set', async () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.FRONTEND_URL;
+    const { strapi } = strapiWithRoleAndPermission({});
+
+    await expect(indexPlugin.bootstrap({ strapi })).rejects.toThrow(
+      'FRONTEND_URL environment variable is required in production',
+    );
+  });
+
+  it('does not throw in production once FRONTEND_URL is set', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.FRONTEND_URL = 'https://londonlist.vercel.app';
+    const { strapi } = strapiWithRoleAndPermission({});
+
+    await expect(indexPlugin.bootstrap({ strapi })).resolves.toBeUndefined();
+  });
+
+  it('does not throw outside production even when FRONTEND_URL is unset', async () => {
+    process.env.NODE_ENV = 'test';
+    delete process.env.FRONTEND_URL;
+    const { strapi } = strapiWithRoleAndPermission({});
+
+    await expect(indexPlugin.bootstrap({ strapi })).resolves.toBeUndefined();
+  });
+
+  it('does nothing when the authenticated role does not exist', async () => {
+    process.env.NODE_ENV = 'test';
+    const { strapi, permissionQuery } = strapiWithRoleAndPermission({ role: null });
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.findOne).not.toHaveBeenCalled();
+  });
+
+  it('creates a permission that does not already exist', async () => {
+    process.env.NODE_ENV = 'test';
+    const { strapi, permissionQuery } = strapiWithRoleAndPermission({ existingPermission: null });
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          action: 'api::list-item.list-item.find',
+          role: 10,
+          enabled: true,
+        }),
+      }),
+    );
+  });
+
+  it('re-enables a permission that exists but is disabled', async () => {
+    process.env.NODE_ENV = 'test';
+    const { strapi, permissionQuery } = strapiWithRoleAndPermission({
+      existingPermission: { id: 99, enabled: false },
+    });
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 99 }, data: { enabled: true } }),
+    );
+    expect(permissionQuery.create).not.toHaveBeenCalled();
+  });
+
+  it('leaves an already-enabled permission untouched', async () => {
+    process.env.NODE_ENV = 'test';
+    const { strapi, permissionQuery } = strapiWithRoleAndPermission({
+      existingPermission: { id: 99, enabled: true },
+    });
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.update).not.toHaveBeenCalled();
+    expect(permissionQuery.create).not.toHaveBeenCalled();
+  });
+});

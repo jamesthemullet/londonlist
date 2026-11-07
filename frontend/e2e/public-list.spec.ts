@@ -32,14 +32,14 @@ async function handleGraphql(
 }
 
 test.describe('Public list detail page — not found', () => {
-  test('shows "List not found" when the list does not exist', async ({ page }) => {
+  test('shows the 404 page when the list does not exist', async ({ page }) => {
     await page.route(GRAPHQL_URL, (route, request) =>
       handleGraphql(route, request, { __me: null }),
     );
 
     await page.goto('/list/nonexistent-user/fake-list-id');
 
-    await expect(page.getByText('List not found.')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /page not found/i })).toBeVisible({ timeout: 5000 });
   });
 
   test('header navigation is still visible on not-found list page', async ({ page }) => {
@@ -55,26 +55,26 @@ test.describe('Public list detail page — not found', () => {
 });
 
 test.describe('Public list legacy page — not found', () => {
-  test('shows "User not found" when the user does not exist', async ({ page }) => {
+  test('shows the 404 page when the user does not exist', async ({ page }) => {
     await page.route(GRAPHQL_URL, (route, request) =>
       handleGraphql(route, request, { __me: null }),
     );
 
     await page.goto('/list/nonexistent-user-xyz');
 
-    await expect(page.getByText('User not found.')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /page not found/i })).toBeVisible({ timeout: 5000 });
   });
 });
 
 test.describe('Profile page — not found', () => {
-  test('shows "User not found" when the profile does not exist', async ({ page }) => {
+  test('shows the 404 page when the profile does not exist', async ({ page }) => {
     await page.route(GRAPHQL_URL, (route, request) =>
       handleGraphql(route, request, { __me: null }),
     );
 
     await page.goto('/profile/nonexistent-user-xyz');
 
-    await expect(page.getByText('User not found.')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /page not found/i })).toBeVisible({ timeout: 5000 });
   });
 
   test('header navigation is still visible on not-found profile page', async ({ page }) => {

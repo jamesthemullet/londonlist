@@ -46,7 +46,7 @@ export default function ShareButtons({ url, title, showCopyLink = true }: Props)
           className={styles.buttonLink}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Share on X (Twitter)"
+          aria-label="Share on X (Twitter) (opens in new tab)"
         >
           Share on X
         </a>
@@ -55,7 +55,7 @@ export default function ShareButtons({ url, title, showCopyLink = true }: Props)
           className={styles.buttonLink}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Share on WhatsApp"
+          aria-label="Share on WhatsApp (opens in new tab)"
         >
           WhatsApp
         </a>
@@ -64,7 +64,7 @@ export default function ShareButtons({ url, title, showCopyLink = true }: Props)
           className={styles.buttonLink}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Share on Facebook"
+          aria-label="Share on Facebook (opens in new tab)"
         >
           Facebook
         </a>
@@ -73,7 +73,7 @@ export default function ShareButtons({ url, title, showCopyLink = true }: Props)
           className={styles.buttonLink}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Share on Pinterest"
+          aria-label="Share on Pinterest (opens in new tab)"
         >
           Pinterest
         </a>

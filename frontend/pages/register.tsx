@@ -157,8 +157,9 @@ export default function RegisterRoute() {
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               className={styles.input}
               autoComplete="username"
+              aria-describedby="username-hint"
             />
-            <p className={styles.hint}>3–20 characters: letters, numbers, underscores, hyphens.</p>
+            <p id="username-hint" className={styles.hint}>3–20 characters: letters, numbers, underscores, hyphens.</p>
           </div>
           <div className={styles.fieldGroup}>
             <label htmlFor="email">Email</label>
