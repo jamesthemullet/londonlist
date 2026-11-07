@@ -165,21 +165,24 @@ export default function ExplorePage({ lists }: Props) {
           name="description"
           content="Browse curated lists of things to do in London — hidden gems, restaurants, museums, parks, and more."
         />
-        <meta property="og:title" content="Explore London Lists" />
+        <link rel="canonical" href={`${SITE_URL}/explore`} />
+        <meta property="og:title" key="og:title" content="Explore London Lists" />
         <meta
           property="og:description"
+          key="og:description"
           content="Browse curated lists of things to do in London — hidden gems, restaurants, museums, parks, and more."
         />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content={OG_IMAGE} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Explore London Lists" />
+        <meta property="og:type" key="og:type" content="website" />
+        <meta property="og:url" key="og:url" content={`${SITE_URL}/explore`} />
+        <meta property="og:image" key="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content="Explore London Lists" />
         <meta
           name="twitter:description"
+          key="twitter:description"
           content="Browse curated lists of things to do in London — hidden gems, restaurants, museums, parks, and more."
         />
-        <meta name="twitter:image" content={OG_IMAGE} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="twitter:image" key="twitter:image" content={OG_IMAGE} />
         {lists.length > 0 && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildExplorePageJsonLd(lists, SITE_URL)) }} />

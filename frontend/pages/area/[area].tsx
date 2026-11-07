@@ -108,19 +108,18 @@ export default function AreaPage({
 			<Head>
 				<title>{pageTitle}</title>
 				<meta name="description" content={areaDescription} />
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<link rel="canonical" href={canonicalUrl} />
-				<meta property="og:type" content="website" />
-				<meta property="og:site_name" content="London List" />
-				<meta property="og:title" content={pageTitle} />
-				<meta property="og:description" content={areaDescription} />
-				<meta property="og:url" content={canonicalUrl} />
-				<meta property="og:locale" content="en_GB" />
-				<meta property="og:image" content={ogImage} />
-				<meta name="twitter:card" content="summary_large_image" />
-				<meta name="twitter:title" content={pageTitle} />
-				<meta name="twitter:description" content={areaDescription} />
-				<meta name="twitter:image" content={ogImage} />
+				<meta property="og:type" key="og:type" content="website" />
+				<meta property="og:site_name" key="og:site_name" content="London List" />
+				<meta property="og:title" key="og:title" content={pageTitle} />
+				<meta property="og:description" key="og:description" content={areaDescription} />
+				<meta property="og:url" key="og:url" content={canonicalUrl} />
+				<meta property="og:locale" key="og:locale" content="en_GB" />
+				<meta property="og:image" key="og:image" content={ogImage} />
+				<meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+				<meta name="twitter:title" key="twitter:title" content={pageTitle} />
+				<meta name="twitter:description" key="twitter:description" content={areaDescription} />
+				<meta name="twitter:image" key="twitter:image" content={ogImage} />
 				{jsonLd && (
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
 					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />

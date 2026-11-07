@@ -80,16 +80,16 @@ export default function PlaceDetailPage({ place, relatedPlaces }: Props) {
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <link rel="canonical" href={canonicalUrl} />
-        <meta property="og:type" content="place" />
-        <meta property="og:site_name" content="London List" />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={ogImage} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={ogImage} />
+        <meta property="og:type" key="og:type" content="place" />
+        <meta property="og:site_name" key="og:site_name" content="London List" />
+        <meta property="og:title" key="og:title" content={pageTitle} />
+        <meta property="og:description" key="og:description" content={pageDescription} />
+        <meta property="og:url" key="og:url" content={canonicalUrl} />
+        <meta property="og:image" key="og:image" content={ogImage} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" key="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" key="twitter:image" content={ogImage} />
         <script
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
