@@ -124,13 +124,13 @@ export default function RegisterRoute() {
           name="description"
           content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="Create your free account — London List" />
+        <meta property="og:title" key="og:title" content="Create your free account — London List" />
         <meta
           property="og:description"
+          key="og:description"
           content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
         />
-        <meta property="og:type" content="website" />
+        <meta property="og:type" key="og:type" content="website" />
       </Head>
       <main className={styles.container}>
       <div>

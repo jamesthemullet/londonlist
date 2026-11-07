@@ -66,16 +66,15 @@ export default function CategoryExplorePage({ lists, category, meta }: Props) {
         <title>{pageTitle}</title>
         <meta name="description" content={meta.description} />
         <link rel="canonical" href={ogUrl} />
-        <meta property="og:title" content={`London ${meta.label} Lists`} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:url" content={ogUrl} />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content={ogImage} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`London ${meta.label} Lists`} />
-        <meta name="twitter:description" content={meta.description} />
-        <meta name="twitter:image" content={ogImage} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" key="og:title" content={`London ${meta.label} Lists`} />
+        <meta property="og:description" key="og:description" content={meta.description} />
+        <meta property="og:url" key="og:url" content={ogUrl} />
+        <meta property="og:type" key="og:type" content="website" />
+        <meta property="og:image" key="og:image" content={ogImage} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content={`London ${meta.label} Lists`} />
+        <meta name="twitter:description" key="twitter:description" content={meta.description} />
+        <meta name="twitter:image" key="twitter:image" content={ogImage} />
         {jsonLd && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />

@@ -9,6 +9,7 @@ import { useAuthHeader } from '../hooks/use-auth-header';
 import { TEMPLATES, getAllTemplateTags, filterTemplatesByTag } from '../lib/templates';
 import type { Template, TemplateItem } from '../lib/templates';
 import { getGraphQLErrorCode } from '../lib/graphql-error';
+import { buildOgImageUrl } from '../lib/og-image';
 import styles from './templates.module.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
@@ -185,6 +186,7 @@ export default function TemplatesPage() {
   const ogDescription =
     'Ready-made London itineraries curated by locals. Copy one to your account and start exploring.';
   const ogUrl = `${SITE_URL}/templates`;
+  const ogImage = buildOgImageUrl({ title: ogTitle }, SITE_URL);
 
   function handleTagClick(tag: string) {
     setActiveTag((prev) => (prev === tag ? null : tag));
@@ -195,15 +197,17 @@ export default function TemplatesPage() {
       <Head>
         <title>{ogTitle}</title>
         <meta name="description" content={ogDescription} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="London List" />
-        <meta property="og:title" content={ogTitle} />
-        <meta property="og:description" content={ogDescription} />
-        <meta property="og:url" content={ogUrl} />
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content={ogTitle} />
-        <meta name="twitter:description" content={ogDescription} />
+        <link rel="canonical" href={ogUrl} />
+        <meta property="og:type" key="og:type" content="website" />
+        <meta property="og:site_name" key="og:site_name" content="London List" />
+        <meta property="og:title" key="og:title" content={ogTitle} />
+        <meta property="og:description" key="og:description" content={ogDescription} />
+        <meta property="og:url" key="og:url" content={ogUrl} />
+        <meta property="og:image" key="og:image" content={ogImage} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" key="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" key="twitter:image" content={ogImage} />
       </Head>
       <main className={styles.main}>
         <div className={styles.hero}>

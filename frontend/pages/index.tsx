@@ -88,21 +88,23 @@ export default function Home() {
           content="Build your London bucket list. Add places to visit, track your adventures, and share curated lists with friends. Free to use."
         />
         <link rel="canonical" href={`${SITE_URL}/`} />
-        <meta property="og:title" content="London List — Your London Bucket List App" />
+        <meta property="og:title" key="og:title" content="London List — Your London Bucket List App" />
         <meta
           property="og:description"
+          key="og:description"
           content="Add places, track visits, and share your London adventures with friends. Create your free bucket list today."
         />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${SITE_URL}/`} />
-        <meta property="og:image" content={OG_IMAGE} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="London List — Your London Bucket List App" />
+        <meta property="og:type" key="og:type" content="website" />
+        <meta property="og:url" key="og:url" content={`${SITE_URL}/`} />
+        <meta property="og:image" key="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content="London List — Your London Bucket List App" />
         <meta
           name="twitter:description"
+          key="twitter:description"
           content="Add places, track visits, and share your London adventures. Free to use."
         />
-        <meta name="twitter:image" content={OG_IMAGE} />
+        <meta name="twitter:image" key="twitter:image" content={OG_IMAGE} />
         {buildWebSiteJsonLd(SITE_URL) && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildWebSiteJsonLd(SITE_URL)) }} />

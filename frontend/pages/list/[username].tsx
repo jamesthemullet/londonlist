@@ -96,18 +96,17 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
       <Head>
         <title>{username}&apos;s London List</title>
         <meta name="description" content={ogDescription} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={ogUrl} />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="London List" />
-        <meta property="og:title" content={ogTitle} />
-        <meta property="og:description" content={ogDescription} />
-        <meta property="og:url" content={ogUrl} />
-        <meta property="og:image" content={ogImage} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={ogTitle} />
-        <meta name="twitter:description" content={ogDescription} />
-        <meta name="twitter:image" content={ogImage} />
+        <meta property="og:type" key="og:type" content="website" />
+        <meta property="og:site_name" key="og:site_name" content="London List" />
+        <meta property="og:title" key="og:title" content={ogTitle} />
+        <meta property="og:description" key="og:description" content={ogDescription} />
+        <meta property="og:url" key="og:url" content={ogUrl} />
+        <meta property="og:image" key="og:image" content={ogImage} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" key="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" key="twitter:image" content={ogImage} />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       </Head>
