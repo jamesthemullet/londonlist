@@ -208,5 +208,57 @@ test.describe('Pricing page — logged-in free user starts checkout', () => {
     await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
     expect(page.url()).toContain('checkout.stripe.com');
   });
+
+  test('checkout API failure shows an error message and re-enables the button', async ({ page }) => {
+    await page.route('**/api/stripe/create-checkout-session', async (route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Internal error' }),
+      });
+    });
+
+    await page.goto('/pricing');
+
+    await page.getByRole('button', { name: 'Start 14-day free trial' }).click();
+
+    await expect(
+      page.getByText('Something went wrong starting checkout. Please try again.'),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: 'Start 14-day free trial' })).toBeEnabled();
+  });
+});
+
+test.describe('Pricing page — checkout success confirmation', () => {
+  test.beforeEach(async ({ context, page }) => {
+    await context.clearCookies();
+    await context.addCookies([
+      { name: 'token', value: 'fake_auth_token', url: 'http://localhost:3000' },
+    ]);
+
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, {
+        __me: MOCK_USER,
+      }),
+    );
+  });
+
+  test('/pricing?checkout=success&session_id=… confirms the session and shows the success banner', async ({
+    page,
+  }) => {
+    let confirmRequestBody: unknown;
+    await page.route('**/api/stripe/confirm-checkout-session', async (route, request) => {
+      confirmRequestBody = request.postDataJSON();
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ isPro: true }),
+      });
+    });
+
+    await page.goto('/pricing?checkout=success&session_id=sess_mock123');
+
+    await expect(page.getByText('Payment successful!')).toBeVisible({ timeout: 5000 });
+    await expect.poll(() => confirmRequestBody).toEqual({ sessionId: 'sess_mock123' });
+  });
 });
 
