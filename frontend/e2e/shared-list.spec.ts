@@ -111,7 +111,7 @@ test.describe('Public list detail page — found', () => {
 
     await page.goto(`/list/${FIXTURE_USERNAME}/${FIXTURE_LIST_ID}`);
 
-    await expect(page.locator('[role="region"][aria-label*="map" i]')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('region', { name: /map/i })).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -169,13 +169,14 @@ test.describe('Public list detail page — private list', () => {
 });
 
 test.describe('Public list detail page — not found', () => {
-  test('shows "List not found." for an unknown list', async ({ page }) => {
+  test('renders the 404 page for an unknown list', async ({ page }) => {
     await page.route(GRAPHQL_URL, (route, request) =>
       handleGraphql(route, request, { __me: null }),
     );
 
-    await page.goto('/list/unknown-user/unknown-list-id');
+    const response = await page.goto('/list/unknown-user/unknown-list-id');
 
-    await expect(page.getByText('List not found.')).toBeVisible({ timeout: 5000 });
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible({ timeout: 5000 });
   });
 });

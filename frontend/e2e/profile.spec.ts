@@ -120,14 +120,15 @@ test.describe('Profile page — found', () => {
 });
 
 test.describe('Profile page — not found', () => {
-  test('shows "User not found." for an unknown username', async ({ page }) => {
+  test('renders the 404 page for an unknown username', async ({ page }) => {
     await page.route(GRAPHQL_URL, (route, request) =>
       handleGraphql(route, request, { __me: null }),
     );
 
-    await page.goto('/profile/unknown-user-xyz');
+    const response = await page.goto('/profile/unknown-user-xyz');
 
-    await expect(page.getByText('User not found.')).toBeVisible({ timeout: 5000 });
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible({ timeout: 5000 });
   });
 
   test('header navigation remains visible on a not-found profile', async ({ page }) => {
