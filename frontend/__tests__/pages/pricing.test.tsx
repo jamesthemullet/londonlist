@@ -381,6 +381,31 @@ describe('PricingPage — post-checkout confirmation', () => {
 
     expect(global.fetch).not.toHaveBeenCalled();
   });
+
+  it('shows an error message when confirm-checkout-session returns isPro false', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    mockUseRouter.mockReturnValue({ query: { checkout: 'success', session_id: 'cs_test_abc' }, push: jest.fn() });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ isPro: false }),
+    });
+
+    render(<PricingPage />);
+
+    await screen.findByRole('alert');
+    expect(screen.getByRole('alert').textContent).toMatch(/went wrong confirming/i);
+  });
+
+  it('shows an error message when confirm-checkout-session fetch rejects', async () => {
+    mockUseAppContext.mockReturnValue({ user: freeUser, setUser: jest.fn(), initialized: true });
+    mockUseRouter.mockReturnValue({ query: { checkout: 'success', session_id: 'cs_test_abc' }, push: jest.fn() });
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network failure'));
+
+    render(<PricingPage />);
+
+    await screen.findByRole('alert');
+    expect(screen.getByRole('alert').textContent).toMatch(/went wrong confirming/i);
+  });
 });
 
 describe('buildPricingJsonLd', () => {

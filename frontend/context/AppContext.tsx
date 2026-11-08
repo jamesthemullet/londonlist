@@ -29,9 +29,14 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const userData = await getUser();
-      setUser(userData);
-      setInitialized(true);
+      try {
+        const userData = await getUser();
+        setUser(userData);
+      } catch {
+        // Network failure — treat as logged-out; initialized must still fire
+      } finally {
+        setInitialized(true);
+      }
     };
     fetchData();
   }, []);
