@@ -29,7 +29,7 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://*.tile.openstreetmap.org",
+              "img-src 'self' data: blob: https://tile.openstreetmap.org",
               "font-src 'self'",
               `connect-src 'self' https://photon.komoot.io ${process.env.STRAPI_URL || 'http://127.0.0.1:1337'} http://localhost:1337`,
               "frame-ancestors 'none'",

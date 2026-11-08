@@ -46,24 +46,13 @@ type ProfileData = {
   lists: PublicList[];
 };
 
-type PageState = 'found' | 'not_found';
-
 type Props = {
-  pageState: PageState;
   profileData: ProfileData | null;
   username: string;
 };
 
-export default function ProfilePage({ pageState, profileData, username }: Props) {
+export default function ProfilePage({ profileData, username }: Props) {
   const { user, initialized } = useAppContext();
-
-  if (pageState === 'not_found') {
-    return (
-      <main className={styles.main}>
-        <p>User not found.</p>
-      </main>
-    );
-  }
 
   const lists = profileData?.lists ?? [];
   const totalPlaces = lists.reduce((sum, l) => sum + l.itemCount, 0);
@@ -166,14 +155,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
   try {
     const res = await fetch(`${API_URL}/api/lists/public/${username}`);
     if (res.status === 404) {
-      return { props: { pageState: 'not_found', profileData: null, username } };
+      return { notFound: true };
     }
     if (res.ok) {
       const data: ProfileData = await res.json();
-      return { props: { pageState: 'found', profileData: data, username } };
+      return { props: { profileData: data, username } };
     }
-    return { props: { pageState: 'not_found', profileData: null, username } };
+    return { notFound: true };
   } catch {
-    return { props: { pageState: 'not_found', profileData: null, username } };
+    return { notFound: true };
   }
 };

@@ -68,7 +68,7 @@ type PublicExploreList = {
   categories: string[];
 };
 
-type PageState = 'found' | 'private' | 'not_found';
+type PageState = 'found' | 'private';
 
 type Props = {
   pageState: PageState;
@@ -288,19 +288,13 @@ export function buildItemListJsonLd(
 
 export default function PublicListPage({ pageState, listData, username, listId, otherLists = [], relatedLists = [] }: Props) {
   const { user, initialized } = useAppContext();
-  if (pageState === 'not_found') {
-    return (
-      <main className={styles.main}>
-        <p>List not found.</p>
-      </main>
-    );
-  }
 
   if (pageState === 'private') {
     return (
       <>
         <Head>
           <title>{username}&apos;s List — London List</title>
+          <meta name="robots" content="noindex" />
         </Head>
         <main className={styles.main}>
           <h1 className={styles.heading}>{username}&apos;s List</h1>
@@ -576,7 +570,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
       return { props: { pageState: 'private', listData: null, username, listId, otherLists: [], relatedLists: [] } };
     }
     if (listRes.status === 404) {
-      return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
+      return { notFound: true };
     }
     if (listRes.ok) {
       const data: PublicListData = await listRes.json();
@@ -597,8 +591,8 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
 
       return { props: { pageState: 'found', listData: data, username, listId, otherLists, relatedLists } };
     }
-    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
+    return { notFound: true };
   } catch {
-    return { props: { pageState: 'not_found', listData: null, username, listId, otherLists: [], relatedLists: [] } };
+    return { notFound: true };
   }
 };

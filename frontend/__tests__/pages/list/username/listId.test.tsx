@@ -89,16 +89,6 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-describe('PublicListPage — not_found state', () => {
-  it('renders "List not found" when pageState is not_found', () => {
-    render(
-      <PublicListPage pageState="not_found" listData={null} username="alice" listId="list-abc" />,
-    );
-
-    expect(screen.getByText('List not found.')).toBeInTheDocument();
-  });
-});
-
 describe('PublicListPage — private state', () => {
   it('renders "This list is private" when pageState is private', () => {
     render(
@@ -731,14 +721,6 @@ describe('PublicListPage — JSON-LD script tag in DOM', () => {
     expect(script).toBeInTheDocument();
   });
 
-  it('does not render JSON-LD when pageState is not_found', () => {
-    const { container } = render(
-      <PublicListPage pageState="not_found" listData={null} username="alice" listId="list-abc" />,
-    );
-    const script = container.querySelector('script[type="application/ld+json"]');
-    expect(script).not.toBeInTheDocument();
-  });
-
   it('does not render JSON-LD when pageState is private', () => {
     const { container } = render(
       <PublicListPage pageState="private" listData={null} username="alice" listId="list-abc" />,
@@ -1355,18 +1337,6 @@ describe('PublicListPage — more lists by author', () => {
     expect(section).toHaveAttribute('aria-label', 'More lists by alice');
   });
 
-  it('does not render the "More by" section when pageState is not_found', () => {
-    render(
-      <PublicListPage
-        pageState="not_found"
-        listData={null}
-        username="alice"
-        listId="list-abc"
-        otherLists={OTHER_LISTS}
-      />,
-    );
-    expect(screen.queryByRole('heading', { name: /More by/i })).not.toBeInTheDocument();
-  });
 });
 
 // ─── selectRelatedLists unit tests ───────────────────────────────────────────
@@ -1748,13 +1718,13 @@ describe('getServerSideProps', () => {
     expect(result).toEqual({ props: { pageState: 'private', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
   });
 
-  it('returns not_found pageState when the list API returns 404', async () => {
+  it('returns notFound when the list API returns 404', async () => {
     global.fetch = jest.fn()
       .mockResolvedValueOnce({ status: 404, ok: false })
       .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
       .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
     const result = await getServerSideProps(makeContext('alice', 'list-abc'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+    expect(result).toEqual({ notFound: true });
   });
 
   it('returns found pageState with listData, otherLists and relatedLists when all fetches succeed', async () => {
@@ -1791,19 +1761,19 @@ describe('getServerSideProps', () => {
     expect(result.props.relatedLists).toEqual([]);
   });
 
-  it('returns not_found pageState for a non-ok list response', async () => {
+  it('returns notFound for a non-ok list response', async () => {
     global.fetch = jest.fn()
       .mockResolvedValueOnce({ status: 500, ok: false })
       .mockResolvedValueOnce({ status: 200, ok: true, json: async () => PROFILE_DATA })
       .mockResolvedValueOnce({ status: 200, ok: true, json: async () => EXPLORE_DATA });
     const result = await getServerSideProps(makeContext('alice', 'list-abc'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+    expect(result).toEqual({ notFound: true });
   });
 
-  it('returns not_found pageState when fetch throws', async () => {
+  it('returns notFound when fetch throws', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
     const result = await getServerSideProps(makeContext('alice', 'list-abc'));
-    expect(result).toEqual({ props: { pageState: 'not_found', listData: null, username: 'alice', listId: 'list-abc', otherLists: [], relatedLists: [] } });
+    expect(result).toEqual({ notFound: true });
   });
 
   it('excludes the current list from otherLists', async () => {

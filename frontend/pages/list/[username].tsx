@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../context/AppContext';
 import { buildOgImageUrl } from '../../lib/og-image';
+import { safeJsonLd } from '../../lib/json-ld';
 import styles from './[username].module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
@@ -21,7 +22,7 @@ type PublicListData = {
   username: string;
 };
 
-type PageState = 'found' | 'private' | 'not_found';
+type PageState = 'found' | 'private';
 
 type Props = {
   pageState: PageState;
@@ -63,19 +64,12 @@ export function buildProfileOgDescription(listData: PublicListData): string {
 export default function PublicProfilePage({ pageState, listData, username }: Props) {
   const { user, initialized } = useAppContext();
 
-  if (pageState === 'not_found') {
-    return (
-      <main className={styles.main}>
-        <p>User not found.</p>
-      </main>
-    );
-  }
-
   if (pageState === 'private') {
     return (
       <>
         <Head>
           <title>{username}&apos;s List — London List</title>
+          <meta name="robots" content="noindex" />
         </Head>
         <main className={styles.main}>
           <h1 className={styles.heading}>{username}&apos;s List</h1>
@@ -114,8 +108,8 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDescription} />
         <meta name="twitter:image" content={ogImage} />
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data, not user content */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       </Head>
       <main className={styles.main}>
         <h1 className={styles.heading}>{username}&apos;s List</h1>
@@ -176,14 +170,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
       return { props: { pageState: 'private', listData: null, username } };
     }
     if (res.status === 404) {
-      return { props: { pageState: 'not_found', listData: null, username } };
+      return { notFound: true };
     }
     if (res.ok) {
       const data: PublicListData = await res.json();
       return { props: { pageState: 'found', listData: data, username } };
     }
-    return { props: { pageState: 'not_found', listData: null, username } };
+    return { notFound: true };
   } catch {
-    return { props: { pageState: 'not_found', listData: null, username } };
+    return { notFound: true };
   }
 };
