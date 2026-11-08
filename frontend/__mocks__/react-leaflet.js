@@ -1,11 +1,11 @@
 const React = require('react');
 
-const MapContainer = ({ children, style, 'aria-label': ariaLabel }) =>
-  React.createElement('div', { 'data-testid': 'map-container', style, 'aria-label': ariaLabel }, children);
+const MapContainer = ({ children, style }) =>
+  React.createElement('div', { style }, children);
 
 const TileLayer = () => null;
 
-const Marker = ({ children }) => React.createElement('div', { 'data-testid': 'map-marker' }, children);
+const Marker = ({ children, title }) => React.createElement('div', { 'data-testid': 'map-marker', title }, children);
 
 const Popup = ({ children }) => React.createElement('div', { 'data-testid': 'map-popup' }, children);
 

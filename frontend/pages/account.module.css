@@ -69,14 +69,15 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.95rem;
-  outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   font-family: inherit;
   width: 100%;
   box-sizing: border-box;
 }
 
-.input:focus {
+.input:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
   border-color: #c724b1;
   box-shadow: 0 0 0 2px rgba(199, 36, 177, 0.2);
 }

@@ -22,7 +22,7 @@ type PublicListData = {
   username: string;
 };
 
-type PageState = 'found' | 'private' | 'not_found';
+type PageState = 'found' | 'private';
 
 type Props = {
   pageState: PageState;
@@ -64,19 +64,12 @@ export function buildProfileOgDescription(listData: PublicListData): string {
 export default function PublicProfilePage({ pageState, listData, username }: Props) {
   const { user, initialized } = useAppContext();
 
-  if (pageState === 'not_found') {
-    return (
-      <main className={styles.main}>
-        <p>User not found.</p>
-      </main>
-    );
-  }
-
   if (pageState === 'private') {
     return (
       <>
         <Head>
           <title>{username}&apos;s List — London List</title>
+          <meta name="robots" content="noindex" />
         </Head>
         <main className={styles.main}>
           <h1 className={styles.heading}>{username}&apos;s List</h1>
@@ -177,14 +170,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
       return { props: { pageState: 'private', listData: null, username } };
     }
     if (res.status === 404) {
-      return { props: { pageState: 'not_found', listData: null, username } };
+      return { notFound: true };
     }
     if (res.ok) {
       const data: PublicListData = await res.json();
       return { props: { pageState: 'found', listData: data, username } };
     }
-    return { props: { pageState: 'not_found', listData: null, username } };
+    return { notFound: true };
   } catch {
-    return { props: { pageState: 'not_found', listData: null, username } };
+    return { notFound: true };
   }
 };

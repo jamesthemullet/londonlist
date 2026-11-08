@@ -61,33 +61,35 @@ export default function ListMap({ items }: Props) {
   const LONDON_CENTER: [number, number] = [51.5074, -0.1278];
 
   return (
-    <MapContainer
-      center={LONDON_CENTER}
-      zoom={12}
-      style={{ height: '320px', width: '100%', borderRadius: '8px' }}
-      aria-label="Map showing list places"
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      {items.map((item) => (
-        <Marker
-          key={item.documentId}
-          position={[item.lat, item.lng]}
-          icon={item.completed ? DONE_ICON : TODO_ICON}
-        >
-          <Popup>
-            <strong>{item.name}</strong>
-            {item.category && <><br /><span>{item.category}</span></>}
-            <br />
-            <span style={{ color: item.completed ? '#22c55e' : '#c724b1' }}>
-              {item.completed ? '✓ Done' : '○ To do'}
-            </span>
-          </Popup>
-        </Marker>
-      ))}
-      <FitBounds items={items} />
-    </MapContainer>
+    <section aria-label="Map showing list places" data-testid="map-container">
+      <MapContainer
+        center={LONDON_CENTER}
+        zoom={12}
+        style={{ height: '320px', width: '100%', borderRadius: '8px' }}
+      >
+        <TileLayer
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {items.map((item) => (
+          <Marker
+            key={item.documentId}
+            position={[item.lat, item.lng]}
+            icon={item.completed ? DONE_ICON : TODO_ICON}
+            title={item.name}
+          >
+            <Popup>
+              <strong>{item.name}</strong>
+              {item.category && <><br /><span>{item.category}</span></>}
+              <br />
+              <span style={{ color: item.completed ? '#22c55e' : '#c724b1' }}>
+                {item.completed ? '✓ Done' : '○ To do'}
+              </span>
+            </Popup>
+          </Marker>
+        ))}
+        <FitBounds items={items} />
+      </MapContainer>
+    </section>
   );
 }

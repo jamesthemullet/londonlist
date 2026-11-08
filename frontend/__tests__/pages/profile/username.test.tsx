@@ -66,83 +66,76 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-describe('ProfilePage — not_found state', () => {
-  it('renders "User not found" when pageState is not_found', () => {
-    render(<ProfilePage pageState="not_found" profileData={null} username="alice" />);
-    expect(screen.getByText('User not found.')).toBeInTheDocument();
-  });
-});
-
 describe('ProfilePage — found state with lists', () => {
   it("renders the user's name in the heading", () => {
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent("alice's London Lists");
   });
 
   it('renders the stats line with list count and place count', () => {
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.getByText(/1 public list/)).toBeInTheDocument();
     expect(screen.getByText(/5 places/)).toBeInTheDocument();
     expect(screen.getByText(/2 visited/)).toBeInTheDocument();
   });
 
   it('uses singular "list" when there is exactly one list', () => {
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.getByText(/1 public list\b/)).toBeInTheDocument();
   });
 
   it('uses plural "lists" when there are multiple lists', () => {
     const data = { username: 'alice', lists: [LIST_WITH_ITEMS, LIST_EMPTY] };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.getByText(/2 public lists/)).toBeInTheDocument();
   });
 
   it('uses singular "place" when there is exactly one place total', () => {
     const singlePlaceList = { ...LIST_WITH_ITEMS, itemCount: 1, completedCount: 0 };
     const data = { username: 'alice', lists: [singlePlaceList] };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.getByText(/1 place\b/)).toBeInTheDocument();
   });
 
   it('renders a card for each public list', () => {
     const data = { username: 'alice', lists: [LIST_WITH_ITEMS, LIST_EMPTY] };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.getByText('Weekend Wanders')).toBeInTheDocument();
     expect(screen.getByText('Future Plans')).toBeInTheDocument();
   });
 
   it('links each list card to the correct list URL', () => {
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     const link = screen.getByRole('link', { name: /Weekend Wanders/ });
     expect(link).toHaveAttribute('href', '/list/alice/list-1');
   });
 
   it('shows a "to do" count badge for incomplete items', () => {
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.getByText('3 to do')).toBeInTheDocument();
   });
 
   it('shows a "done" count badge for completed items', () => {
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.getByText('2 done')).toBeInTheDocument();
   });
 
   it('shows an "empty" badge for a list with no items', () => {
     const data = { username: 'alice', lists: [LIST_EMPTY] };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.getByText('empty')).toBeInTheDocument();
   });
 
   it('does not show "to do" badge when all items are completed', () => {
     const data = { username: 'alice', lists: [LIST_ALL_DONE] };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.queryByText(/to do/)).not.toBeInTheDocument();
   });
 
   it('does not show "done" badge when no items are completed', () => {
     const allTodoList = { ...LIST_WITH_ITEMS, completedCount: 0 };
     const data = { username: 'alice', lists: [allTodoList] };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.queryByText(/done/)).not.toBeInTheDocument();
   });
 });
@@ -150,13 +143,13 @@ describe('ProfilePage — found state with lists', () => {
 describe('ProfilePage — found state with no lists', () => {
   it('renders an empty state message when the user has no public lists', () => {
     const data = { username: 'alice', lists: [] };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.getByText('No public lists yet.')).toBeInTheDocument();
   });
 
   it('renders zero stats when there are no lists', () => {
     const data = { username: 'alice', lists: [] };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.getByText(/0 public lists/)).toBeInTheDocument();
     expect(screen.getByText(/0 places/)).toBeInTheDocument();
   });
@@ -171,7 +164,7 @@ describe('ProfilePage — stats aggregation', () => {
         { documentId: 'l2', name: 'B', itemCount: 6, completedCount: 3 },
       ],
     };
-    render(<ProfilePage pageState="found" profileData={data} username="alice" />);
+    render(<ProfilePage profileData={data} username="alice" />);
     expect(screen.getByText(/10 places/)).toBeInTheDocument();
     expect(screen.getByText(/4 visited/)).toBeInTheDocument();
   });
@@ -180,13 +173,13 @@ describe('ProfilePage — stats aggregation', () => {
 describe('ProfilePage — conversion banner', () => {
   it('shows the conversion banner for unauthenticated visitors', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.getByText("Inspired by alice's lists?")).toBeInTheDocument();
   });
 
   it('links the conversion CTA to /register with the correct ref', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     const cta = screen.getByRole('link', { name: 'Create your list' });
     expect(cta).toHaveAttribute('href', '/register?ref=profile');
   });
@@ -197,20 +190,20 @@ describe('ProfilePage — conversion banner', () => {
       initialized: true,
       setUser: jest.fn(),
     });
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.queryByText("Inspired by alice's lists?")).not.toBeInTheDocument();
   });
 
   it('hides the conversion banner before context is initialized', () => {
     mockUseAppContext.mockReturnValue({ user: null, initialized: false, setUser: jest.fn() });
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.queryByText("Inspired by alice's lists?")).not.toBeInTheDocument();
   });
 });
 
 describe('ProfilePage — OG meta description', () => {
   it('renders the username in the page heading to verify OG content is accurate', () => {
-    render(<ProfilePage pageState="found" profileData={PROFILE_DATA} username="alice" />);
+    render(<ProfilePage profileData={PROFILE_DATA} username="alice" />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('alice');
   });
 });
@@ -269,28 +262,28 @@ describe('getServerSideProps', () => {
 
   beforeEach(() => { jest.resetAllMocks(); });
 
-  it('returns not_found pageState when the API returns 404', async () => {
+  it('returns notFound when the API returns 404', async () => {
     global.fetch = jest.fn().mockResolvedValue({ status: 404, ok: false });
     const result = await getServerSideProps(makeContext('bob'));
-    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
+    expect(result).toEqual({ notFound: true });
   });
 
-  it('returns found pageState with profileData on a successful response', async () => {
+  it('returns props with profileData on a successful response', async () => {
     const profileData = { lists: [{ documentId: 'l1', name: 'My List', itemCount: 3, completedCount: 1 }] };
     global.fetch = jest.fn().mockResolvedValue({ status: 200, ok: true, json: async () => profileData });
     const result = await getServerSideProps(makeContext('bob'));
-    expect(result).toEqual({ props: { pageState: 'found', profileData, username: 'bob' } });
+    expect(result).toEqual({ props: { profileData, username: 'bob' } });
   });
 
-  it('returns not_found pageState for a non-ok, non-404 response', async () => {
+  it('returns notFound for a non-ok, non-404 response', async () => {
     global.fetch = jest.fn().mockResolvedValue({ status: 500, ok: false });
     const result = await getServerSideProps(makeContext('bob'));
-    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
+    expect(result).toEqual({ notFound: true });
   });
 
-  it('returns not_found pageState when fetch throws', async () => {
+  it('returns notFound when fetch throws', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
     const result = await getServerSideProps(makeContext('bob'));
-    expect(result).toEqual({ props: { pageState: 'not_found', profileData: null, username: 'bob' } });
+    expect(result).toEqual({ notFound: true });
   });
 });
