@@ -1,3 +1,3 @@
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreRouter('api::list-setting.list-setting');
+export default factories.createCoreRouter('api::list-setting.list-setting', { only: ['find', 'create'] });

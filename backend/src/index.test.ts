@@ -47,6 +47,8 @@ type ResolverMap = {
     createListItem: { resolve: Resolve };
     updateListItem: { resolve: Resolve };
     deleteListItem: { resolve: Resolve };
+    createListSetting: { resolve: Resolve };
+    updateListSetting: { resolve: Resolve };
     createMyList: { resolve: Resolve };
     updateMyList: { resolve: Resolve };
     deleteMyList: { resolve: Resolve };
@@ -444,6 +446,75 @@ describe('GraphQL resolvers — ownership checks', () => {
       });
       expect(listDocuments.delete).toHaveBeenCalledWith({ documentId: 'list-1' });
       expect(result).toBe(true);
+    });
+  });
+
+  describe('updateListSetting', () => {
+    it('throws Forbidden access when the setting is not owned by the caller', async () => {
+      const settingDocuments = {
+        findOne: jest.fn().mockResolvedValue({ user: { id: 2 } }),
+        update: jest.fn(),
+      };
+      const resolvers = getResolvers({
+        documents: jest
+          .fn()
+          .mockImplementation((uid: string) =>
+            uid === 'api::list-setting.list-setting' ? settingDocuments : {},
+          ),
+      });
+
+      await expect(
+        resolvers.Mutation.updateListSetting.resolve(
+          null,
+          { documentId: 'setting-1', data: { isPublic: true } },
+          context,
+        ),
+      ).rejects.toThrow('Forbidden access');
+      expect(settingDocuments.update).not.toHaveBeenCalled();
+    });
+
+    it('throws Forbidden access when the setting does not exist', async () => {
+      const settingDocuments = { findOne: jest.fn().mockResolvedValue(null), update: jest.fn() };
+      const resolvers = getResolvers({
+        documents: jest
+          .fn()
+          .mockImplementation((uid: string) =>
+            uid === 'api::list-setting.list-setting' ? settingDocuments : {},
+          ),
+      });
+
+      await expect(
+        resolvers.Mutation.updateListSetting.resolve(
+          null,
+          { documentId: 'setting-1', data: { isPublic: false } },
+          context,
+        ),
+      ).rejects.toThrow('Forbidden access');
+    });
+
+    it('only passes isPublic to the update (mass-assignment protection)', async () => {
+      const settingDocuments = {
+        findOne: jest.fn().mockResolvedValue({ user: { id: 1 } }),
+        update: jest.fn().mockResolvedValue({ documentId: 'setting-1', isPublic: true }),
+      };
+      const resolvers = getResolvers({
+        documents: jest
+          .fn()
+          .mockImplementation((uid: string) =>
+            uid === 'api::list-setting.list-setting' ? settingDocuments : {},
+          ),
+      });
+
+      await resolvers.Mutation.updateListSetting.resolve(
+        null,
+        { documentId: 'setting-1', data: { isPublic: true, user: 999, list: 'other-list' } },
+        context,
+      );
+
+      expect(settingDocuments.update).toHaveBeenCalledWith({
+        documentId: 'setting-1',
+        data: { isPublic: true },
+      });
     });
   });
 
@@ -863,7 +934,7 @@ describe('bootstrap', () => {
     expect(permissionQuery.findOne).not.toHaveBeenCalled();
   });
 
-  it('creates a permission that does not already exist', async () => {
+  it('creates a safe permission that does not already exist', async () => {
     process.env.NODE_ENV = 'test';
     const { strapi, permissionQuery } = strapiWithRoleAndPermission({ existingPermission: null });
 
@@ -872,7 +943,7 @@ describe('bootstrap', () => {
     expect(permissionQuery.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          action: 'api::list-item.list-item.find',
+          action: 'api::list-setting.list-setting.find',
           role: 10,
           enabled: true,
         }),
@@ -880,7 +951,25 @@ describe('bootstrap', () => {
     );
   });
 
-  it('re-enables a permission that exists but is disabled', async () => {
+  it('does not create permissions for dangerous actions', async () => {
+    process.env.NODE_ENV = 'test';
+    const { strapi, permissionQuery } = strapiWithRoleAndPermission({ existingPermission: null });
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.create).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ action: 'api::list.list.find' }),
+      }),
+    );
+    expect(permissionQuery.create).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ action: 'api::list-item.list-item.find' }),
+      }),
+    );
+  });
+
+  it('re-enables a safe permission that exists but is disabled', async () => {
     process.env.NODE_ENV = 'test';
     const { strapi, permissionQuery } = strapiWithRoleAndPermission({
       existingPermission: { id: 99, enabled: false },
@@ -894,7 +983,7 @@ describe('bootstrap', () => {
     expect(permissionQuery.create).not.toHaveBeenCalled();
   });
 
-  it('leaves an already-enabled permission untouched', async () => {
+  it('disables dangerous actions that are currently enabled', async () => {
     process.env.NODE_ENV = 'test';
     const { strapi, permissionQuery } = strapiWithRoleAndPermission({
       existingPermission: { id: 99, enabled: true },
@@ -902,7 +991,21 @@ describe('bootstrap', () => {
 
     await indexPlugin.bootstrap({ strapi });
 
-    expect(permissionQuery.update).not.toHaveBeenCalled();
-    expect(permissionQuery.create).not.toHaveBeenCalled();
+    expect(permissionQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 99 }, data: { enabled: false } }),
+    );
+  });
+
+  it('does not update a dangerous action that is already disabled', async () => {
+    process.env.NODE_ENV = 'test';
+    const { strapi, permissionQuery } = strapiWithRoleAndPermission({
+      existingPermission: { id: 99, enabled: false },
+    });
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({ data: { enabled: false } }),
+    );
   });
 });
