@@ -73,17 +73,16 @@ export default function ProfilePage({ profileData, username }: Props) {
       <Head>
         <title>{ogTitle} — London List</title>
         <meta name="description" content={ogDescription} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={ogUrl} />
-        <meta property="og:title" content={ogTitle} />
-        <meta property="og:description" content={ogDescription} />
-        <meta property="og:url" content={ogUrl} />
-        <meta property="og:type" content="profile" />
-        <meta property="og:image" content={ogImage} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={ogTitle} />
-        <meta name="twitter:description" content={ogDescription} />
-        <meta name="twitter:image" content={ogImage} />
+        <meta property="og:title" key="og:title" content={ogTitle} />
+        <meta property="og:description" key="og:description" content={ogDescription} />
+        <meta property="og:url" key="og:url" content={ogUrl} />
+        <meta property="og:type" key="og:type" content="profile" />
+        <meta property="og:image" key="og:image" content={ogImage} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" key="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" key="twitter:image" content={ogImage} />
         {buildProfileJsonLd(username, lists, SITE_URL) && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildProfileJsonLd(username, lists, SITE_URL)) }} />

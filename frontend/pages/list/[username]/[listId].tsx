@@ -340,19 +340,18 @@ export default function PublicListPage({ pageState, listData, username, listId, 
           {listName} — {username}&apos;s London List
         </title>
         <meta name="description" content={pageDescription} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={canonicalUrl} />
-        <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="London List" />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={ogImage} />
-        <meta property="og:locale" content="en_GB" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={ogImage} />
+        <meta property="og:type" key="og:type" content="article" />
+        <meta property="og:site_name" key="og:site_name" content="London List" />
+        <meta property="og:title" key="og:title" content={pageTitle} />
+        <meta property="og:description" key="og:description" content={pageDescription} />
+        <meta property="og:url" key="og:url" content={canonicalUrl} />
+        <meta property="og:image" key="og:image" content={ogImage} />
+        <meta property="og:locale" key="og:locale" content="en_GB" />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" key="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" key="twitter:image" content={ogImage} />
         {jsonLd && (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
