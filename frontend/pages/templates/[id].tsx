@@ -9,6 +9,7 @@ import UpgradeModal from '../../components/upgrade-modal/upgrade-modal';
 import { TEMPLATES } from '../../lib/templates';
 import type { Template } from '../../lib/templates';
 import { getGraphQLErrorCode } from '../../lib/graphql-error';
+import { buildOgImageUrl } from '../../lib/og-image';
 import { safeJsonLd } from '../../lib/json-ld';
 import { useAppContext } from '../../context/AppContext';
 import { useAuthHeader } from '../../hooks/use-auth-header';
@@ -154,22 +155,24 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
   const jsonLd = buildTemplateJsonLd(template, SITE_URL);
   const pageTitle = `${template.name} — London Starter List`;
   const canonicalUrl = `${SITE_URL}/templates/${template.id}`;
+  const ogImage = buildOgImageUrl({ title: template.name, itemCount: template.items.length }, SITE_URL);
 
   return (
     <>
       <Head>
         <title>{`${pageTitle} — London List`}</title>
         <meta name="description" content={template.description} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={canonicalUrl} />
-        <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="London List" />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={template.description} />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={template.description} />
+        <meta property="og:type" key="og:type" content="article" />
+        <meta property="og:site_name" key="og:site_name" content="London List" />
+        <meta property="og:title" key="og:title" content={pageTitle} />
+        <meta property="og:description" key="og:description" content={template.description} />
+        <meta property="og:url" key="og:url" content={canonicalUrl} />
+        <meta property="og:image" key="og:image" content={ogImage} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" key="twitter:description" content={template.description} />
+        <meta name="twitter:image" key="twitter:image" content={ogImage} />
         <script
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS

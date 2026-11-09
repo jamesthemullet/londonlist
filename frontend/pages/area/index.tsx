@@ -35,31 +35,34 @@ export default function AreaIndexPage() {
 					name="description"
 					content="Explore places across London's neighbourhoods and boroughs — museums, restaurants, parks, bars and more."
 				/>
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<link rel="canonical" href={`${SITE_URL}/area`} />
-				<meta property="og:type" content="website" />
-				<meta property="og:site_name" content="London List" />
+				<meta property="og:type" key="og:type" content="website" />
+				<meta property="og:site_name" key="og:site_name" content="London List" />
 				<meta
 					property="og:title"
+					key="og:title"
 					content="Browse London by Area — London List"
 				/>
 				<meta
 					property="og:description"
+					key="og:description"
 					content="Explore places across London's neighbourhoods and boroughs — museums, restaurants, parks, bars and more."
 				/>
-				<meta property="og:url" content={`${SITE_URL}/area`} />
-				<meta property="og:locale" content="en_GB" />
-				<meta property="og:image" content={OG_IMAGE} />
-				<meta name="twitter:card" content="summary_large_image" />
+				<meta property="og:url" key="og:url" content={`${SITE_URL}/area`} />
+				<meta property="og:locale" key="og:locale" content="en_GB" />
+				<meta property="og:image" key="og:image" content={OG_IMAGE} />
+				<meta name="twitter:card" key="twitter:card" content="summary_large_image" />
 				<meta
 					name="twitter:title"
+					key="twitter:title"
 					content="Browse London by Area — London List"
 				/>
 				<meta
 					name="twitter:description"
+					key="twitter:description"
 					content="Explore places across London's neighbourhoods and boroughs."
 				/>
-				<meta name="twitter:image" content={OG_IMAGE} />
+				<meta name="twitter:image" key="twitter:image" content={OG_IMAGE} />
 				{jsonLd && (
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS
 					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
