@@ -178,9 +178,35 @@ describe('GraphQL resolvers — ownership checks', () => {
 
       expect(listItemDocuments.update).toHaveBeenCalledWith({
         documentId: 'item-1',
-        data: { completed: true },
+        data: { completed: true, visitedAt: undefined, notes: undefined },
       });
       expect(result).toEqual({ documentId: 'item-1', completed: true });
+    });
+
+    it('strips disallowed fields (list, user) from the update payload', async () => {
+      const listItemDocuments = {
+        findOne: jest.fn().mockResolvedValue({ user: { id: 1 } }),
+        update: jest.fn().mockResolvedValue({ documentId: 'item-1', completed: false }),
+      };
+      const resolvers = getResolvers({
+        documents: jest.fn((uid: string) =>
+          uid === 'api::list-item.list-item' ? listItemDocuments : {},
+        ),
+      });
+
+      await resolvers.Mutation.updateListItem.resolve(
+        null,
+        {
+          documentId: 'item-1',
+          data: { completed: false, list: 'other-list-id', user: 999 },
+        },
+        context,
+      );
+
+      expect(listItemDocuments.update).toHaveBeenCalledWith({
+        documentId: 'item-1',
+        data: { completed: false, visitedAt: undefined, notes: undefined },
+      });
     });
   });
 

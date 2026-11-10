@@ -254,6 +254,13 @@
   text-align: center;
 }
 
+.checkoutErrorMessage {
+  font-size: 0.875rem;
+  color: #c0392b;
+  margin: 0;
+  text-align: center;
+}
+
 .trialNote {
   font-size: 0.8rem;
   color: #555;

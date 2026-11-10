@@ -256,9 +256,10 @@ export default {
                 throw new Error('Forbidden access');
               }
 
+              const { completed, visitedAt, notes } = args.data ?? {};
               return strapi.documents('api::list-item.list-item').update({
                 documentId: args.documentId,
-                data: args.data,
+                data: { completed, visitedAt, notes },
               });
             },
           },

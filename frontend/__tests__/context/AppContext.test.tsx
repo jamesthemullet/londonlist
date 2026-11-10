@@ -139,6 +139,23 @@ describe('AppProvider', () => {
     );
   });
 
+  it('sets initialized to true even when getUser throws a network error', async () => {
+    mockCookieGet.mockReturnValue('token');
+    mockClientQuery.mockRejectedValue(new Error('Network error'));
+
+    render(
+      <AppProvider>
+        <TestConsumer />
+      </AppProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('initialized').textContent).toBe('true');
+    });
+
+    expect(screen.getByTestId('username').textContent).toBe('none');
+  });
+
   it('sets user to null when the query returns null me', async () => {
     mockCookieGet.mockReturnValue('token');
     mockClientQuery.mockResolvedValue({ data: { me: null } });
