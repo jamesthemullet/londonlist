@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { buildOgImageUrl } from '../lib/og-image';
 import { safeJsonLd } from '../lib/json-ld';
 import styles from './pricing.module.css';
 
 const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+const OG_IMAGE = buildOgImageUrl({ title: 'Pricing — London List' }, SITE_URL);
 
 const FREE_FEATURES = [
   'Up to 3 lists',
@@ -165,17 +167,18 @@ export default function PricingPage() {
       <Head>
         <title>Pricing — London List</title>
         <meta name="description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="canonical" href={`${SITE_URL}/pricing`} />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="London List" />
-        <meta property="og:title" content="Pricing — London List" />
-        <meta property="og:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
-        <meta property="og:url" content={`${SITE_URL}/pricing`} />
-        <meta property="og:locale" content="en_GB" />
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content="Pricing — London List" />
-        <meta name="twitter:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
+        <meta property="og:type" key="og:type" content="website" />
+        <meta property="og:site_name" key="og:site_name" content="London List" />
+        <meta property="og:title" key="og:title" content="Pricing — London List" />
+        <meta property="og:description" key="og:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
+        <meta property="og:url" key="og:url" content={`${SITE_URL}/pricing`} />
+        <meta property="og:image" key="og:image" content={OG_IMAGE} />
+        <meta property="og:locale" key="og:locale" content="en_GB" />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content="Pricing — London List" />
+        <meta name="twitter:description" key="twitter:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
+        <meta name="twitter:image" key="twitter:image" content={OG_IMAGE} />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildPricingJsonLd(SITE_URL)) }} />
       </Head>
