@@ -80,3 +80,28 @@ test.describe('Public list page — happy path', () => {
     await expect(page).toHaveURL(/\/my-list/, { timeout: 5000 });
   });
 });
+
+test.describe('Public list page — private or unknown list', () => {
+  test('private list shows a "this list is private" message, not its items', async ({ page, context }) => {
+    await context.clearCookies();
+
+    await page.route(GRAPHQL_URL, (route, request) => handleGraphql(route, request, { __me: null }));
+
+    await page.goto('/list/e2e-fixture-user/e2e-fixture-private-list');
+
+    await expect(
+      page.getByRole('heading', { name: "e2e-fixture-user's List", level: 1 }),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('This list is private.')).toBeVisible();
+  });
+
+  test('unknown list shows the 404 not-found page', async ({ page, context }) => {
+    await context.clearCookies();
+
+    await page.route(GRAPHQL_URL, (route, request) => handleGraphql(route, request, { __me: null }));
+
+    await page.goto('/list/e2e-fixture-user/does-not-exist');
+
+    await expect(page.getByRole('heading', { name: /page not found/i })).toBeVisible({ timeout: 5000 });
+  });
+});
