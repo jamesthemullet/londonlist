@@ -7,7 +7,10 @@ import { type FormEvent, useEffect, useState } from 'react';
 import Loader from '../components/Loader';
 import { Button } from '../components/core/button/button';
 import { useAppContext } from '../context/AppContext';
+import { buildOgImageUrl } from '../lib/og-image';
 import styles from './register.module.css';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 const COPY_PUBLIC_LIST = gql`
   mutation CopyPublicList($sourceDocumentId: ID!, $sourceUsername: String!) {
@@ -124,6 +127,7 @@ export default function RegisterRoute() {
           name="description"
           content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
         />
+        <link rel="canonical" href={`${SITE_URL}/register`} />
         <meta property="og:title" key="og:title" content="Create your free account — London List" />
         <meta
           property="og:description"
@@ -131,6 +135,16 @@ export default function RegisterRoute() {
           content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
         />
         <meta property="og:type" key="og:type" content="website" />
+        <meta property="og:url" key="og:url" content={`${SITE_URL}/register`} />
+        <meta property="og:image" key="og:image" content={buildOgImageUrl({ title: 'Create your free account' }, SITE_URL)} />
+        <meta name="twitter:card" key="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" key="twitter:title" content="Create your free account — London List" />
+        <meta
+          name="twitter:description"
+          key="twitter:description"
+          content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
+        />
+        <meta name="twitter:image" key="twitter:image" content={buildOgImageUrl({ title: 'Create your free account' }, SITE_URL)} />
       </Head>
       <main className={styles.container}>
       <div>
