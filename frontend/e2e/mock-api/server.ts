@@ -60,6 +60,15 @@ const FIXTURE_LISTS: PublicListFixture[] = [
       },
     ],
   },
+  {
+    username: 'e2e-fixture-user',
+    listId: 'e2e-fixture-private-list',
+    listName: 'E2E Fixture Private List',
+    description: 'Seeded private list for SSR e2e fixtures',
+    viewCount: 0,
+    isPublic: false,
+    items: [],
+  },
 ];
 
 const FIXTURE_PLACES: PlaceFixture[] = [
