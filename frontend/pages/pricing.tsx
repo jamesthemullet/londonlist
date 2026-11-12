@@ -78,6 +78,7 @@ export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
   const checkoutStatus = router.query.checkout;
@@ -98,9 +99,15 @@ export default function PricingPage() {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data?.isPro) setUser({ ...user, isPro: true });
+        if (data?.isPro) {
+          setUser({ ...user, isPro: true });
+        } else {
+          setConfirmError(true);
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        setConfirmError(true);
+      });
   }, [checkoutStatus, sessionId, user, setUser]);
 
   const handleManageSubscription = async () => {
@@ -181,9 +188,15 @@ export default function PricingPage() {
           <p className={styles.subheading}>
             Start free. Upgrade when you need more.
           </p>
-          {checkoutStatus === 'success' && (
+          {checkoutStatus === 'success' && !confirmError && (
             <p className={styles.ctaNote}>
               Payment successful! It may take a moment for Pro features to unlock.
+            </p>
+          )}
+          {confirmError && (
+            <p role="alert" className={styles.checkoutErrorMessage}>
+              Something went wrong confirming your payment. Please try refreshing or{' '}
+              <a href="mailto:hello@londonlist.co.uk">contact support</a>.
             </p>
           )}
         </div>
