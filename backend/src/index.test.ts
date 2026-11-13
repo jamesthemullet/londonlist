@@ -54,7 +54,12 @@ type ResolverMap = {
   };
 };
 
-function getResolvers(strapi: unknown): ResolverMap {
+type Extension = {
+  resolvers: ResolverMap;
+  resolversConfig: Record<string, { auth: boolean }>;
+};
+
+function getExtension(strapi: unknown): Extension {
   const use = jest.fn();
   const mockStrapi = {
     ...(strapi as object),
@@ -63,8 +68,12 @@ function getResolvers(strapi: unknown): ResolverMap {
 
   (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({ strapi: mockStrapi });
 
-  const factory = use.mock.calls[0][0] as () => { resolvers: ResolverMap };
-  return factory().resolvers;
+  const factory = use.mock.calls[0][0] as () => Extension;
+  return factory();
+}
+
+function getResolvers(strapi: unknown): ResolverMap {
+  return getExtension(strapi).resolvers;
 }
 
 describe('GraphQL resolvers — ownership checks', () => {
@@ -814,12 +823,95 @@ describe('public place queries', () => {
       ]);
     });
 
-    it('never requests more than the hard cap of 10000, regardless of the requested limit', async () => {
+    it('never requests more than the hard cap of 2000, regardless of the requested limit', async () => {
       const { resolvers, findMany } = strapiWithListItems([]);
 
       await resolvers.Query.allPlaces.resolve(null, { limit: 50000 }, anonymousContext);
 
-      expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ limit: 30000 }));
+      expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ limit: 6000 }));
+    });
+  });
+});
+
+describe('resolversConfig', () => {
+  it('allows anonymous access to public place queries and planLimits', () => {
+    const { resolversConfig } = getExtension({});
+
+    expect(resolversConfig['Query.planLimits']).toEqual({ auth: false });
+    expect(resolversConfig['Query.place']).toEqual({ auth: false });
+    expect(resolversConfig['Query.placesByArea']).toEqual({ auth: false });
+    expect(resolversConfig['Query.relatedPlaces']).toEqual({ auth: false });
+    expect(resolversConfig['Query.allPlaces']).toEqual({ auth: false });
+  });
+
+  it('does not grant anonymous access to authenticated queries', () => {
+    const { resolversConfig } = getExtension({});
+
+    expect(resolversConfig['Query.myLists']).toBeUndefined();
+    expect(resolversConfig['Query.listItems']).toBeUndefined();
+  });
+});
+
+describe('public list filtering', () => {
+  describe('place', () => {
+    it('only queries items from public lists', async () => {
+      const findMany = jest.fn().mockResolvedValue([]);
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      await resolvers.Query.place.resolve(null, { osm_id: 'x1' }, {});
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.objectContaining({ list: { isPublic: { $eq: true } } }),
+        }),
+      );
+    });
+  });
+
+  describe('placesByArea', () => {
+    it('only queries items from public lists', async () => {
+      const findMany = jest.fn().mockResolvedValue([]);
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      await resolvers.Query.placesByArea.resolve(null, { area: 'Hackney' }, {});
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.objectContaining({ list: { isPublic: { $eq: true } } }),
+        }),
+      );
+    });
+
+    it('caps results at 200 unique places', async () => {
+      const items = Array.from({ length: 300 }, (_, i) => ({
+        osm_id: `p${i}`,
+        name: `Place ${i}`,
+        category: null,
+        area: 'Hackney',
+        lat: null,
+        lng: null,
+      }));
+      const findMany = jest.fn().mockResolvedValue(items);
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      const result = await resolvers.Query.placesByArea.resolve(null, { area: 'Hackney' }, {});
+
+      expect((result as unknown[]).length).toBe(200);
+    });
+  });
+
+  describe('allPlaces', () => {
+    it('only queries items from public lists', async () => {
+      const findMany = jest.fn().mockResolvedValue([]);
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      await resolvers.Query.allPlaces.resolve(null, {}, {});
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.objectContaining({ list: { isPublic: { $eq: true } } }),
+        }),
+      );
     });
   });
 });

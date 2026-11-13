@@ -66,7 +66,7 @@ export default {
           place: {
             async resolve(_parent, args) {
               const [item] = await strapi.documents('api::list-item.list-item').findMany({
-                filters: { osm_id: { $eq: args.osm_id } },
+                filters: { osm_id: { $eq: args.osm_id }, list: { isPublic: { $eq: true } } },
                 sort: 'createdAt:asc',
                 limit: 1,
               });
@@ -85,9 +85,11 @@ export default {
           },
           placesByArea: {
             async resolve(_parent, args) {
+              const AREA_CAP = 200;
               const items = await strapi.documents('api::list-item.list-item').findMany({
-                filters: { area: { $eq: args.area } },
+                filters: { area: { $eq: args.area }, list: { isPublic: { $eq: true } } },
                 sort: 'createdAt:asc',
+                limit: AREA_CAP * 3,
               });
 
               const seen = new Set<string>();
@@ -111,6 +113,7 @@ export default {
                   lat: item.lat ?? null,
                   lng: item.lng ?? null,
                 });
+                if (places.length >= AREA_CAP) break;
               }
 
               return places;
@@ -121,7 +124,7 @@ export default {
               const cap = Math.min(args.limit ?? 6, 12);
 
               const [target] = await strapi.documents('api::list-item.list-item').findMany({
-                filters: { osm_id: { $eq: args.osm_id } },
+                filters: { osm_id: { $eq: args.osm_id }, list: { isPublic: { $eq: true } } },
                 limit: 1,
               });
 
@@ -131,6 +134,7 @@ export default {
                 filters: {
                   category: { $eq: target.category },
                   osm_id: { $ne: args.osm_id },
+                  list: { isPublic: { $eq: true } },
                 },
                 sort: 'createdAt:desc',
               });
@@ -156,9 +160,10 @@ export default {
           },
           allPlaces: {
             async resolve(_parent, args) {
-              const cap = Math.min(args.limit ?? 5000, 10000);
+              const cap = Math.min(args.limit ?? 500, 2000);
 
               const items = await strapi.documents('api::list-item.list-item').findMany({
+                filters: { list: { isPublic: { $eq: true } } },
                 sort: 'createdAt:asc',
                 limit: cap * 3,
               });
@@ -517,6 +522,13 @@ export default {
             },
           },
         },
+      },
+      resolversConfig: {
+        'Query.planLimits': { auth: false },
+        'Query.place': { auth: false },
+        'Query.placesByArea': { auth: false },
+        'Query.relatedPlaces': { auth: false },
+        'Query.allPlaces': { auth: false },
       },
     }));
   },
