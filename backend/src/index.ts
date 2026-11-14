@@ -15,6 +15,10 @@ export default {
   register({ strapi }) {
     const extensionService = strapi.plugin('graphql').service('extension');
 
+    extensionService.shadowCRUD('api::list.list').disable();
+    extensionService.shadowCRUD('api::list-item.list-item').disable();
+    extensionService.shadowCRUD('api::list-setting.list-setting').disableQueries();
+
     extensionService.use(() => ({
       typeDefs: `
         type ListEntity {
@@ -346,9 +350,10 @@ export default {
                 throw new Error('Forbidden access');
               }
 
+              const { isPublic } = args.data ?? {};
               return strapi.documents('api::list-setting.list-setting').update({
                 documentId: args.documentId,
-                data: args.data,
+                data: { isPublic },
               });
             },
           },
@@ -540,23 +545,26 @@ async function grantPermissions(strapi) {
   if (!authenticatedRole) return;
 
   const actions = [
+    'api::list-setting.list-setting.find',
+    'api::list-setting.list-setting.create',
+    'api::stripe.stripe.createCheckoutSession',
+    'api::stripe.stripe.confirmCheckoutSession',
+    'api::stripe.stripe.createCustomerPortalSession',
+  ];
+
+  const actionsToDisable = [
     'api::list-item.list-item.find',
     'api::list-item.list-item.findOne',
     'api::list-item.list-item.create',
     'api::list-item.list-item.update',
     'api::list-item.list-item.delete',
-    'api::list-setting.list-setting.find',
     'api::list-setting.list-setting.findOne',
-    'api::list-setting.list-setting.create',
     'api::list-setting.list-setting.update',
     'api::list.list.find',
     'api::list.list.findOne',
     'api::list.list.create',
     'api::list.list.update',
     'api::list.list.delete',
-    'api::stripe.stripe.createCheckoutSession',
-    'api::stripe.stripe.confirmCheckoutSession',
-    'api::stripe.stripe.createCustomerPortalSession',
   ];
 
   for (const action of actions) {
@@ -572,6 +580,19 @@ async function grantPermissions(strapi) {
       await strapi.db.query('plugin::users-permissions.permission').update({
         where: { id: existing.id },
         data: { enabled: true },
+      });
+    }
+  }
+
+  for (const action of actionsToDisable) {
+    const existing = await strapi.db
+      .query('plugin::users-permissions.permission')
+      .findOne({ where: { action, role: authenticatedRole.id } });
+
+    if (existing?.enabled) {
+      await strapi.db.query('plugin::users-permissions.permission').update({
+        where: { id: existing.id },
+        data: { enabled: false },
       });
     }
   }
