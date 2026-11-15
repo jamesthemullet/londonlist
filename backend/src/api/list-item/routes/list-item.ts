@@ -4,4 +4,4 @@
 
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreRouter('api::list-item.list-item');
+export default factories.createCoreRouter('api::list-item.list-item', { only: [] });
