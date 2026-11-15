@@ -73,6 +73,7 @@ const FIXTURE_LISTS: PublicListFixture[] = [
 
 const FIXTURE_PLACES: PlaceFixture[] = [
   { osm_id: 'node/1', name: 'Tate Modern', category: 'museum', lat: 51.5076, lng: -0.0994 },
+  { osm_id: 'node/2', name: 'British Museum', category: 'museum', lat: 51.5194, lng: -0.1270 },
 ];
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
