@@ -247,6 +247,57 @@ describe('PublicListPage — conversion banner', () => {
 
     expect(screen.queryByText("Inspired by alice's list?")).not.toBeInTheDocument();
   });
+
+  it('shows a dismiss button in the conversion banner', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Dismiss sign-up prompt' })).toBeInTheDocument();
+  });
+
+  it('hides the banner after clicking the dismiss button', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss sign-up prompt' }));
+
+    expect(screen.queryByText("Copy alice's list")).not.toBeInTheDocument();
+  });
+
+  it('saves dismissed state to sessionStorage when the dismiss button is clicked', () => {
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss sign-up prompt' }));
+
+    expect(sessionStorage.getItem('listConversionBannerDismissed')).toBe('1');
+  });
+
+  it('does not show the banner when sessionStorage marks it dismissed', async () => {
+    sessionStorage.setItem('listConversionBannerDismissed', '1');
+    mockUseAppContext.mockReturnValue({ user: null, initialized: true, setUser: jest.fn() });
+
+    render(
+      <PublicListPage pageState="found" listData={listData} username="alice" listId="list-abc" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText("Copy alice's list")).not.toBeInTheDocument();
+    });
+  });
+
+  afterEach(() => {
+    sessionStorage.clear();
+  });
 });
 
 describe('PublicListPage — only todo items', () => {

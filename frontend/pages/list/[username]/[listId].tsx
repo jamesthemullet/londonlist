@@ -3,7 +3,7 @@ import { useMutation } from '@apollo/client/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
@@ -288,6 +288,22 @@ export function buildItemListJsonLd(
 
 export default function PublicListPage({ pageState, listData, username, listId, otherLists = [], relatedLists = [] }: Props) {
   const { user, initialized } = useAppContext();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  useEffect(() => {
+    try {
+      setBannerDismissed(sessionStorage.getItem('listConversionBannerDismissed') === '1');
+    } catch {}
+  }, []);
+
+  const showBanner = initialized && !user && !bannerDismissed;
+
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    try {
+      sessionStorage.setItem('listConversionBannerDismissed', '1');
+    } catch {}
+  };
 
   if (pageState === 'private') {
     return (
@@ -357,7 +373,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
         )}
       </Head>
-      <main className={styles.main}>
+      <main className={showBanner ? `${styles.main} ${styles.mainWithBanner}` : styles.main}>
         <h1 className={styles.heading}>{listName}</h1>
         <div className={styles.metaRow}>
           <p className={styles.subtitle}>
@@ -519,7 +535,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
         </section>
       )}
 
-      {initialized && !user && (
+      {showBanner && (
         <aside className={styles.conversionBanner}>
           <p className={styles.conversionHeadline}>
             {items.length > 0 ? (
@@ -531,7 +547,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
           <p className={styles.conversionTagline}>
             {items.length > 0
               ? "Sign up free to copy this list and track your own London adventures."
-              : "Build your own London bucket list — it’s free."}
+              : "Build your own London bucket list — it's free."}
           </p>
           <Link
             href={
@@ -543,6 +559,14 @@ export default function PublicListPage({ pageState, listData, username, listId, 
           >
             {items.length > 0 ? "Copy this list" : "Create your list"}
           </Link>
+          <button
+            type="button"
+            onClick={dismissBanner}
+            className={styles.conversionDismiss}
+            aria-label="Dismiss sign-up prompt"
+          >
+            ×
+          </button>
         </aside>
       )}
     </>
