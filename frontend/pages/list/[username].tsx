@@ -4,10 +4,8 @@ import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../context/AppContext';
 import { buildOgImageUrl } from '../../lib/og-image';
 import { safeJsonLd } from '../../lib/json-ld';
+import { API_URL, SITE_URL } from '../../lib/site';
 import styles from './[username].module.css';
-
-const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 type ListItem = {
   documentId: string;

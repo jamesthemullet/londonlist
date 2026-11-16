@@ -7,6 +7,7 @@ import { type FormEvent, useEffect, useState } from 'react';
 import Loader from '../components/Loader';
 import { Button } from '../components/core/button/button';
 import { useAppContext } from '../context/AppContext';
+import { SITE_URL } from '../lib/site';
 import styles from './register.module.css';
 
 const COPY_PUBLIC_LIST = gql`
@@ -131,6 +132,10 @@ export default function RegisterRoute() {
           content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city."
         />
         <meta property="og:type" key="og:type" content="website" />
+        <link rel="canonical" href={`${SITE_URL}/register`} />
+        <meta name="twitter:card" key="twitter:card" content="summary" />
+        <meta name="twitter:title" key="twitter:title" content="Create your free account — London List" />
+        <meta name="twitter:description" key="twitter:description" content="Sign up free and start building your London bucket list. Track places to visit, share lists with friends, and explore the city." />
       </Head>
       <main className={styles.container}>
       <div>

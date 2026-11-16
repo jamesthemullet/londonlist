@@ -11,11 +11,10 @@ import type { Template } from '../../lib/templates';
 import { getGraphQLErrorCode } from '../../lib/graphql-error';
 import { buildOgImageUrl } from '../../lib/og-image';
 import { safeJsonLd } from '../../lib/json-ld';
+import { SITE_URL } from '../../lib/site';
 import { useAppContext } from '../../context/AppContext';
 import { useAuthHeader } from '../../hooks/use-auth-header';
 import styles from './[id].module.css';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 const CREATE_MY_LIST = gql`
   mutation TemplateDetailCreateMyList($name: String!) {

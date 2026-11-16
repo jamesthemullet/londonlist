@@ -10,9 +10,8 @@ import { TEMPLATES, getAllTemplateTags, filterTemplatesByTag } from '../lib/temp
 import type { Template, TemplateItem } from '../lib/templates';
 import { getGraphQLErrorCode } from '../lib/graphql-error';
 import { buildOgImageUrl } from '../lib/og-image';
+import { SITE_URL } from '../lib/site';
 import styles from './templates.module.css';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 const CREATE_MY_LIST = gql`
   mutation TemplatesCreateMyList($name: String!) {

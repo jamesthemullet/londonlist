@@ -12,10 +12,8 @@ import { GET_MY_LISTS } from './my-list';
 import { buildOgImageUrl } from '../lib/og-image';
 import { safeJsonLd } from '../lib/json-ld';
 import { TEMPLATES } from '../lib/templates';
+import { API_URL, SITE_URL } from '../lib/site';
 import styles from './index.module.css';
-
-const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 const OG_IMAGE = buildOgImageUrl({ title: 'London List — Your London Bucket List App' }, SITE_URL);
 
 export function buildWebSiteJsonLd(siteUrl: string): object {

@@ -7,10 +7,8 @@ import RelatedPlaces from '../../../components/related-places/related-places';
 import type { PublicPlace } from '../../../lib/place';
 import { buildOgImageUrl } from '../../../lib/og-image';
 import { safeJsonLd } from '../../../lib/json-ld';
+import { API_URL, SITE_URL } from '../../../lib/site';
 import styles from './[id].module.css';
-
-const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 const PLACE_QUERY = `
   query GetPlace($osm_id: String!) {
