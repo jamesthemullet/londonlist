@@ -114,7 +114,7 @@ audit adds new findings to the bottom of each section and leaves checked items a
 - [ ] `/profile/<u>` horizontal scroll at 375px (scrollWidth 528) from a long unbroken username in the h1 — add `overflow-wrap: anywhere` to `.heading` in `frontend/pages/profile/[username].module.css` (found: 2026-10-24)
 - [ ] `/list/<u>` same horizontal scroll at 375px — add `overflow-wrap: anywhere` to `.heading` in `frontend/pages/list/[username].module.css` (found: 2026-10-24)
 - [ ] `/list/<u>/<id>` "More by …" section has no side padding on mobile (left edge at 0px) — `.moreLists` at `frontend/pages/list/[username].module.css:298` (found: 2026-10-24)
-- [ ] `/list/<u>/<id>` fixed `.conversionBanner` permanently covers ~110px of an 800px mobile viewport with no dismiss (`frontend/pages/list/[username].module.css:249`) — add a close button or show it after scroll (found: 2026-10-24)
+- [x] `/list/<u>/<id>` fixed `.conversionBanner` permanently covers ~110px of an 800px mobile viewport with no dismiss (`frontend/pages/list/[username].module.css:249`) — add a close button or show it after scroll (found: 2026-10-24) (fixed: 2026-11-15 — added a × dismiss button to the banner in `[listId].tsx`; dismissed state saved to `sessionStorage` so the banner stays gone for the session; added `paddingBottom` to the `<main>` via `.mainWithBanner` so content is not obscured while the banner is visible; added 5 new unit tests)
 - [ ] Logged-out visits to `/account` redirect to a bare `/login`, and login always sends you to `/my-list` (`frontend/pages/login.tsx:72`, `frontend/pages/account.tsx:37`) — pass and honour a `?next=` param (validated as a relative path) (found: 2026-10-24)
 
 ## 6. Security
