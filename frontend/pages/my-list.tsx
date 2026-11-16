@@ -14,9 +14,8 @@ import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
 import { usePlanLimits } from '../hooks/use-plan-limits';
 import { getGraphQLErrorCode } from '../lib/graphql-error';
+import { SITE_URL } from '../lib/site';
 import styles from './my-list.module.css';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 type List = {
   documentId: string;

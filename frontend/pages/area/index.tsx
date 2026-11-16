@@ -4,10 +4,8 @@ import { useAppContext } from "../../context/AppContext";
 import { AREA_META, encodeAreaSlug } from "../../lib/area-meta";
 import { buildOgImageUrl } from "../../lib/og-image";
 import { safeJsonLd } from "../../lib/json-ld";
+import { SITE_URL } from "../../lib/site";
 import styles from "./area.module.css";
-
-const SITE_URL =
-	process.env.NEXT_PUBLIC_SITE_URL || "https://londonlist.vercel.app";
 
 export function buildAreaIndexJsonLd(siteUrl: string): object {
 	return {

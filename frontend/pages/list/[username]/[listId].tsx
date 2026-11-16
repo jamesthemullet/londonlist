@@ -13,6 +13,7 @@ import { buildOgImageUrl } from '../../../lib/og-image';
 import { buildPlaceUrl } from '../../../lib/place';
 import { safeJsonLd } from '../../../lib/json-ld';
 import { getGraphQLErrorCode } from '../../../lib/graphql-error';
+import { API_URL, SITE_URL } from '../../../lib/site';
 import BookingLinks from '../../../components/booking-links/booking-links';
 import styles from '../[username].module.css';
 import type { MapItem } from '../../../components/map/list-map';
@@ -21,10 +22,6 @@ const ListMap = dynamic(() => import('../../../components/map/list-map'), {
   ssr: false,
   loading: () => <div className={styles.mapLoader} role="status" aria-label="Map loading">Loading map…</div>,
 });
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
-
-const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
 type ListItem = {
   documentId: string;

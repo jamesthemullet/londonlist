@@ -1,9 +1,7 @@
 import type { GetServerSideProps } from 'next';
 import { buildSitemapEntries, generateSitemapXml } from '../lib/sitemap';
 import type { PublicPlaceForSitemap } from '../lib/sitemap';
-
-const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
+import { API_URL, SITE_URL } from '../lib/site';
 
 const ALL_PLACES_QUERY = `
   query AllPlacesForSitemap {
