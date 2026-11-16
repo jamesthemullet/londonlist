@@ -4,9 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { API_URL } from '../lib/site';
 import styles from './account.module.css';
-
-const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
 type PasswordFormState = {
   currentPassword: string;

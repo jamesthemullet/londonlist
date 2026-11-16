@@ -6,11 +6,10 @@ import { AppProvider } from '../context/AppContext';
 import Layout from '../components/layout/layout';
 import '../styles/globals.css';
 import 'leaflet/dist/leaflet.css';
+import { API_URL } from '../lib/site';
 
 const archivo = Archivo({ subsets: ['latin'], axes: ['wdth'], variable: '--font-archivo' });
 const plexMono = IBM_Plex_Mono({ weight: ['400', '500', '600'], subsets: ['latin'], variable: '--font-plex-mono' });
-
-const API_URL = process.env.STRAPI_URL || 'http://127.0.0.1:1337';
 
 const httpLink = new HttpLink({
   uri: `${API_URL}/graphql`,
