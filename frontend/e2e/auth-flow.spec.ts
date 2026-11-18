@@ -165,6 +165,56 @@ test.describe('Auth flow — login', () => {
   });
 });
 
+test.describe('Auth flow — logged-in state', () => {
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
+  test('logged-in homepage shows the personalised hero', async ({ page }) => {
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, {
+        __me: MOCK_USER,
+        GetMyLists: { myLists: [] },
+      }),
+    );
+
+    await page.context().addCookies([
+      { name: 'token', value: 'existing_fake_token', url: 'http://localhost:3000' },
+    ]);
+    await page.goto('/');
+
+    await expect(
+      page.getByRole('heading', { name: 'What do you want to do in London?' }),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('link', { name: /View your list/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Create your free list/ })).toHaveCount(0);
+  });
+
+  test('logged-in user can log out from the header and returns to the logged-out homepage', async ({ page }) => {
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, {
+        __me: MOCK_USER,
+        GetMyLists: { myLists: [] },
+      }),
+    );
+
+    await page.context().addCookies([
+      { name: 'token', value: 'existing_fake_token', url: 'http://localhost:3000' },
+    ]);
+    await page.goto('/');
+
+    await expect(page.getByRole('button', { name: 'Log Out' })).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: 'Log Out' }).click();
+
+    await expect(page).toHaveURL('/');
+    await expect(
+      page.getByRole('heading', { name: 'Your London bucket list, beautifully organised' }),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Log In' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Log Out' })).toHaveCount(0);
+  });
+});
+
 test.describe('Auth flow — forgot password', () => {
   test.beforeEach(async ({ context }) => {
     await context.clearCookies();
