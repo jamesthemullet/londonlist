@@ -4,10 +4,18 @@ import Cookie from 'js-cookie';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import type { ParsedUrlQuery } from 'node:querystring';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import Loader from '../components/Loader';
 import Form from '../components/core/form/form';
+
+function getSafeNext(query: ParsedUrlQuery): string | null {
+  const next = query.next;
+  if (typeof next !== 'string') return null;
+  if (!next.startsWith('/') || next.startsWith('//')) return null;
+  return next;
+}
 
 type LoginMutationData = {
   login: {
@@ -45,12 +53,13 @@ const LOGIN_MUTATION = gql`
 export default function LoginRoute() {
   const { user, initialized, setUser } = useAppContext();
   const router = useRouter();
+  const nextPath = getSafeNext(router.query);
 
   useEffect(() => {
     if (initialized && user) {
-      router.replace('/my-list');
+      router.replace(nextPath ?? '/my-list');
     }
-  }, [initialized, user, router]);
+  }, [initialized, user, router, nextPath]);
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loginMutation, { loading, error }] = useMutation<
@@ -69,7 +78,7 @@ export default function LoginRoute() {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
       });
-      router.push('/my-list');
+      router.push(nextPath ?? '/my-list');
     }
   };
 
