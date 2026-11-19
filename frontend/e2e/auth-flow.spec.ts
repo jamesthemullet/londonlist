@@ -198,3 +198,45 @@ test.describe('Auth flow — forgot password', () => {
     await expect(page).toHaveURL(/\/reset-password/);
   });
 });
+
+test.describe('Auth flow — logged-in session', () => {
+  test.beforeEach(async ({ context, page }) => {
+    await context.clearCookies();
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, {
+        __me: MOCK_USER,
+        GetMyLists: { myLists: [MOCK_LIST] },
+        GetMyList: { listItems: [] },
+      }),
+    );
+    await context.addCookies([
+      { name: 'token', value: 'existing_fake_token', url: 'http://localhost:3000' },
+    ]);
+  });
+
+  test('logged-in homepage shows the logged-in hero', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'What do you want to do in London?' }),
+    ).toBeVisible();
+    await expect(page.getByRole('link', { name: 'View your list →' })).toBeVisible();
+    await expect(page.locator('header').getByRole('button', { name: 'Log Out' })).toBeVisible();
+  });
+
+  test('logged-in user can log out from the header and returns to the logged-out homepage', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const header = page.locator('header');
+    await expect(header.getByRole('button', { name: 'Log Out' })).toBeVisible();
+
+    await header.getByRole('button', { name: 'Log Out' }).click();
+
+    await expect(page).toHaveURL('/');
+    await expect(header.getByRole('link', { name: 'Log In' })).toBeVisible();
+    await expect(header.getByRole('link', { name: 'Sign Up' })).toBeVisible();
+    await expect(header.getByRole('button', { name: 'Log Out' })).toHaveCount(0);
+  });
+});
