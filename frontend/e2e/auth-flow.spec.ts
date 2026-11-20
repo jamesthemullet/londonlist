@@ -165,6 +165,53 @@ test.describe('Auth flow — login', () => {
   });
 });
 
+test.describe('Auth flow — logout', () => {
+  test.beforeEach(async ({ context }) => {
+    await context.clearCookies();
+  });
+
+  test('logged-in user can log out from the header and returns to the logged-out homepage', async ({ page }) => {
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, {
+        __me: MOCK_USER,
+        GetMyLists: { myLists: [MOCK_LIST] },
+        GetMyList: { listItems: [] },
+      }),
+    );
+
+    await page.context().addCookies([
+      { name: 'token', value: 'existing_fake_token', url: 'http://localhost:3000' },
+    ]);
+    await page.goto('/');
+
+    await expect(page.getByRole('banner').getByRole('link', { name: 'My List' })).toBeVisible();
+    await page.getByRole('banner').getByRole('button', { name: 'Log Out' }).click();
+
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Log In' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Sign Up' })).toBeVisible();
+  });
+
+  test('logged-in user sees the personalised homepage hero', async ({ page }) => {
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, {
+        __me: MOCK_USER,
+        GetMyLists: { myLists: [MOCK_LIST] },
+        GetMyList: { listItems: [] },
+      }),
+    );
+
+    await page.context().addCookies([
+      { name: 'token', value: 'existing_fake_token', url: 'http://localhost:3000' },
+    ]);
+    await page.goto('/');
+
+    await expect(page.getByRole('heading', { name: 'What do you want to do in London?' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'My List' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Log In' })).toHaveCount(0);
+  });
+});
+
 test.describe('Auth flow — forgot password', () => {
   test.beforeEach(async ({ context }) => {
     await context.clearCookies();
