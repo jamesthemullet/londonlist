@@ -9,6 +9,7 @@ import { Button } from '../components/core/button/button';
 import { useAppContext } from '../context/AppContext';
 import { buildOgImageUrl } from '../lib/og-image';
 import { SITE_URL } from '../lib/site';
+import { getSafeNext } from '../lib/nav';
 import styles from './register.module.css';
 
 const COPY_PUBLIC_LIST = gql`
@@ -63,12 +64,13 @@ function isValidEmail(email: string): boolean {
 export default function RegisterRoute() {
   const { user, initialized, setUser } = useAppContext();
   const router = useRouter();
+  const nextPath = getSafeNext(router.query);
 
   useEffect(() => {
     if (initialized && user) {
-      router.replace('/my-list');
+      router.replace(nextPath ?? '/my-list');
     }
-  }, [initialized, user, router]);
+  }, [initialized, user, router, nextPath]);
 
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [registerMutation, { loading, error }] = useMutation<
@@ -112,7 +114,7 @@ export default function RegisterRoute() {
         }
       }
 
-      router.push('/my-list');
+      router.push(nextPath ?? '/my-list');
     }
   };
 

@@ -174,7 +174,7 @@ export default function MyListPage() {
 
   useEffect(() => {
     if (initialized && user === null) {
-      router.push('/login');
+      router.push('/login?next=/my-list');
     }
   }, [initialized, user, router]);
 

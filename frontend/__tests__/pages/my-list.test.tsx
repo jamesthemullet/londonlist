@@ -153,7 +153,7 @@ describe('MyListPage — auth', () => {
     render(<MyListPage />);
 
     await waitFor(() => {
-      expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/login');
+      expect(MOCK_ROUTER.push).toHaveBeenCalledWith('/login?next=/my-list');
     });
   });
 });
