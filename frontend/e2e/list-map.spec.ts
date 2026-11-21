@@ -112,4 +112,21 @@ test.describe('List map', () => {
     await expect(popup).toContainText('Tate Modern');
     await expect(popup).toContainText('museum');
   });
+
+  test('tabbing to a pin and pressing Enter opens its popup', async ({ page }) => {
+    await page.goto('/my-list');
+
+    await expect(page.locator('.leaflet-marker-icon')).toHaveCount(2);
+
+    await page.locator('.leaflet-container').focus();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.leaflet-marker-icon').first()).toBeFocused();
+
+    await page.keyboard.press('Enter');
+
+    const popup = page.locator('.leaflet-popup-content');
+    await expect(popup).toBeVisible();
+    await expect(popup).toContainText('Tate Modern');
+    await expect(popup).toContainText('museum');
+  });
 });
