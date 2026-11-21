@@ -33,7 +33,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (initialized && !user) {
-      router.push('/login');
+      router.push('/login?next=/account');
     }
   }, [initialized, user, router]);
 
