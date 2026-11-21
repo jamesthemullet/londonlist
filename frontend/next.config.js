@@ -1,4 +1,14 @@
 /** @type {import('next').NextConfig} */
+const isDev = process.env.NODE_ENV !== 'production';
+
+const scriptSrcParts = ["'self'", ...(isDev ? ["'unsafe-eval'"] : []), "'unsafe-inline'"];
+const connectSrcParts = [
+  "'self'",
+  'https://photon.komoot.io',
+  process.env.STRAPI_URL || 'http://127.0.0.1:1337',
+  ...(isDev ? ['http://localhost:1337'] : []),
+];
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -27,11 +37,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              `script-src ${scriptSrcParts.join(' ')}`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://tile.openstreetmap.org",
               "font-src 'self'",
-              `connect-src 'self' https://photon.komoot.io ${process.env.STRAPI_URL || 'http://127.0.0.1:1337'} http://localhost:1337`,
+              `connect-src ${connectSrcParts.join(' ')}`,
               "frame-ancestors 'none'",
             ].join('; '),
           },
