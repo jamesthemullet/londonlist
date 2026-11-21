@@ -282,8 +282,9 @@ test.describe('Account page — delete account', () => {
     await page.getByRole('button', { name: 'Delete my account' }).click();
     await page.getByRole('button', { name: 'Yes, delete my account' }).click();
 
-    // After setUser(null), the useEffect redirect to /login fires before router.push('/')
-    await expect(page).not.toHaveURL(/\/account/, { timeout: 5000 });
+    // After setUser(null), the useEffect redirect to /login may fire before router.push('/'),
+    // landing on /login?next=/account — so only match /account in the path, not the query.
+    await expect(page).not.toHaveURL(/^[^?]*\/account/, { timeout: 5000 });
   });
 
   test('deletion API error shows error message', async ({ page }) => {
