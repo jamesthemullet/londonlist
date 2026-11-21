@@ -11,7 +11,10 @@ const MOCK_USER = {
   isPro: false,
 };
 
-const MOCK_LISTS = [{ documentId: 'list_1', name: 'My London List' }];
+const MOCK_LIST_SLIM = {
+  documentId: 'list_abc123',
+  name: 'My List',
+};
 
 async function handleGraphql(
   route: Route,
@@ -41,16 +44,9 @@ async function handleGraphql(
   await route.continue();
 }
 
-test.describe('Place detail page — happy path', () => {
-  test('shows name, breadcrumb, category, OSM link and related places section', async ({
-    page,
-    context,
-  }) => {
+test.describe('Place detail page', () => {
+  test('shows name, breadcrumb, OSM link and related places', async ({ page, context }) => {
     await context.clearCookies();
-
-    await page.route(GRAPHQL_URL, (route, request) =>
-      handleGraphql(route, request, { __me: null }),
-    );
 
     await page.goto('/place/node/1');
 
@@ -58,18 +54,22 @@ test.describe('Place detail page — happy path', () => {
       timeout: 5000,
     });
 
-    // Breadcrumb: "Explore" link and current page label
     const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
-    await expect(breadcrumb.getByRole('link', { name: 'Explore' })).toBeVisible();
+    await expect(breadcrumb.getByRole('link', { name: 'Explore' })).toHaveAttribute(
+      'href',
+      '/explore',
+    );
     await expect(breadcrumb.getByText('Tate Modern')).toBeVisible();
 
-    // Category tag
-    await expect(page.getByText('museum')).toBeVisible();
+    const osmLink = page.getByRole('link', { name: 'View on OpenStreetMap (opens in new tab)' });
+    await expect(osmLink).toHaveAttribute('href', 'https://www.openstreetmap.org/node/1');
 
-    // OpenStreetMap link (place has coordinates)
-    await expect(
-      page.getByRole('link', { name: /View on OpenStreetMap/i }),
-    ).toBeVisible();
+    const relatedSection = page.getByRole('region', { name: 'Related places you might like' });
+    await expect(relatedSection.getByRole('heading', { name: 'You might also like' })).toBeVisible();
+    await expect(relatedSection.getByRole('link', { name: 'British Museum' })).toHaveAttribute(
+      'href',
+      '/place/node/2',
+    );
   });
 
   test('logged-out user sees sign-up CTA instead of add-to-list button', async ({
@@ -88,64 +88,67 @@ test.describe('Place detail page — happy path', () => {
       timeout: 5000,
     });
 
-    // Not-logged-in users see the registration CTA
     await expect(page.getByRole('link', { name: 'Create a free account' })).toBeVisible({
       timeout: 3000,
     });
-
-    // The add-to-list button must not be present
     await expect(
-      page.getByRole('button', { name: /Add Tate Modern to my list/i }),
+      page.getByRole('button', { name: 'Add Tate Modern to my list' }),
     ).not.toBeVisible();
   });
 
-  test('logged-in user sees add-to-list button and can add place to list', async ({
-    page,
-    context,
-  }) => {
+  test('logged-in user adds the place to a list', async ({ page, context }) => {
     await context.clearCookies();
 
     await page.route(GRAPHQL_URL, (route, request) =>
       handleGraphql(route, request, {
         __me: MOCK_USER,
-        GetMyListsSlim: { myLists: MOCK_LISTS },
-        CreateListItemFromDetail: {
-          createListItem: { documentId: 'new_item_id', name: 'Tate Modern' },
-        },
+        GetMyListsSlim: { myLists: [MOCK_LIST_SLIM] },
+        CreateListItemFromDetail: { createListItem: { documentId: 'item_1', name: 'Tate Modern' } },
       }),
     );
 
-    await context.addCookies([
+    await page.context().addCookies([
       { name: 'token', value: 'fake_token', url: 'http://localhost:3000' },
     ]);
 
     await page.goto('/place/node/1');
 
-    await expect(page.getByRole('heading', { name: 'Tate Modern', level: 1 })).toBeVisible({
+    const addButton = page.getByRole('button', { name: 'Add Tate Modern to my list' });
+    await expect(addButton).toBeVisible({ timeout: 5000 });
+    await addButton.click();
+
+    await expect(page.getByText('Added to your list')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('link', { name: 'View my list →' })).toHaveAttribute(
+      'href',
+      '/my-list',
+    );
+  });
+
+  test('unknown id returns the 404 page', async ({ page, context }) => {
+    await context.clearCookies();
+
+    const response = await page.goto('/place/node/does-not-exist');
+
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole('heading', { name: 'Page not found', level: 1 })).toBeVisible({
+      timeout: 5000,
+    });
+  });
+
+  test('clicking a list item navigates to its place page', async ({ page, context }) => {
+    await context.clearCookies();
+
+    await page.goto('/list/e2e-fixture-user/e2e-fixture-list');
+
+    await expect(page.getByRole('heading', { name: 'E2E Fixture List', level: 1 })).toBeVisible({
       timeout: 5000,
     });
 
-    const addButton = page.getByRole('button', { name: /Add Tate Modern to my list/i });
-    await expect(addButton).toBeVisible({ timeout: 3000 });
-    await addButton.click();
+    await page.getByRole('link', { name: 'Tate Modern', exact: true }).click();
 
-    // After adding, success state appears
-    await expect(page.getByRole('status')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText('Added to your list')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'View my list →' })).toBeVisible();
-  });
-});
-
-test.describe('Place detail page — not-found state', () => {
-  test('unknown place id returns the 404 page', async ({ page, context }) => {
-    await context.clearCookies();
-
-    await page.goto('/place/node/99999');
-
-    await expect(
-      page.getByRole('heading', { name: 'Page not found', level: 1 }),
-    ).toBeVisible({ timeout: 5000 });
-
-    await expect(page.getByRole('link', { name: 'Back to London List' })).toBeVisible();
+    await expect(page).toHaveURL(/\/place\/node\/1$/, { timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Tate Modern', level: 1 })).toBeVisible({
+      timeout: 5000,
+    });
   });
 });

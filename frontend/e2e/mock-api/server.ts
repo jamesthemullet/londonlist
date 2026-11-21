@@ -73,6 +73,7 @@ const FIXTURE_LISTS: PublicListFixture[] = [
 
 const FIXTURE_PLACES: PlaceFixture[] = [
   { osm_id: 'node/1', name: 'Tate Modern', category: 'museum', lat: 51.5076, lng: -0.0994 },
+  { osm_id: 'node/2', name: 'British Museum', category: 'museum', lat: 51.5194, lng: -0.1270 },
 ];
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
@@ -178,6 +179,20 @@ const server = createServer((req, res) => {
   const method = req.method ?? 'GET';
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
   const segments = url.pathname.split('/').filter(Boolean);
+
+  // Mirror the real Strapi backend's CORS config (backend/config/middlewares.ts) so
+  // client-side fetches (e.g. the homepage's public-lists request) behave the same in
+  // e2e tests as they do against the real backend.
+  const requestOrigin = req.headers.origin;
+  if (requestOrigin) res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Origin, Accept');
+
+  if (method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
 
   if (method === 'GET' && segments.length === 0) {
     sendJson(res, 200, { status: 'ok' });

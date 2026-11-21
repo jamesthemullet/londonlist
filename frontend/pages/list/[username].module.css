@@ -287,6 +287,27 @@
   flex-shrink: 0;
 }
 
+.conversionDismiss {
+  background: none;
+  border: none;
+  color: #bbb;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.conversionDismiss:hover,
+.conversionDismiss:focus-visible {
+  color: #fff;
+}
+
+.mainWithBanner {
+  padding-bottom: 7rem;
+}
+
 .listDescription {
   font-size: 1rem;
   color: #555;

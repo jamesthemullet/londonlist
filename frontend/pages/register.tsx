@@ -8,9 +8,8 @@ import Loader from '../components/Loader';
 import { Button } from '../components/core/button/button';
 import { useAppContext } from '../context/AppContext';
 import { buildOgImageUrl } from '../lib/og-image';
+import { SITE_URL } from '../lib/site';
 import styles from './register.module.css';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://londonlist.vercel.app';
 
 const COPY_PUBLIC_LIST = gql`
   mutation CopyPublicList($sourceDocumentId: ID!, $sourceUsername: String!) {

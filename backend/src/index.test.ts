@@ -54,18 +54,72 @@ type ResolverMap = {
   };
 };
 
-function getResolvers(strapi: unknown): ResolverMap {
+type Extension = {
+  resolvers: ResolverMap;
+  resolversConfig: Record<string, { auth: boolean }>;
+};
+
+function getExtension(strapi: unknown): Extension {
   const use = jest.fn();
+  const shadowCRUD = jest.fn(() => ({ disable: jest.fn(), disableQueries: jest.fn() }));
   const mockStrapi = {
     ...(strapi as object),
-    plugin: jest.fn(() => ({ service: jest.fn(() => ({ use })) })),
+    plugin: jest.fn(() => ({ service: jest.fn(() => ({ use, shadowCRUD })) })),
   };
 
   (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({ strapi: mockStrapi });
 
-  const factory = use.mock.calls[0][0] as () => { resolvers: ResolverMap };
-  return factory().resolvers;
+  const factory = use.mock.calls[0][0] as () => Extension;
+  return factory();
 }
+
+function getResolvers(strapi: unknown): ResolverMap {
+  return getExtension(strapi).resolvers;
+}
+
+describe('register — shadowCRUD', () => {
+  it('disables shadowCRUD for api::list.list', () => {
+    const disableList = jest.fn();
+    const shadowCRUD = jest.fn((uid: string) => ({
+      disable: uid === 'api::list.list' ? disableList : jest.fn(),
+      disableQueries: jest.fn(),
+    }));
+    const mockStrapi = {
+      plugin: jest.fn(() => ({ service: jest.fn(() => ({ use: jest.fn(), shadowCRUD })) })),
+    };
+    (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({ strapi: mockStrapi });
+    expect(shadowCRUD).toHaveBeenCalledWith('api::list.list');
+    expect(disableList).toHaveBeenCalled();
+  });
+
+  it('disables shadowCRUD for api::list-item.list-item', () => {
+    const disableItem = jest.fn();
+    const shadowCRUD = jest.fn((uid: string) => ({
+      disable: uid === 'api::list-item.list-item' ? disableItem : jest.fn(),
+      disableQueries: jest.fn(),
+    }));
+    const mockStrapi = {
+      plugin: jest.fn(() => ({ service: jest.fn(() => ({ use: jest.fn(), shadowCRUD })) })),
+    };
+    (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({ strapi: mockStrapi });
+    expect(shadowCRUD).toHaveBeenCalledWith('api::list-item.list-item');
+    expect(disableItem).toHaveBeenCalled();
+  });
+
+  it('disables shadowCRUD queries for api::list-setting.list-setting', () => {
+    const disableQueries = jest.fn();
+    const shadowCRUD = jest.fn((uid: string) => ({
+      disable: jest.fn(),
+      disableQueries: uid === 'api::list-setting.list-setting' ? disableQueries : jest.fn(),
+    }));
+    const mockStrapi = {
+      plugin: jest.fn(() => ({ service: jest.fn(() => ({ use: jest.fn(), shadowCRUD })) })),
+    };
+    (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({ strapi: mockStrapi });
+    expect(shadowCRUD).toHaveBeenCalledWith('api::list-setting.list-setting');
+    expect(disableQueries).toHaveBeenCalled();
+  });
+});
 
 describe('GraphQL resolvers — ownership checks', () => {
   const context = { state: { user: { id: 1 } } };
@@ -814,12 +868,95 @@ describe('public place queries', () => {
       ]);
     });
 
-    it('never requests more than the hard cap of 10000, regardless of the requested limit', async () => {
+    it('never requests more than the hard cap of 2000, regardless of the requested limit', async () => {
       const { resolvers, findMany } = strapiWithListItems([]);
 
       await resolvers.Query.allPlaces.resolve(null, { limit: 50000 }, anonymousContext);
 
-      expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ limit: 30000 }));
+      expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ limit: 6000 }));
+    });
+  });
+});
+
+describe('resolversConfig', () => {
+  it('allows anonymous access to public place queries and planLimits', () => {
+    const { resolversConfig } = getExtension({});
+
+    expect(resolversConfig['Query.planLimits']).toEqual({ auth: false });
+    expect(resolversConfig['Query.place']).toEqual({ auth: false });
+    expect(resolversConfig['Query.placesByArea']).toEqual({ auth: false });
+    expect(resolversConfig['Query.relatedPlaces']).toEqual({ auth: false });
+    expect(resolversConfig['Query.allPlaces']).toEqual({ auth: false });
+  });
+
+  it('does not grant anonymous access to authenticated queries', () => {
+    const { resolversConfig } = getExtension({});
+
+    expect(resolversConfig['Query.myLists']).toBeUndefined();
+    expect(resolversConfig['Query.listItems']).toBeUndefined();
+  });
+});
+
+describe('public list filtering', () => {
+  describe('place', () => {
+    it('only queries items from public lists', async () => {
+      const findMany = jest.fn().mockResolvedValue([]);
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      await resolvers.Query.place.resolve(null, { osm_id: 'x1' }, {});
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.objectContaining({ list: { isPublic: { $eq: true } } }),
+        }),
+      );
+    });
+  });
+
+  describe('placesByArea', () => {
+    it('only queries items from public lists', async () => {
+      const findMany = jest.fn().mockResolvedValue([]);
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      await resolvers.Query.placesByArea.resolve(null, { area: 'Hackney' }, {});
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.objectContaining({ list: { isPublic: { $eq: true } } }),
+        }),
+      );
+    });
+
+    it('caps results at 200 unique places', async () => {
+      const items = Array.from({ length: 300 }, (_, i) => ({
+        osm_id: `p${i}`,
+        name: `Place ${i}`,
+        category: null,
+        area: 'Hackney',
+        lat: null,
+        lng: null,
+      }));
+      const findMany = jest.fn().mockResolvedValue(items);
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      const result = await resolvers.Query.placesByArea.resolve(null, { area: 'Hackney' }, {});
+
+      expect((result as unknown[]).length).toBe(200);
+    });
+  });
+
+  describe('allPlaces', () => {
+    it('only queries items from public lists', async () => {
+      const findMany = jest.fn().mockResolvedValue([]);
+      const resolvers = getResolvers({ documents: jest.fn(() => ({ findMany })) });
+
+      await resolvers.Query.allPlaces.resolve(null, {}, {});
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.objectContaining({ list: { isPublic: { $eq: true } } }),
+        }),
+      );
     });
   });
 });
@@ -889,7 +1026,7 @@ describe('bootstrap', () => {
     expect(permissionQuery.findOne).not.toHaveBeenCalled();
   });
 
-  it('creates a permission that does not already exist', async () => {
+  it('creates a Stripe permission that does not already exist', async () => {
     process.env.NODE_ENV = 'test';
     const { strapi, permissionQuery } = strapiWithRoleAndPermission({ existingPermission: null });
 
@@ -898,7 +1035,7 @@ describe('bootstrap', () => {
     expect(permissionQuery.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          action: 'api::list-item.list-item.find',
+          action: 'api::stripe.stripe.createCheckoutSession',
           role: 10,
           enabled: true,
         }),
@@ -906,7 +1043,42 @@ describe('bootstrap', () => {
     );
   });
 
-  it('re-enables a permission that exists but is disabled', async () => {
+  it('creates a list-setting.find permission that does not already exist', async () => {
+    process.env.NODE_ENV = 'test';
+    const { strapi, permissionQuery } = strapiWithRoleAndPermission({ existingPermission: null });
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          action: 'api::list-setting.list-setting.find',
+          role: 10,
+          enabled: true,
+        }),
+      }),
+    );
+  });
+
+  it('does not create list.list.find permissions (removed from allowed actions)', async () => {
+    process.env.NODE_ENV = 'test';
+    const { strapi, permissionQuery } = strapiWithRoleAndPermission({ existingPermission: null });
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.create).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ action: 'api::list.list.find' }),
+      }),
+    );
+    expect(permissionQuery.create).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ action: 'api::list-item.list-item.find' }),
+      }),
+    );
+  });
+
+  it('re-enables a stripe permission that exists but is disabled', async () => {
     process.env.NODE_ENV = 'test';
     const { strapi, permissionQuery } = strapiWithRoleAndPermission({
       existingPermission: { id: 99, enabled: false },
@@ -917,10 +1089,9 @@ describe('bootstrap', () => {
     expect(permissionQuery.update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 99 }, data: { enabled: true } }),
     );
-    expect(permissionQuery.create).not.toHaveBeenCalled();
   });
 
-  it('leaves an already-enabled permission untouched', async () => {
+  it('leaves an already-enabled stripe permission untouched', async () => {
     process.env.NODE_ENV = 'test';
     const { strapi, permissionQuery } = strapiWithRoleAndPermission({
       existingPermission: { id: 99, enabled: true },
@@ -928,7 +1099,55 @@ describe('bootstrap', () => {
 
     await indexPlugin.bootstrap({ strapi });
 
-    expect(permissionQuery.update).not.toHaveBeenCalled();
+    expect(permissionQuery.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({ data: { enabled: true } }),
+    );
     expect(permissionQuery.create).not.toHaveBeenCalled();
+  });
+
+  it('disables an existing enabled list.list.find permission', async () => {
+    process.env.NODE_ENV = 'test';
+    const permissionQuery = {
+      findOne: jest.fn().mockResolvedValue({ id: 42, enabled: true }),
+      create: jest.fn().mockResolvedValue(undefined),
+      update: jest.fn().mockResolvedValue(undefined),
+    };
+    const roleQuery = { findOne: jest.fn().mockResolvedValue({ id: 10, type: 'authenticated' }) };
+    const strapi = {
+      db: {
+        query: jest.fn((uid: string) =>
+          uid === 'plugin::users-permissions.role' ? roleQuery : permissionQuery,
+        ),
+      },
+    };
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { enabled: false } }),
+    );
+  });
+
+  it('leaves an already-disabled list.list.find permission untouched', async () => {
+    process.env.NODE_ENV = 'test';
+    const permissionQuery = {
+      findOne: jest.fn().mockResolvedValue({ id: 42, enabled: false }),
+      create: jest.fn().mockResolvedValue(undefined),
+      update: jest.fn().mockResolvedValue(undefined),
+    };
+    const roleQuery = { findOne: jest.fn().mockResolvedValue({ id: 10, type: 'authenticated' }) };
+    const strapi = {
+      db: {
+        query: jest.fn((uid: string) =>
+          uid === 'plugin::users-permissions.role' ? roleQuery : permissionQuery,
+        ),
+      },
+    };
+
+    await indexPlugin.bootstrap({ strapi });
+
+    expect(permissionQuery.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({ data: { enabled: false } }),
+    );
   });
 });

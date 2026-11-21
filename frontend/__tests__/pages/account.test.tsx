@@ -75,10 +75,10 @@ afterEach(() => {
 });
 
 describe('AccountPage — redirect', () => {
-  it('redirects to /login when user is not authenticated', () => {
+  it('redirects to /login?next=/account when user is not authenticated', () => {
     mockUseAppContext.mockReturnValue({ user: null, setUser: mockSetUser, initialized: true });
     render(<AccountPage />);
-    expect(mockPush).toHaveBeenCalledWith('/login');
+    expect(mockPush).toHaveBeenCalledWith('/login?next=/account');
   });
 
   it('renders nothing while auth is uninitialised', () => {

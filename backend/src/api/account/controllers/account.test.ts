@@ -1,3 +1,14 @@
+const mockStripeInstance = {
+  subscriptions: {
+    list: jest.fn(),
+    cancel: jest.fn(),
+  },
+};
+
+jest.mock('stripe', () => {
+  return jest.fn().mockImplementation(() => mockStripeInstance);
+});
+
 import accountController from './account';
 
 function createCtx(overrides: Record<string, unknown> = {}) {
@@ -11,16 +22,19 @@ function createCtx(overrides: Record<string, unknown> = {}) {
 describe('account controller', () => {
   const listQuery = { findMany: jest.fn() };
   const listItemQuery = { deleteMany: jest.fn() };
-  const userQuery = { delete: jest.fn() };
+  const listSettingQuery = { deleteMany: jest.fn() };
+  const userQuery = { findOne: jest.fn(), delete: jest.fn() };
   const listDocuments = { delete: jest.fn() };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_123';
     (global as unknown as { strapi: unknown }).strapi = {
       db: {
         query: jest.fn((uid: string) => {
           if (uid === 'api::list.list') return listQuery;
           if (uid === 'api::list-item.list-item') return listItemQuery;
+          if (uid === 'api::list-setting.list-setting') return listSettingQuery;
           if (uid === 'plugin::users-permissions.user') return userQuery;
           throw new Error(`unexpected db.query uid: ${uid}`);
         }),
@@ -41,7 +55,8 @@ describe('account controller', () => {
       expect(ctx.unauthorized).toHaveBeenCalledWith('Authentication required');
     });
 
-    it('deletes the users lists, their items, and the user record', async () => {
+    it('deletes the users lists, their items, list-settings and the user record', async () => {
+      userQuery.findOne.mockResolvedValue({ stripeCustomerId: null });
       listQuery.findMany.mockResolvedValue([
         { id: 1, documentId: 'list-1' },
         { id: 2, documentId: 'list-2' },
@@ -62,12 +77,14 @@ describe('account controller', () => {
       });
       expect(listDocuments.delete).toHaveBeenCalledWith({ documentId: 'list-1' });
       expect(listDocuments.delete).toHaveBeenCalledWith({ documentId: 'list-2' });
+      expect(listSettingQuery.deleteMany).toHaveBeenCalledWith({ where: { user: { id: 7 } } });
       expect(userQuery.delete).toHaveBeenCalledWith({ where: { id: 7 } });
       expect(ctx.status).toBe(200);
       expect(result).toEqual({ deleted: true });
     });
 
-    it('deletes only the user record when the user has no lists', async () => {
+    it('deletes only the user record and list-settings when the user has no lists', async () => {
+      userQuery.findOne.mockResolvedValue({ stripeCustomerId: null });
       listQuery.findMany.mockResolvedValue([]);
       const ctx = createCtx({ state: { user: { id: 9 } } });
 
@@ -75,8 +92,52 @@ describe('account controller', () => {
 
       expect(listItemQuery.deleteMany).not.toHaveBeenCalled();
       expect(listDocuments.delete).not.toHaveBeenCalled();
+      expect(listSettingQuery.deleteMany).toHaveBeenCalledWith({ where: { user: { id: 9 } } });
       expect(userQuery.delete).toHaveBeenCalledWith({ where: { id: 9 } });
       expect(result).toEqual({ deleted: true });
+    });
+
+    it('cancels active Stripe subscriptions before deleting the account', async () => {
+      userQuery.findOne.mockResolvedValue({ stripeCustomerId: 'cus_abc' });
+      mockStripeInstance.subscriptions.list.mockResolvedValue({
+        data: [{ id: 'sub_1' }, { id: 'sub_2' }],
+      });
+      mockStripeInstance.subscriptions.cancel.mockResolvedValue({});
+      listQuery.findMany.mockResolvedValue([]);
+      const ctx = createCtx({ state: { user: { id: 5 } } });
+
+      await accountController.deleteAccount(ctx);
+
+      expect(mockStripeInstance.subscriptions.list).toHaveBeenCalledWith({
+        customer: 'cus_abc',
+        status: 'active',
+      });
+      expect(mockStripeInstance.subscriptions.cancel).toHaveBeenCalledWith('sub_1');
+      expect(mockStripeInstance.subscriptions.cancel).toHaveBeenCalledWith('sub_2');
+      expect(userQuery.delete).toHaveBeenCalledWith({ where: { id: 5 } });
+    });
+
+    it('skips Stripe cancellation when STRIPE_SECRET_KEY is not set', async () => {
+      delete process.env.STRIPE_SECRET_KEY;
+      userQuery.findOne.mockResolvedValue({ stripeCustomerId: 'cus_abc' });
+      listQuery.findMany.mockResolvedValue([]);
+      const ctx = createCtx({ state: { user: { id: 5 } } });
+
+      await accountController.deleteAccount(ctx);
+
+      expect(mockStripeInstance.subscriptions.list).not.toHaveBeenCalled();
+      expect(userQuery.delete).toHaveBeenCalledWith({ where: { id: 5 } });
+    });
+
+    it('skips Stripe cancellation when the user has no stripeCustomerId', async () => {
+      userQuery.findOne.mockResolvedValue({ stripeCustomerId: null });
+      listQuery.findMany.mockResolvedValue([]);
+      const ctx = createCtx({ state: { user: { id: 5 } } });
+
+      await accountController.deleteAccount(ctx);
+
+      expect(mockStripeInstance.subscriptions.list).not.toHaveBeenCalled();
+      expect(userQuery.delete).toHaveBeenCalledWith({ where: { id: 5 } });
     });
   });
 });

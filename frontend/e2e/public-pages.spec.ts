@@ -10,6 +10,25 @@ test.describe('Homepage — logged-out view', () => {
     await expect(page.getByRole('link', { name: 'Create your free list' })).toBeVisible();
   });
 
+  test('has no console errors', async ({ page }) => {
+    // Next dev's own middleware-manifest probe is unrelated to app code and fires on every
+    // route regardless of page content, so it's excluded to keep this assertion meaningful.
+    const isNextDevNoise = (text: string) => text.includes('_clientMiddlewareManifest.js');
+
+    const errors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error' && !isNextDevNoise(msg.text())) errors.push(msg.text());
+    });
+    page.on('pageerror', (err) => {
+      if (!isNextDevNoise(err.message)) errors.push(err.message);
+    });
+
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+    expect(errors).toEqual([]);
+  });
+
   test('shows feature cards', async ({ page }) => {
     await page.goto('/');
 

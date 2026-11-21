@@ -62,15 +62,26 @@ describe('stripe controller', () => {
       expect(ctx.unauthorized).toHaveBeenCalledWith('Authentication required');
     });
 
+    it('returns badRequest when the user is already a Pro subscriber', async () => {
+      dbQuery.findOne.mockResolvedValue({ isPro: true, stripeCustomerId: 'cus_existing' });
+      const ctx = createCtx({ state: { user: { id: 1, email: 'a@example.com' } }, request: { body: {} } });
+      const result = await stripeController.createCheckoutSession(ctx);
+      expect(ctx.badRequest).toHaveBeenCalledWith('Already subscribed to a Pro plan');
+      expect(result).toEqual({ status: 400, msg: 'Already subscribed to a Pro plan' });
+      expect(mockStripeInstance.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+
     it('returns internalServerError when the relevant price id is not configured', async () => {
       delete process.env.STRIPE_PRO_PRICE_ID;
+      dbQuery.findOne.mockResolvedValue({ isPro: false, stripeCustomerId: null });
       const ctx = createCtx({ state: { user: { id: 1, email: 'a@example.com' } } });
       const result = await stripeController.createCheckoutSession(ctx);
       expect(ctx.internalServerError).toHaveBeenCalledWith('Stripe is not configured');
       expect(result).toEqual({ status: 500, msg: 'Stripe is not configured' });
     });
 
-    it('creates a monthly checkout session for an authenticated user', async () => {
+    it('creates a monthly checkout session with trial for a new customer', async () => {
+      dbQuery.findOne.mockResolvedValue({ isPro: false, stripeCustomerId: null });
       mockStripeInstance.checkout.sessions.create.mockResolvedValue({
         url: 'https://checkout/monthly',
       });
@@ -88,6 +99,7 @@ describe('stripe controller', () => {
           customer_email: 'user@example.com',
           client_reference_id: '42',
           metadata: { userId: '42' },
+          subscription_data: { trial_period_days: 14 },
           success_url: expect.stringContaining('https://example.com/pricing'),
           cancel_url: 'https://example.com/pricing?checkout=cancelled',
         }),
@@ -95,7 +107,27 @@ describe('stripe controller', () => {
       expect(result).toEqual({ url: 'https://checkout/monthly' });
     });
 
+    it('reuses the existing Stripe customer and skips the trial for a returning customer', async () => {
+      dbQuery.findOne.mockResolvedValue({ isPro: false, stripeCustomerId: 'cus_returning' });
+      mockStripeInstance.checkout.sessions.create.mockResolvedValue({
+        url: 'https://checkout/returning',
+      });
+      const ctx = createCtx({
+        state: { user: { id: 42, email: 'user@example.com' } },
+        request: { body: {} },
+      });
+
+      const result = await stripeController.createCheckoutSession(ctx);
+
+      const callArg = mockStripeInstance.checkout.sessions.create.mock.calls[0][0];
+      expect(callArg.customer).toBe('cus_returning');
+      expect(callArg.customer_email).toBeUndefined();
+      expect(callArg.subscription_data).toBeUndefined();
+      expect(result).toEqual({ url: 'https://checkout/returning' });
+    });
+
     it('creates an annual checkout session when billingPeriod is annual', async () => {
+      dbQuery.findOne.mockResolvedValue({ isPro: false, stripeCustomerId: null });
       mockStripeInstance.checkout.sessions.create.mockResolvedValue({
         url: 'https://checkout/annual',
       });
@@ -113,6 +145,7 @@ describe('stripe controller', () => {
 
     it('throws when STRIPE_SECRET_KEY is not configured', async () => {
       delete process.env.STRIPE_SECRET_KEY;
+      dbQuery.findOne.mockResolvedValue({ isPro: false, stripeCustomerId: null });
       const ctx = createCtx({
         state: { user: { id: 42, email: 'user@example.com' } },
         request: { body: {} },

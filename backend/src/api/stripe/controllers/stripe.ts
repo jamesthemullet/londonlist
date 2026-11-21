@@ -29,6 +29,15 @@ export default {
     const user = requireAuth(ctx);
     if (!user) return;
 
+    const dbUser = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: user.id },
+      select: ['isPro', 'stripeCustomerId'],
+    });
+
+    if (dbUser?.isPro) {
+      return ctx.badRequest('Already subscribed to a Pro plan');
+    }
+
     const { billingPeriod } = (ctx.request.body as { billingPeriod?: string }) ?? {};
     const isAnnual = billingPeriod === 'annual';
 
@@ -43,17 +52,25 @@ export default {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const stripe = getStripeClient();
 
-    const session = await stripe.checkout.sessions.create({
+    const existingCustomerId = dbUser?.stripeCustomerId as string | undefined;
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      customer_email: user.email,
       client_reference_id: String(user.id),
       metadata: { userId: String(user.id) },
-      subscription_data: { trial_period_days: 14 },
       success_url: `${frontendUrl}/pricing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/pricing?checkout=cancelled`,
-    });
+    };
 
+    if (existingCustomerId) {
+      sessionParams.customer = existingCustomerId;
+    } else {
+      sessionParams.customer_email = user.email;
+      sessionParams.subscription_data = { trial_period_days: 14 };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
     return { url: session.url };
   },
 
