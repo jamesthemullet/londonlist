@@ -72,6 +72,30 @@ test.describe('Place detail page', () => {
     );
   });
 
+  test('logged-out user sees sign-up CTA instead of add-to-list button', async ({
+    page,
+    context,
+  }) => {
+    await context.clearCookies();
+
+    await page.route(GRAPHQL_URL, (route, request) =>
+      handleGraphql(route, request, { __me: null }),
+    );
+
+    await page.goto('/place/node/1');
+
+    await expect(page.getByRole('heading', { name: 'Tate Modern', level: 1 })).toBeVisible({
+      timeout: 5000,
+    });
+
+    await expect(page.getByRole('link', { name: 'Create a free account' })).toBeVisible({
+      timeout: 3000,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Add Tate Modern to my list' }),
+    ).not.toBeVisible();
+  });
+
   test('logged-in user adds the place to a list', async ({ page, context }) => {
     await context.clearCookies();
 
