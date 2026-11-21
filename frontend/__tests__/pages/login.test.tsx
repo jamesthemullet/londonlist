@@ -53,7 +53,7 @@ beforeEach(() => {
   mockReplace.mockReset();
   mockSetUser.mockReset();
   mockCookieSet.mockReset();
-  mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace });
+  mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace, query: {} });
   mockUseAppContext.mockReturnValue({ user: null, setUser: mockSetUser, initialized: true });
   mockUseMutation.mockReturnValue([jest.fn(), { loading: false, error: null }]);
 });
@@ -200,6 +200,19 @@ describe('LoginRoute — already logged-in redirect', () => {
     });
   });
 
+  it('redirects to ?next= path when user is already logged in', async () => {
+    mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace, query: { next: '/account' } });
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', username: 'alice' },
+      initialized: true,
+      setUser: mockSetUser,
+    });
+    render(<LoginRoute />);
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/account');
+    });
+  });
+
   it('does not redirect when initialized is false', () => {
     mockUseAppContext.mockReturnValue({
       user: { id: '1', username: 'alice' },
@@ -213,5 +226,64 @@ describe('LoginRoute — already logged-in redirect', () => {
   it('does not redirect when user is null', () => {
     render(<LoginRoute />);
     expect(mockReplace).not.toHaveBeenCalled();
+  });
+});
+
+describe('LoginRoute — ?next= redirect after login', () => {
+  it('redirects to ?next= path after successful login', async () => {
+    mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace, query: { next: '/account' } });
+    const fakeUser = { id: '1', documentId: 'doc-1', username: 'alice', email: 'alice@test.com' };
+    const mockLogin = jest.fn().mockResolvedValue({
+      data: { login: { jwt: 'test-jwt', user: fakeUser } },
+    });
+    mockUseMutation.mockReturnValue([mockLogin, { loading: false, error: null }]);
+
+    render(<LoginRoute />);
+
+    await userEvent.type(screen.getByLabelText('Email'), 'alice@test.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Login' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/account');
+    });
+  });
+
+  it('falls back to /my-list when ?next= is an absolute URL', async () => {
+    mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace, query: { next: 'https://evil.com' } });
+    const fakeUser = { id: '1', documentId: 'doc-1', username: 'alice', email: 'alice@test.com' };
+    const mockLogin = jest.fn().mockResolvedValue({
+      data: { login: { jwt: 'test-jwt', user: fakeUser } },
+    });
+    mockUseMutation.mockReturnValue([mockLogin, { loading: false, error: null }]);
+
+    render(<LoginRoute />);
+
+    await userEvent.type(screen.getByLabelText('Email'), 'alice@test.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Login' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/my-list');
+    });
+  });
+
+  it('falls back to /my-list when ?next= starts with //', async () => {
+    mockUseRouter.mockReturnValue({ push: mockPush, replace: mockReplace, query: { next: '//evil.com' } });
+    const fakeUser = { id: '1', documentId: 'doc-1', username: 'alice', email: 'alice@test.com' };
+    const mockLogin = jest.fn().mockResolvedValue({
+      data: { login: { jwt: 'test-jwt', user: fakeUser } },
+    });
+    mockUseMutation.mockReturnValue([mockLogin, { loading: false, error: null }]);
+
+    render(<LoginRoute />);
+
+    await userEvent.type(screen.getByLabelText('Email'), 'alice@test.com');
+    await userEvent.type(screen.getByLabelText('Password'), 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Login' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/my-list');
+    });
   });
 });
