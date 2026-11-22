@@ -304,6 +304,6 @@ test.describe('My list management', () => {
 
     await page.goto('/my-list');
 
-    await expect(page).not.toHaveURL(/\/my-list/, { timeout: 5000 });
+    await expect(page).toHaveURL('/login?next=/my-list', { timeout: 5000 });
   });
 });
