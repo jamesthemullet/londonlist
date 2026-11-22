@@ -55,6 +55,7 @@ type ResolverMap = {
 };
 
 type Extension = {
+  typeDefs: string;
   resolvers: ResolverMap;
   resolversConfig: Record<string, { auth: boolean }>;
 };
@@ -118,6 +119,24 @@ describe('register — shadowCRUD', () => {
     (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({ strapi: mockStrapi });
     expect(shadowCRUD).toHaveBeenCalledWith('api::list-setting.list-setting');
     expect(disableQueries).toHaveBeenCalled();
+  });
+});
+
+describe('register — GraphQL schema', () => {
+  // list-setting only has its queries disabled, so shadowCRUD still generates these two.
+  const generatedByShadowCRUD = ['Mutation.createListSetting', 'Mutation.updateListSetting'];
+
+  // Strapi refuses to start if a resolver has no matching field in the schema.
+  it.each(['Query', 'Mutation'] as const)('declares a schema field for every %s resolver', (type) => {
+    const { typeDefs, resolvers } = getExtension({});
+    const body = typeDefs.split(`extend type ${type} {`)[1]?.split('}')[0] ?? '';
+    const declared = [...body.matchAll(/^\s*(\w+)\s*[(:]/gm)].map((match) => match[1]);
+
+    const undeclared = Object.keys(resolvers[type]).filter(
+      (field) => !declared.includes(field) && !generatedByShadowCRUD.includes(`${type}.${field}`),
+    );
+
+    expect(undeclared).toEqual([]);
   });
 });
 

@@ -20,7 +20,47 @@ export default {
     extensionService.shadowCRUD('api::list-setting.list-setting').disableQueries();
 
     extensionService.use(() => ({
+      // Disabling shadowCRUD also removes the generated types and fields, so everything
+      // the resolvers below need from those content types has to be declared here.
       typeDefs: `
+        type ListItem {
+          documentId: ID!
+          osm_id: String!
+          name: String!
+          lat: Float
+          lng: Float
+          category: String
+          area: String
+          completed: Boolean
+          visitedAt: DateTime
+          notes: String
+        }
+        input ListItemInput {
+          osm_id: String!
+          name: String!
+          lat: Float
+          lng: Float
+          category: String
+          area: String
+          completed: Boolean
+          visitedAt: DateTime
+          notes: String
+          list: ID
+        }
+        input ListItemUpdateInput {
+          completed: Boolean
+          visitedAt: DateTime
+          notes: String
+        }
+        input ListItemDocumentIdFilter {
+          eq: ID
+        }
+        input ListItemListFilter {
+          documentId: ListItemDocumentIdFilter
+        }
+        input ListItemFilters {
+          list: ListItemListFilter
+        }
         type ListEntity {
           documentId: ID!
           name: String!
@@ -47,6 +87,8 @@ export default {
         }
         extend type Query {
           myLists: [ListEntity]
+          listItems(filters: ListItemFilters, sort: [String]): [ListItem]!
+          listSettings: [ListSetting]!
           place(osm_id: String!): PublicPlace
           placesByArea(area: String!): [PublicPlace]
           relatedPlaces(osm_id: String!, limit: Int): [PublicPlace!]!
@@ -54,6 +96,9 @@ export default {
           planLimits: PlanLimits!
         }
         extend type Mutation {
+          createListItem(data: ListItemInput!): ListItem
+          updateListItem(documentId: ID!, data: ListItemUpdateInput!): ListItem
+          deleteListItem(documentId: ID!): DeleteMutationResponse
           createMyList(name: String!, description: String): ListEntity
           updateMyList(documentId: ID!, name: String, isPublic: Boolean, description: String): ListEntity
           deleteMyList(documentId: ID!): Boolean
