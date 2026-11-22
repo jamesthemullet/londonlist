@@ -21,6 +21,16 @@ describe('getSafeNext', () => {
     expect(getSafeNext({ next: '//evil.com' })).toBeNull();
   });
 
+  it.each([
+    ['tab', '/\t/evil.com'],
+    ['line feed', '/\n/evil.com'],
+    ['carriage return', '/\r/evil.com'],
+    ['null byte', '/account\u0000'],
+    ['backslash', '/\\evil.com'],
+  ])('returns null for a path containing a %s', (_name, next) => {
+    expect(getSafeNext({ next })).toBeNull();
+  });
+
   it('allows nested paths', () => {
     expect(getSafeNext({ next: '/list/alice/abc123' })).toBe('/list/alice/abc123');
   });
