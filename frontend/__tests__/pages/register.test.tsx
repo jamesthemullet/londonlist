@@ -442,3 +442,72 @@ describe('RegisterRoute — copy-list flow', () => {
     });
   });
 });
+
+describe('RegisterRoute — ?next= redirect', () => {
+  const fakeUser = {
+    id: '1',
+    documentId: 'doc-1',
+    username: 'londonexplorer',
+    email: 'bob@test.com',
+    isPro: false,
+  };
+
+  it('redirects to ?next= path after successful registration', async () => {
+    mockUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: mockReplace,
+      query: { next: '/pricing' },
+    });
+    const mockRegister = jest.fn().mockResolvedValue({
+      data: { register: { jwt: 'reg-jwt', user: fakeUser } },
+    });
+    mockUseMutation.mockReturnValue([mockRegister, { loading: false, error: null }]);
+
+    render(<RegisterRoute />);
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/pricing');
+    });
+  });
+
+  it('falls back to /my-list when ?next= is an absolute URL', async () => {
+    mockUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: mockReplace,
+      query: { next: 'https://evil.com' },
+    });
+    const mockRegister = jest.fn().mockResolvedValue({
+      data: { register: { jwt: 'reg-jwt', user: fakeUser } },
+    });
+    mockUseMutation.mockReturnValue([mockRegister, { loading: false, error: null }]);
+
+    render(<RegisterRoute />);
+    await fillForm('londonexplorer', 'bob@test.com', 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/my-list');
+    });
+  });
+
+  it('redirects to ?next= path when already logged in', async () => {
+    mockUseRouter.mockReturnValue({
+      push: mockPush,
+      replace: mockReplace,
+      query: { next: '/account' },
+    });
+    mockUseAppContext.mockReturnValue({
+      user: { id: '1', username: 'alice' },
+      initialized: true,
+      setUser: mockSetUser,
+    });
+
+    render(<RegisterRoute />);
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/account');
+    });
+  });
+});

@@ -4,18 +4,11 @@ import Cookie from 'js-cookie';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import type { ParsedUrlQuery } from 'node:querystring';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import Loader from '../components/Loader';
 import Form from '../components/core/form/form';
-
-function getSafeNext(query: ParsedUrlQuery): string | null {
-  const next = query.next;
-  if (typeof next !== 'string') return null;
-  if (!next.startsWith('/') || next.startsWith('//')) return null;
-  return next;
-}
+import { getSafeNext } from '../lib/nav';
 
 type LoginMutationData = {
   login: {
