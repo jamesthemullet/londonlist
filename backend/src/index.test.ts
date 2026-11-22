@@ -341,24 +341,25 @@ describe('GraphQL resolvers — ownership checks', () => {
       isPro?: boolean;
       existingLists?: unknown[];
       created?: unknown;
+      unassignedItems?: unknown[];
     }) {
       const listDocuments = {
         findMany: jest.fn().mockResolvedValue(options.existingLists ?? []),
         create: jest.fn().mockResolvedValue(options.created ?? { documentId: 'new-list' }),
       };
-      const listItemQuery = { updateMany: jest.fn().mockResolvedValue(undefined) };
+      const listItemDocuments = { findMany: jest.fn().mockResolvedValue(options.unassignedItems ?? []) };
       return {
-        documents: jest.fn((uid: string) => (uid === 'api::list.list' ? listDocuments : {})),
+        documents: jest.fn((uid: string) => (uid === 'api::list.list' ? listDocuments : listItemDocuments)),
         db: {
           query: jest.fn((uid: string) => {
             if (uid === 'plugin::users-permissions.user') {
               return { findOne: jest.fn().mockResolvedValue({ id: 1, isPro: options.isPro ?? false }) };
             }
-            return listItemQuery;
+            return {};
           }),
         },
         listDocuments,
-        listItemQuery,
+        listItemDocuments,
       };
     }
 
@@ -389,7 +390,7 @@ describe('GraphQL resolvers — ownership checks', () => {
       );
 
       expect(strapi.listDocuments.create).toHaveBeenCalledWith({
-        data: { name: 'Weekend trip', description: 'Fun stuff', isPublic: false, user: 1 },
+        data: { name: 'Weekend trip', description: 'Fun stuff', isPublic: false, user: 1, list_items: [] },
       });
       expect(result).toEqual({ documentId: 'new-list' });
     });
@@ -410,15 +411,18 @@ describe('GraphQL resolvers — ownership checks', () => {
       const strapi = strapiFor({
         isPro: false,
         existingLists: [],
-        created: { id: 42, documentId: 'new-list' },
+        unassignedItems: [{ documentId: 'item-1' }, { documentId: 'item-2' }],
       });
       const resolvers = getResolvers(strapi);
 
       await resolvers.Mutation.createMyList.resolve(null, { name: 'First list' }, context);
 
-      expect(strapi.listItemQuery.updateMany).toHaveBeenCalledWith({
-        where: { user: 1, list: null },
-        data: { list: 42 },
+      expect(strapi.listItemDocuments.findMany).toHaveBeenCalledWith({
+        filters: { user: { id: { $eq: 1 } }, list: { id: { $null: true } } },
+        fields: ['documentId'],
+      });
+      expect(strapi.listDocuments.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ list_items: ['item-1', 'item-2'] }),
       });
     });
 
@@ -428,7 +432,7 @@ describe('GraphQL resolvers — ownership checks', () => {
 
       await resolvers.Mutation.createMyList.resolve(null, { name: 'Another list' }, context);
 
-      expect(strapi.listItemQuery.updateMany).not.toHaveBeenCalled();
+      expect(strapi.listItemDocuments.findMany).not.toHaveBeenCalled();
     });
   });
 

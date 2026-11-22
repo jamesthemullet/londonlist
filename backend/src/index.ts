@@ -427,19 +427,25 @@ export default {
                 throw err;
               }
 
-              const newList = await strapi.documents('api::list.list').create({
-                data: { name: args.name, description: args.description ?? null, isPublic: false, user: user.id },
+              // On first list creation, migrate any pre-existing unassigned items into it. They are
+              // linked as part of the create because db.query().updateMany() cannot set relations.
+              const itemsToAdopt =
+                existingLists.length === 0
+                  ? await strapi.documents('api::list-item.list-item').findMany({
+                      filters: { user: { id: { $eq: user.id } }, list: { id: { $null: true } } },
+                      fields: ['documentId'],
+                    })
+                  : [];
+
+              return strapi.documents('api::list.list').create({
+                data: {
+                  name: args.name,
+                  description: args.description ?? null,
+                  isPublic: false,
+                  user: user.id,
+                  list_items: itemsToAdopt.map((item) => item.documentId),
+                },
               });
-
-              // On first list creation, migrate any pre-existing unassigned items into it
-              if (existingLists.length === 0) {
-                await strapi.db.query('api::list-item.list-item').updateMany({
-                  where: { user: user.id, list: null },
-                  data: { list: newList.id },
-                });
-              }
-
-              return newList;
             },
           },
           updateMyList: {
