@@ -108,7 +108,7 @@ export default function Home() {
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildWebSiteJsonLd(SITE_URL)) }} />
         )}
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         {user ? (
           <LoggedInHero isPro={user.isPro} />
         ) : (
@@ -141,7 +141,7 @@ export default function Home() {
             </ul>
           </section>
         )}
-      </main>
+      </div>
     </>
   );
 }

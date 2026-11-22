@@ -78,7 +78,7 @@ export default function CategoryExplorePage({ lists, category, meta }: Props) {
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
         )}
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
           <Link href="/explore">Explore</Link>
           {' › '}
@@ -152,7 +152,7 @@ export default function CategoryExplorePage({ lists, category, meta }: Props) {
         <Link href="/explore" className={styles.backLink}>
           ← All lists
         </Link>
-      </main>
+      </div>
     </>
   );
 }

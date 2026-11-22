@@ -180,7 +180,7 @@ export default function PricingPage() {
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildPricingJsonLd(SITE_URL)) }} />
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <div className={styles.hero}>
           <h1 className={styles.heading}>Simple, honest pricing</h1>
           <p className={styles.subheading}>
@@ -361,7 +361,7 @@ export default function PricingPage() {
             </div>
           </dl>
         </div>
-      </main>
+      </div>
     </>
   );
 }

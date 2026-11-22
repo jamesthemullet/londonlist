@@ -122,7 +122,7 @@ export default function AreaPage({
 					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 				)}
 			</Head>
-			<main className={styles.main}>
+			<div className={styles.main}>
 				<nav aria-label="Breadcrumb" className={styles.breadcrumb}>
 					<Link href="/explore">Explore</Link>
 					{" › "}
@@ -212,7 +212,7 @@ export default function AreaPage({
 						Browse all public lists →
 					</Link>
 				</div>
-			</main>
+			</div>
 		</>
 	);
 }

@@ -186,7 +186,7 @@ export default function ExplorePage({ lists }: Props) {
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildExplorePageJsonLd(lists, SITE_URL)) }} />
         )}
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <div className={styles.hero}>
           <h1 className={styles.heading}>Explore London Lists</h1>
           <p className={styles.subheading}>
@@ -349,7 +349,7 @@ export default function ExplorePage({ lists }: Props) {
             </p>
           </aside>
         )}
-      </main>
+      </div>
     </>
   );
 }
