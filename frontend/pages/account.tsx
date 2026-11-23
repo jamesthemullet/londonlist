@@ -120,7 +120,7 @@ export default function AccountPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex" />
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <h1 className={styles.heading}>Account Settings</h1>
 
         <section className={styles.section} aria-labelledby="account-info-heading">
@@ -283,7 +283,7 @@ export default function AccountPage() {
             )}
           </div>
         </section>
-      </main>
+      </div>
     </>
   );
 }

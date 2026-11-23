@@ -94,7 +94,7 @@ export default function PlaceDetailPage({ place, relatedPlaces }: Props) {
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <nav className={styles.breadcrumb} aria-label="Breadcrumb">
           <Link href="/explore" className={styles.breadcrumbLink}>
             Explore
@@ -128,7 +128,7 @@ export default function PlaceDetailPage({ place, relatedPlaces }: Props) {
         />
         <BookingLinks name={place.name} category={place.category ?? null} />
         <RelatedPlaces places={relatedPlaces} />
-      </main>
+      </div>
     </>
   );
 }

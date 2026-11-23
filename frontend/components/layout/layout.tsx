@@ -101,7 +101,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </a>
       <Meta currentUrl={currentUrl} />
       <Navigation />
-      <div id="main-content" tabIndex={-1} className={styles.pageContainer}>{children}</div>
+      <main id="main-content" tabIndex={-1} className={styles.pageContainer}>{children}</main>
       <Footer />
     </div>
   );

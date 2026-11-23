@@ -66,7 +66,7 @@ export default function AreaIndexPage() {
 					<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 				)}
 			</Head>
-			<main className={styles.main}>
+			<div className={styles.main}>
 				<nav aria-label="Breadcrumb" className={styles.breadcrumb}>
 					<Link href="/explore">Explore</Link>
 					{" › "}
@@ -110,7 +110,7 @@ export default function AreaIndexPage() {
 						</li>
 					))}
 				</ul>
-			</main>
+			</div>
 		</>
 	);
 }

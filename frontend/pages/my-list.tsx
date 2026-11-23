@@ -378,7 +378,7 @@ export default function MyListPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex, nofollow" />
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <h1 className={styles.heading}>My Lists</h1>
 
         <ProStatsCard lists={lists} isPro={user?.isPro ?? false} />
@@ -709,7 +709,7 @@ export default function MyListPage() {
             )}
           </div>
         )}
-      </main>
+      </div>
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
   );

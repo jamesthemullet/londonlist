@@ -51,9 +51,7 @@ export default function ResetPasswordPage() {
           <meta name="description" content="Set a new password for your London List account." />
           <meta name="robots" content="noindex, nofollow" />
         </Head>
-        <main>
-          <SetNewPasswordForm code={code} />
-        </main>
+        <SetNewPasswordForm code={code} />
       </>
     );
   }
@@ -64,9 +62,7 @@ export default function ResetPasswordPage() {
         <meta name="description" content="Reset your London List account password." />
         <meta name="robots" content="noindex, nofollow" />
       </Head>
-      <main>
-        <ForgotPasswordForm />
-      </main>
+      <ForgotPasswordForm />
     </>
   );
 }
