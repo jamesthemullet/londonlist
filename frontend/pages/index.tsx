@@ -7,6 +7,7 @@ import PlaceSearch from '../components/search/place-search';
 import StreakBadge from '../components/streak-badge/streak-badge';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
+import { usePlanLimits } from '../hooks/use-plan-limits';
 import { useStreak } from '../hooks/use-streak';
 import { GET_MY_LISTS } from './my-list';
 import { buildOgImageUrl } from '../lib/og-image';
@@ -255,6 +256,7 @@ function nextMilestoneMessage(total: number, done: number): string | null {
 
 function LoggedInHero({ isPro }: { isPro: boolean }) {
   const authHeader = useAuthHeader();
+  const { freeListLimit } = usePlanLimits();
 
   const { data: listsData } = useQuery<MyListsData>(GET_MY_LISTS, {
     context: { headers: authHeader },
@@ -294,7 +296,7 @@ function LoggedInHero({ isPro }: { isPro: boolean }) {
         <aside className={styles.proNudge} aria-label="Upgrade to Pro">
           <p className={styles.proNudgeText}>
             <span>
-              <strong>Free plan:</strong> up to 3 lists.
+              <strong>Free plan:</strong> up to {freeListLimit} lists.
             </span>{' '}
             <Link href="/pricing" className={styles.proNudgeLink}>
               Upgrade to Pro for unlimited lists &rarr;

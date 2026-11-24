@@ -4,20 +4,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { usePlanLimits } from '../hooks/use-plan-limits';
 import { buildOgImageUrl } from '../lib/og-image';
 import { safeJsonLd } from '../lib/json-ld';
 import { API_URL, SITE_URL } from '../lib/site';
 import styles from './pricing.module.css';
 const OG_IMAGE = buildOgImageUrl({ title: 'Pricing — London List' }, SITE_URL);
-
-const FREE_FEATURES = [
-  'Up to 3 lists',
-  'Public & private lists',
-  'Place search across London',
-  'Progress tracking & completion',
-  'Monthly explorer streak',
-  'Share your list with friends',
-];
 
 const PRO_FEATURES = [
   'Everything in Free',
@@ -30,7 +22,7 @@ const PRO_FEATURES = [
 
 type BillingPeriod = 'monthly' | 'annual';
 
-export function buildPricingJsonLd(siteUrl: string): object {
+export function buildPricingJsonLd(siteUrl: string, freeListLimit = 3): object {
   return {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -46,7 +38,7 @@ export function buildPricingJsonLd(siteUrl: string): object {
         name: 'Free',
         price: '0',
         priceCurrency: 'GBP',
-        description: 'Up to 3 lists, place search, progress tracking, and sharing.',
+        description: `Up to ${freeListLimit} lists, place search, progress tracking, and sharing.`,
       },
       {
         '@type': 'Offer',
@@ -72,6 +64,15 @@ export function buildPricingJsonLd(siteUrl: string): object {
 
 export default function PricingPage() {
   const { user, setUser } = useAppContext();
+  const { freeListLimit } = usePlanLimits();
+  const FREE_FEATURES = [
+    `Up to ${freeListLimit} lists`,
+    'Public & private lists',
+    'Place search across London',
+    'Progress tracking & completion',
+    'Monthly explorer streak',
+    'Share your list with friends',
+  ];
   const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -178,7 +179,7 @@ export default function PricingPage() {
         <meta name="twitter:description" key="twitter:description" content="Simple pricing for London List. Start free, upgrade to Pro for unlimited lists, analytics and more." />
         <meta name="twitter:image" key="twitter:image" content={OG_IMAGE} />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildPricingJsonLd(SITE_URL)) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildPricingJsonLd(SITE_URL, freeListLimit)) }} />
       </Head>
       <div className={styles.main}>
         <div className={styles.hero}>
@@ -332,7 +333,7 @@ export default function PricingPage() {
             <div className={styles.faqItem}>
               <dt className={styles.faqQuestion}>Can I try London List for free?</dt>
               <dd className={styles.faqAnswer}>
-                Yes — the Free plan is unlimited in time. Create up to 3 lists,
+                Yes — the Free plan is unlimited in time. Create up to {freeListLimit} lists,
                 track your London adventures, and share them with friends at no cost.
               </dd>
             </div>
