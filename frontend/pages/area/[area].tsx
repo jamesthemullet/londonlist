@@ -78,6 +78,7 @@ type Props = {
 	areaSlug: string;
 	areaLabel: string;
 	areaDescription: string;
+	fetchError?: boolean;
 };
 
 export default function AreaPage({
@@ -85,6 +86,7 @@ export default function AreaPage({
 	areaSlug,
 	areaLabel,
 	areaDescription,
+	fetchError = false,
 }: Props) {
 	const { user, initialized } = useAppContext();
 	const grouped = groupByCategory(places);
@@ -149,12 +151,21 @@ export default function AreaPage({
 
 				{places.length === 0 ? (
 					<div className={styles.empty}>
-						<p>No places saved in {areaLabel} yet.</p>
-						<p>
-							<Link href="/register?ref=area-empty">
-								Be the first to add places here.
-							</Link>
-						</p>
+						{fetchError ? (
+							<p>
+								Something went wrong loading places in {areaLabel}. Please try
+								again later.
+							</p>
+						) : (
+							<>
+								<p>No places saved in {areaLabel} yet.</p>
+								<p>
+									<Link href="/register?ref=area-empty">
+										Be the first to add places here.
+									</Link>
+								</p>
+							</>
+						)}
 					</div>
 				) : (
 					<>
@@ -250,6 +261,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 					areaSlug,
 					areaLabel: meta.label,
 					areaDescription: meta.description,
+					fetchError: true,
 				},
 			};
 		}
@@ -272,6 +284,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
 				areaSlug,
 				areaLabel: meta.label,
 				areaDescription: meta.description,
+				fetchError: true,
 			},
 		};
 	}
