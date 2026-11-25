@@ -9154,9 +9154,9 @@ knex@3.3.0:
     tildify "2.0.0"
 
 knip@^6.16.1:
-  version "6.47.0"
-  resolved "https://registry.yarnpkg.com/knip/-/knip-6.47.0.tgz#5a2341d86c0a770ff93233c687bdaaf315b9aacc"
-  integrity sha512-nYmQnk0YqDXIJrYViJz88c8xw3tBDkpuAmofo58EkVPnKr6DnRKYtf6oIqcGVHZvXDE+gtmFuYx277/QsWng+A==
+  version "6.48.0"
+  resolved "https://registry.yarnpkg.com/knip/-/knip-6.48.0.tgz#e86e0959b14d96dd1cfd8e31c30a822284fe4ce7"
+  integrity sha512-v+Gfp6uiOeXaaj+Khk2Z7/fTTZYWLnDwxZapQUyy8WoQFLYXiUHXqRdFJTwRnrKNA1gPXTPi5NGTKKLXyImVrg==
   dependencies:
     formatly "^0.11.4"
     get-tsconfig "4.14.3"
@@ -12765,9 +12765,9 @@ uint8array-extras@^1.4.0:
   integrity sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A==
 
 unbash@^6.0.4:
-  version "6.0.4"
-  resolved "https://registry.yarnpkg.com/unbash/-/unbash-6.0.4.tgz#f3993524853a81bc5610eaf83a6b3e9639d23c88"
-  integrity sha512-t3OptUArewg9OpYGDskTSlxhyLDahfmZ4d36hE44Efb1y3HRLLpzsVqwH+AwBVymP4t7pP71xN+nnduudn2awA==
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/unbash/-/unbash-6.0.5.tgz#d8215faefb75a9b09157dbb0e6c4cf278fd85906"
+  integrity sha512-5P8o+nYRueKpHxmemofYqZRZCSWAi+Tqy31MQS8l/sT54Z+Axn55N9CnWPo19BxxJD4wYYf6RqlcURhWkrFXew==
 
 unc-path-regex@^0.1.2:
   version "0.1.2"
