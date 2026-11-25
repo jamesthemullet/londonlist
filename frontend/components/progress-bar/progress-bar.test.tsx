@@ -2,47 +2,32 @@ import { render, screen } from '@testing-library/react';
 import ProgressBar from './progress-bar';
 
 describe('ProgressBar', () => {
-  it('shows count as done / total', () => {
+  it('shows how many places are visited and the percentage', () => {
     render(<ProgressBar total={10} done={3} />);
-    expect(screen.getByText('3 / 10')).toBeInTheDocument();
+    expect(screen.getByText('3 of 10 visited — 30%')).toBeInTheDocument();
   });
 
-  it('shows the starting milestone when nothing is done', () => {
-    render(<ProgressBar total={10} done={0} />);
-    expect(screen.getByText('Your London exploration begins…')).toBeInTheDocument();
+  it('shows 0% when nothing is in the list', () => {
+    render(<ProgressBar total={0} done={0} />);
+    expect(screen.getByText('0 of 0 visited — 0%')).toBeInTheDocument();
   });
 
-  it('shows the 25% milestone message', () => {
-    render(<ProgressBar total={4} done={1} />);
-    expect(screen.getByText('Great start — a quarter of the way there!')).toBeInTheDocument();
+  it('renders the optional note', () => {
+    render(<ProgressBar total={4} done={1} note="1 place visited this month" />);
+    expect(screen.getByText('1 place visited this month')).toBeInTheDocument();
   });
 
-  it('shows the 50% milestone message', () => {
-    render(<ProgressBar total={4} done={2} />);
-    expect(screen.getByText('Halfway through your London adventure!')).toBeInTheDocument();
+  it('renders one segment per place and fills the visited ones', () => {
+    render(<ProgressBar total={5} done={2} />);
+    const segments = screen.getAllByTestId('progress-segment');
+    expect(segments).toHaveLength(5);
+    expect(segments.filter((s) => s.dataset.done === 'true')).toHaveLength(2);
   });
 
-  it('shows the 75% milestone message', () => {
-    render(<ProgressBar total={4} done={3} />);
-    expect(screen.getByText('Almost there — the finish line is in sight!')).toBeInTheDocument();
-  });
-
-  it('shows the 100% completion message', () => {
-    render(<ProgressBar total={4} done={4} />);
-    expect(screen.getByText('London conquered! Every place ticked off.')).toBeInTheDocument();
-  });
-
-  it('renders the fill bar with correct width', () => {
-    const { container } = render(<ProgressBar total={10} done={5} />);
-    const fill = container.querySelector('[style]');
-    expect(fill).toHaveStyle({ width: '50%' });
-  });
-
-  it('renders 0% width and starting message when total is zero', () => {
-    const { container } = render(<ProgressBar total={0} done={0} />);
-    expect(screen.getByText('Your London exploration begins…')).toBeInTheDocument();
-    const fill = container.querySelector('[style]');
-    expect(fill).toHaveStyle({ width: '0%' });
+  it('switches to a solid fill bar for long lists', () => {
+    const { container } = render(<ProgressBar total={40} done={10} />);
+    expect(screen.queryAllByTestId('progress-segment')).toHaveLength(0);
+    expect(container.querySelector('[style]')).toHaveStyle({ width: '25%' });
   });
 
   describe('ARIA progressbar role', () => {

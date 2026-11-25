@@ -13,25 +13,24 @@ L.Icon.Default.mergeOptions({
 const TODO_ICON = new L.Icon({
   iconUrl:
     'data:image/svg+xml;base64,' +
-    btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36">
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24S24 21 24 12C24 5.373 18.627 0 12 0z" fill="#c724b1"/>
-      <circle cx="12" cy="12" r="5" fill="white"/>
+    btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" width="26" height="26">
+      <rect x="1" y="1" width="24" height="24" fill="#e2532d" stroke="#1a1a1a" stroke-width="2"/>
     </svg>`),
-  iconSize: [24, 36],
-  iconAnchor: [12, 36],
-  popupAnchor: [0, -36],
+  iconSize: [26, 26],
+  iconAnchor: [13, 13],
+  popupAnchor: [0, -14],
 });
 
 const DONE_ICON = new L.Icon({
   iconUrl:
     'data:image/svg+xml;base64,' +
-    btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36">
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24S24 21 24 12C24 5.373 18.627 0 12 0z" fill="#22c55e"/>
-      <circle cx="12" cy="12" r="5" fill="white"/>
+    btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" width="26" height="26">
+      <rect x="1" y="1" width="24" height="24" fill="#1a1a1a" stroke="#eceae5" stroke-width="2"/>
+      <path d="M7 13.5l4 4 8-9" fill="none" stroke="#e2532d" stroke-width="3"/>
     </svg>`),
-  iconSize: [24, 36],
-  iconAnchor: [12, 36],
-  popupAnchor: [0, -36],
+  iconSize: [26, 26],
+  iconAnchor: [13, 13],
+  popupAnchor: [0, -14],
 });
 
 export type MapItem = {
@@ -65,7 +64,7 @@ export default function ListMap({ items }: Props) {
       <MapContainer
         center={LONDON_CENTER}
         zoom={12}
-        style={{ height: '320px', width: '100%', borderRadius: '8px' }}
+        style={{ height: '360px', width: '100%' }}
       >
         <TileLayer
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -82,7 +81,7 @@ export default function ListMap({ items }: Props) {
               <strong>{item.name}</strong>
               {item.category && <><br /><span>{item.category}</span></>}
               <br />
-              <span style={{ color: item.completed ? '#22c55e' : '#c724b1' }}>
+              <span style={{ color: item.completed ? '#1a1a1a' : '#b3321a' }}>
                 {item.completed ? '✓ Done' : '○ To do'}
               </span>
             </Popup>

@@ -17,7 +17,9 @@ jest.mock('../../hooks/use-auth-header', () => ({
 }));
 
 jest.mock('../Loader', () => () => <div data-testid="loader" />);
-jest.mock('../progress-bar/progress-bar', () => () => null);
+jest.mock('../progress-bar/progress-bar', () => ({ note }: { note?: string | null }) =>
+  note ? <p>{note}</p> : null,
+);
 
 jest.mock('next/dynamic', () => () => {
   const MockListMap = ({ items }: { items: { documentId: string }[] }) => (
@@ -108,7 +110,8 @@ describe('MyList — rendering items', () => {
 
     render(<MyList listId="list-1" listName="My List" />);
 
-    expect(screen.getByText('To do (2)')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'To do' })).toBeInTheDocument();
+    expect(screen.getByText('2 places')).toBeInTheDocument();
     expect(screen.getByText('British Museum')).toBeInTheDocument();
     expect(screen.getByText('Hyde Park')).toBeInTheDocument();
   });
@@ -119,7 +122,8 @@ describe('MyList — rendering items', () => {
 
     render(<MyList listId="list-1" listName="My List" />);
 
-    expect(screen.getByText('Done (1)')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Done' })).toBeInTheDocument();
+    expect(screen.getByText('1 place')).toBeInTheDocument();
     expect(screen.getByText('Tower of London')).toBeInTheDocument();
   });
 
@@ -133,8 +137,8 @@ describe('MyList — rendering items', () => {
 
     render(<MyList listId="list-1" listName="My List" />);
 
-    expect(screen.getByText('To do (2)')).toBeInTheDocument();
-    expect(screen.getByText('Done (1)')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'To do' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Done' })).toBeInTheDocument();
   });
 
   it('does not render a "Done" section when all items are incomplete', () => {
@@ -146,13 +150,24 @@ describe('MyList — rendering items', () => {
     expect(screen.queryByText(/^Done/)).not.toBeInTheDocument();
   });
 
-  it('does not render a "To do" section when all items are complete', () => {
+  it('shows an empty "To do" message when all items are complete', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { listItems: DONE_ITEMS }, error: undefined });
 
     render(<MyList listId="list-1" listName="My List" />);
 
-    expect(screen.queryByText(/^To do/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Nothing left to do/)).toBeInTheDocument();
+  });
+
+  it('numbers places by their position in the whole list', () => {
+    setupMutations();
+    mockUseQuery.mockReturnValue({ loading: false, data: { listItems: [...TODO_ITEMS, ...DONE_ITEMS] }, error: undefined });
+
+    render(<MyList listId="list-1" listName="My List" />);
+
+    const total = TODO_ITEMS.length + DONE_ITEMS.length;
+    expect(screen.getByText('01')).toBeInTheDocument();
+    expect(screen.getByText(String(total).padStart(2, '0'))).toBeInTheDocument();
   });
 
   it('renders the item category when present', () => {
@@ -390,8 +405,8 @@ describe('MyList — map toggle', () => {
 
     const btn = screen.getByRole('button', { name: 'Hide map' });
     expect(btn).toHaveAttribute('aria-expanded', 'true');
-    expect(btn).toHaveAttribute('aria-controls', 'list-map-region');
-    expect(document.getElementById('list-map-region')).toBeInTheDocument();
+    expect(btn).toHaveAttribute('aria-controls', 'list-map-region-list-1');
+    expect(document.getElementById('list-map-region-list-1')).toBeInTheDocument();
   });
 
   it('sets aria-expanded=false after hiding the map', async () => {

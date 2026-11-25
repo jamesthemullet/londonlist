@@ -1,72 +1,39 @@
-import { useState } from "react";
-import { useAppContext } from "../../context/AppContext";
-import styles from "./list-visibility-toggle.module.css";
+import { useId } from 'react';
+import styles from './list-visibility-toggle.module.css';
 
 type Props = {
-  listDocumentId: string;
   isPublic: boolean;
   onToggle: () => void;
   listName: string;
 };
 
-export default function ListVisibilityToggle({
-  isPublic,
-  onToggle,
-  listDocumentId,
-  listName,
-}: Props) {
-  const { user } = useAppContext();
-  const [copied, setCopied] = useState(false);
-
-  const shareUrl =
-    user && typeof window !== "undefined"
-      ? `${window.location.origin}/list/${user.username}/${listDocumentId}`
-      : "";
+/** Private / Public segmented control built on native radio inputs (arrow keys work for free). */
+export default function ListVisibilityToggle({ isPublic, onToggle, listName }: Props) {
+  const name = useId();
 
   return (
-    <div className={styles.container}>
-      <label className={styles.toggleLabel}>
-        <span className={styles.labelText}>
-          Make &ldquo;{listName}&rdquo; public
-        </span>
+    <fieldset className={styles.group}>
+      <legend className={styles.srOnly}>Visibility of &ldquo;{listName}&rdquo;</legend>
+      <label className={styles.option}>
         <input
-          type="checkbox"
-          className={styles.checkbox}
-          checked={isPublic}
-          onChange={onToggle}
+          type="radio"
+          name={name}
+          className={styles.input}
+          checked={!isPublic}
+          onChange={() => isPublic && onToggle()}
         />
-        <span className={styles.toggle} />
+        <span className={styles.text}>Private</span>
       </label>
-      {isPublic && shareUrl && (
-        <div className={styles.shareRow}>
-          <p className={styles.shareText}>
-            Share your list:{" "}
-            <a
-              href={shareUrl}
-              className={styles.shareLink}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${shareUrl} (opens in new tab)`}
-            >
-              {shareUrl}
-            </a>
-          </p>
-          <button
-            className={styles.copyButton}
-            type="button"
-            onClick={() => {
-              navigator.clipboard.writeText(shareUrl);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            }}
-          >
-            {copied ? "Copied!" : "Copy link"}
-          </button>
-          <span role="status" aria-live="polite" className={styles.srOnly}>
-            {copied ? "Link copied to clipboard" : ""}
-          </span>
-        </div>
-      )}
-    </div>
+      <label className={styles.option}>
+        <input
+          type="radio"
+          name={name}
+          className={styles.input}
+          checked={isPublic}
+          onChange={() => !isPublic && onToggle()}
+        />
+        <span className={styles.text}>Public</span>
+      </label>
+    </fieldset>
   );
 }

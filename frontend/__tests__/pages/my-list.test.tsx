@@ -37,7 +37,24 @@ jest.mock('next/head', () => ({
 
 jest.mock('../../components/my-list/my-list', () => ({
   __esModule: true,
-  default: () => <div data-testid="my-list" />,
+  default: ({
+    header,
+    search,
+    sidebarTop,
+    sidebarBottom,
+  }: {
+    header?: React.ReactNode;
+    search?: React.ReactNode;
+    sidebarTop?: React.ReactNode;
+    sidebarBottom?: React.ReactNode;
+  }) => (
+    <div data-testid="my-list">
+      {header}
+      {search}
+      {sidebarTop}
+      {sidebarBottom}
+    </div>
+  ),
 }));
 
 jest.mock('../../components/search/place-search', () => ({
@@ -249,7 +266,7 @@ describe('MyListPage — free tier list limit', () => {
 
     render(<MyListPage />);
 
-    expect(screen.queryByText(/Unlock unlimited lists/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('List usage')).not.toBeInTheDocument();
   });
 
   it('shows the upgrade banner for a free user at 3 lists', () => {
@@ -259,7 +276,7 @@ describe('MyListPage — free tier list limit', () => {
 
     render(<MyListPage />);
 
-    expect(screen.getByText(/Unlock unlimited lists/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Upgrade now' })).toHaveAttribute('href', '/pricing');
   });
 });
 
@@ -357,13 +374,13 @@ describe('MyListPage — inline new list creation', () => {
 });
 
 describe('MyListPage — inline rename', () => {
-  it('shows the rename form when "Rename list" is clicked', () => {
+  it('shows the rename form when "Rename" is clicked', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: ONE_LIST } });
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
 
     expect(screen.getByRole('textbox', { name: /New name for "My List"/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
@@ -376,7 +393,7 @@ describe('MyListPage — inline rename', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
 
     expect(screen.getByRole('textbox', { name: /New name for "My List"/ })).toHaveValue('My List');
   });
@@ -387,7 +404,7 @@ describe('MyListPage — inline rename', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
     fireEvent.change(screen.getByRole('textbox', { name: /New name for "My List"/ }), {
       target: { value: 'Hidden Gems' },
     });
@@ -406,7 +423,7 @@ describe('MyListPage — inline rename', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(screen.queryByRole('textbox', { name: /New name/ })).not.toBeInTheDocument();
@@ -418,7 +435,7 @@ describe('MyListPage — inline rename', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
     fireEvent.keyDown(screen.getByRole('textbox', { name: /New name for "My List"/ }), {
       key: 'Escape',
     });
@@ -434,7 +451,7 @@ describe('MyListPage — inline delete confirmation', () => {
 
     render(<MyListPage />);
 
-    expect(screen.queryByRole('button', { name: 'Delete list' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete this list' })).not.toBeInTheDocument();
   });
 
   it('shows Delete list button when there are multiple lists', () => {
@@ -443,16 +460,16 @@ describe('MyListPage — inline delete confirmation', () => {
 
     render(<MyListPage />);
 
-    expect(screen.getByRole('button', { name: 'Delete list' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete this list' })).toBeInTheDocument();
   });
 
-  it('shows the confirmation UI when "Delete list" is clicked', () => {
+  it('shows the confirmation UI when "Delete this list" is clicked', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: TWO_LISTS } });
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this list' }));
 
     expect(screen.getByRole('button', { name: 'Yes, delete' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
@@ -464,7 +481,7 @@ describe('MyListPage — inline delete confirmation', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this list' }));
 
     expect(screen.getByText(/Delete "My List"/)).toBeInTheDocument();
   });
@@ -475,9 +492,9 @@ describe('MyListPage — inline delete confirmation', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this list' }));
 
-    expect(screen.queryByRole('button', { name: 'Delete list' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete this list' })).not.toBeInTheDocument();
   });
 
   it('calls deleteList when "Yes, delete" is confirmed', async () => {
@@ -486,7 +503,7 @@ describe('MyListPage — inline delete confirmation', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this list' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete' }));
 
     await waitFor(() => {
@@ -502,11 +519,11 @@ describe('MyListPage — inline delete confirmation', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this list' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(mockDelete).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: 'Delete list' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete this list' })).toBeInTheDocument();
   });
 
   it('uses role="alertdialog" for the confirmation panel', () => {
@@ -515,7 +532,7 @@ describe('MyListPage — inline delete confirmation', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this list' }));
 
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
@@ -629,13 +646,13 @@ describe('MyListPage — share section', () => {
     expect(screen.queryByText(/Make this list public to share it/)).not.toBeInTheDocument();
   });
 
-  it('renders the Share section heading', () => {
+  it('renders the Visibility section heading', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: PUBLIC_LIST } });
 
     render(<MyListPage />);
 
-    expect(screen.getByRole('heading', { name: 'Share' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Visibility' })).toBeInTheDocument();
   });
 
   it('shows social share buttons when the list is public', () => {
@@ -689,14 +706,14 @@ describe('MyListPage — upgrade banner (list count indicator)', () => {
     expect(screen.getByText(/1\/3 lists used/)).toBeInTheDocument();
   });
 
-  it('shows remaining count for free user below limit', () => {
+  it('links to pricing for unlimited lists when a free user is below the limit', () => {
     setupMutations();
     mockUseQuery.mockReturnValue({ loading: false, data: { myLists: TWO_LISTS } });
 
     render(<MyListPage />);
 
     expect(screen.getByText(/2\/3 lists used/)).toBeInTheDocument();
-    expect(screen.getByText(/1 remaining on the free plan/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Upgrade for unlimited' })).toHaveAttribute('href', '/pricing');
   });
 
   it('shows "Upgrade now" call to action when free user is at the 3-list limit', () => {
@@ -864,7 +881,7 @@ describe('MyListPage — view counts', () => {
 
     render(<MyListPage />);
 
-    const shareSection = screen.getByRole('region', { name: 'Share' });
+    const shareSection = screen.getByRole('region', { name: 'Visibility' });
     expect(within(shareSection).getByText('42')).toBeInTheDocument();
     expect(within(shareSection).getByText(/views/)).toBeInTheDocument();
   });
@@ -876,7 +893,7 @@ describe('MyListPage — view counts', () => {
 
     render(<MyListPage />);
 
-    const shareSection = screen.getByRole('region', { name: 'Share' });
+    const shareSection = screen.getByRole('region', { name: 'Visibility' });
     expect(within(shareSection).getByText('1')).toBeInTheDocument();
     expect(within(shareSection).getByText(/\bview\b/)).toBeInTheDocument();
     expect(within(shareSection).queryByText(/\bviews\b/)).not.toBeInTheDocument();
@@ -1154,7 +1171,7 @@ describe('MyListPage — tab switching', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
     expect(screen.getByRole('textbox', { name: /New name for/ })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Weekend Plans' }));
@@ -1253,7 +1270,7 @@ describe('MyListPage — save rename with unchanged name', () => {
 
     render(<MyListPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Rename list' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
