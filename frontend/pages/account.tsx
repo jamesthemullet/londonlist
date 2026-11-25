@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { usePlanLimits } from '../hooks/use-plan-limits';
 import { API_URL } from '../lib/site';
 import styles from './account.module.css';
 
@@ -17,6 +18,7 @@ type SectionStatus = 'idle' | 'submitting' | 'success' | 'error';
 
 export default function AccountPage() {
   const { user, setUser, initialized } = useAppContext();
+  const { freeListLimit } = usePlanLimits();
   const router = useRouter();
 
   const [passwordForm, setPasswordForm] = useState<PasswordFormState>({
@@ -155,7 +157,7 @@ export default function AccountPage() {
             <div className={styles.planRow}>
               <span className={styles.planBadgeFree}>Free</span>
               <div className={styles.planDetails}>
-                <p className={styles.planDescription}>Up to 3 lists. Upgrade to Pro for unlimited lists and analytics.</p>
+                <p className={styles.planDescription}>Up to {freeListLimit} lists. Upgrade to Pro for unlimited lists and analytics.</p>
                 <Link href="/pricing" className={styles.planUpgradeLink}>
                   Upgrade to Pro →
                 </Link>

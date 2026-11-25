@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
+import { usePlanLimits } from '../../hooks/use-plan-limits';
 import styles from './upgrade-modal.module.css';
 
 const PRO_BENEFITS = [
@@ -16,6 +17,7 @@ type Props = {
 
 export default function UpgradeModal({ isOpen, onClose }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const { freeListLimit } = usePlanLimits();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -89,7 +91,7 @@ export default function UpgradeModal({ isOpen, onClose }: Props) {
           You&rsquo;ve hit the free limit
         </h2>
         <p className={styles.subheading}>
-          Free accounts can hold up to 3 lists. Upgrade to Pro for unlimited lists and more.
+          Free accounts can hold up to {freeListLimit} lists. Upgrade to Pro for unlimited lists and more.
         </p>
 
         <ul className={styles.featureList}>

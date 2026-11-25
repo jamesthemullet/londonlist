@@ -1,6 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import UpgradeModal from '../../../components/upgrade-modal/upgrade-modal';
 
+jest.mock('../../../hooks/use-plan-limits', () => ({
+  usePlanLimits: () => ({ freeListLimit: 3, freeItemLimit: 20 }),
+}));
+
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({
