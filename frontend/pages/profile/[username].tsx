@@ -86,7 +86,7 @@ export default function ProfilePage({ profileData, username }: Props) {
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(buildProfileJsonLd(username, lists, SITE_URL)) }} />
         )}
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <h1 className={styles.heading}>{username}&apos;s London Lists</h1>
         <p className={styles.stats}>
           {lists.length} public {listWord} &middot; {totalPlaces} {placeWord} &middot;{' '}
@@ -127,7 +127,7 @@ export default function ProfilePage({ profileData, username }: Props) {
             })}
           </ul>
         )}
-      </main>
+      </div>
 
       {initialized && !user && (
         <aside className={styles.conversionBanner}>

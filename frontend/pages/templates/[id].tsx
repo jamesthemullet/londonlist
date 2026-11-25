@@ -178,7 +178,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <nav className={styles.breadcrumb} aria-label="Breadcrumb">
           <Link href="/templates" className={styles.breadcrumbLink}>
             Starter Lists
@@ -226,7 +226,7 @@ export default function TemplateDetailPage({ template, relatedTemplates }: Props
         </section>
 
         <CopyButton template={template} onLimitReached={() => setShowUpgradeModal(true)} />
-      </main>
+      </div>
 
       {relatedTemplates.length > 0 && (
         <section className={styles.relatedSection} aria-label="More starter lists">

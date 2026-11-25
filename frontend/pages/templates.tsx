@@ -208,7 +208,7 @@ export default function TemplatesPage() {
         <meta name="twitter:description" key="twitter:description" content={ogDescription} />
         <meta name="twitter:image" key="twitter:image" content={ogImage} />
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <div className={styles.hero}>
           <h1 className={styles.heading}>Starter Lists</h1>
           <p className={styles.subheading}>
@@ -250,7 +250,7 @@ export default function TemplatesPage() {
             ))}
           </ul>
         )}
-      </main>
+      </div>
     </>
   );
 }

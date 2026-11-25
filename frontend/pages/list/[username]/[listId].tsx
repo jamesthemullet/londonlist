@@ -309,10 +309,10 @@ export default function PublicListPage({ pageState, listData, username, listId, 
           <title>{username}&apos;s List — London List</title>
           <meta name="robots" content="noindex" />
         </Head>
-        <main className={styles.main}>
+        <div className={styles.main}>
           <h1 className={styles.heading}>{username}&apos;s List</h1>
           <p className={styles.privateMessage}>This list is private.</p>
-        </main>
+        </div>
       </>
     );
   }
@@ -370,7 +370,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
         )}
       </Head>
-      <main className={showBanner ? `${styles.main} ${styles.mainWithBanner}` : styles.main}>
+      <div className={showBanner ? `${styles.main} ${styles.mainWithBanner}` : styles.main}>
         <h1 className={styles.heading}>{listName}</h1>
         <div className={styles.metaRow}>
           <p className={styles.subtitle}>
@@ -481,7 +481,7 @@ export default function PublicListPage({ pageState, listData, username, listId, 
             )}
           </div>
         )}
-      </main>
+      </div>
       {otherLists.length > 0 && (
         <section className={styles.moreLists} aria-label={`More lists by ${username}`}>
           <h2 className={styles.moreListsHeading}>More by {username}</h2>

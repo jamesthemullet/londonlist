@@ -69,10 +69,10 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
           <title>{username}&apos;s List — London List</title>
           <meta name="robots" content="noindex" />
         </Head>
-        <main className={styles.main}>
+        <div className={styles.main}>
           <h1 className={styles.heading}>{username}&apos;s List</h1>
           <p className={styles.privateMessage}>This list is private.</p>
-        </main>
+        </div>
       </>
     );
   }
@@ -108,7 +108,7 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data; safeJsonLd escapes </script> to prevent XSS */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
       </Head>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <h1 className={styles.heading}>{username}&apos;s List</h1>
         {items.length === 0 ? (
           <p className={styles.empty}>This list is empty.</p>
@@ -142,7 +142,7 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
             )}
           </div>
         )}
-      </main>
+      </div>
       {initialized && !user && (
         <aside className={styles.conversionBanner}>
           <p className={styles.conversionHeadline}>Inspired by {username}&apos;s list?</p>

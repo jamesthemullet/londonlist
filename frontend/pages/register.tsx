@@ -145,7 +145,7 @@ export default function RegisterRoute() {
         />
         <meta name="twitter:image" key="twitter:image" content={buildOgImageUrl({ title: 'Create your free account' }, SITE_URL)} />
       </Head>
-      <main className={styles.container}>
+      <div className={styles.container}>
       <div>
         <h1>Sign Up</h1>
         {router.query?.ref === 'copy-list' && router.query?.srcUsername && (
@@ -206,7 +206,7 @@ export default function RegisterRoute() {
           </Button>
         </form>
       </div>
-      </main>
+      </div>
     </>
   );
 }

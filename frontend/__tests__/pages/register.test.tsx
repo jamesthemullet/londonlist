@@ -100,10 +100,6 @@ describe('RegisterRoute — rendering', () => {
     expect(document.getElementById('username-hint')).toHaveTextContent(/3.20 characters/i);
   });
 
-  it('has a <main> landmark', () => {
-    render(<RegisterRoute />);
-    expect(screen.getByRole('main')).toBeInTheDocument();
-  });
 });
 
 describe('RegisterRoute — form validation', () => {
