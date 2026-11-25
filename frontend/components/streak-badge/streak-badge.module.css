@@ -1,10 +1,18 @@
 .badge {
-  font-size: 0.85rem;
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.375rem 0.625rem;
+  border: var(--rule);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #555;
-  margin: 0 0 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
 }
 
 .atRisk {
-  color: #b45309;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
