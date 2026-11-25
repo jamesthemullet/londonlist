@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../../context/AppContext';
 import { useAuthHeader } from '../../../hooks/use-auth-header';
+import { usePlanLimits } from '../../../hooks/use-plan-limits';
 import ShareButtons from '../../../components/share-buttons/share-buttons';
 import OpenInMapsButton from '../../../components/open-in-maps-button/open-in-maps-button';
 import { buildOgImageUrl } from '../../../lib/og-image';
@@ -135,6 +136,7 @@ type CopyListButtonProps = {
 
 export function CopyListButton({ items, listName }: CopyListButtonProps) {
   const authHeader = useAuthHeader();
+  const { freeListLimit } = usePlanLimits();
   const [copyState, setCopyState] = useState<'idle' | 'copying' | 'done' | 'error' | 'limit_reached'>('idle');
   const [createMyList] = useMutation<{ createMyList: { documentId: string } }>(CREATE_MY_LIST);
   const [createListItem] = useMutation(COPY_LIST_ITEM);
@@ -192,7 +194,7 @@ export function CopyListButton({ items, listName }: CopyListButtonProps) {
     return (
       <div className={styles.copyLimitReached}>
         <p className={styles.copyLimitMessage}>
-          You've reached the 3-list limit on the free plan.
+          You've reached the {freeListLimit}-list limit on the free plan.
         </p>
         <Link href="/pricing" className={styles.copyLimitUpgradeLink}>
           Upgrade to Pro to copy this list →

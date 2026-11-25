@@ -5,6 +5,10 @@ jest.mock('../../context/AppContext', () => ({
   useAppContext: jest.fn(),
 }));
 
+jest.mock('../../hooks/use-plan-limits', () => ({
+  usePlanLimits: () => ({ freeListLimit: 3, freeItemLimit: 20 }),
+}));
+
 jest.mock('next/head', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,

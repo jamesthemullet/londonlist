@@ -19,6 +19,10 @@ jest.mock('../../../../hooks/use-auth-header', () => ({
   useAuthHeader: jest.fn(() => ({ Authorization: 'Bearer test-token' })),
 }));
 
+jest.mock('../../../../hooks/use-plan-limits', () => ({
+  usePlanLimits: () => ({ freeListLimit: 3, freeItemLimit: 20 }),
+}));
+
 import { useMutation } from '@apollo/client/react';
 const mockUseMutation = useMutation as jest.Mock;
 
