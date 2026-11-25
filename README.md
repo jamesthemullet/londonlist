@@ -1,6 +1,8 @@
 # London List
 
-Build your London to-do list. Search for places across London, save them to a personal list, and track what you want to see and do.
+Browse, save and share the best of London. Search places across the city, build curated lists, track what you've visited, and share your London itineraries with others. Includes area and category browsing, templates, public profiles, place pages, booking links, and a Pro tier powered by Stripe.
+
+Live: https://londonlist.vercel.app
 
 ## Tech stack
 
@@ -11,23 +13,23 @@ Build your London to-do list. Search for places across London, save them to a pe
 
 ```
 londonlist/
-├── frontend/   # Next.js app
-└── backend/    # Strapi CMS
+├── frontend/   # Next.js app (see frontend/README.md)
+└── backend/    # Strapi CMS (see backend/README.md)
 ```
 
 ## Getting started
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
+- Node.js 20.9–24 (24 recommended)
+- yarn
 
 ### Backend
 
 ```bash
 cd backend
-npm install
-npm run develop
+yarn install
+yarn develop
 ```
 
 Strapi admin panel: http://localhost:1337/admin
@@ -36,19 +38,10 @@ Strapi admin panel: http://localhost:1337/admin
 
 ```bash
 cd frontend
-npm install
-npm run dev
+yarn install
+yarn dev
 ```
 
 App: http://localhost:3000
 
-## Frontend scripts
-
-| Command | Description |
-|---|---|
-| `npm run dev` | Start dev server |
-| `npm run build` | Production build |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript checks |
-| `npm test` | Run tests |
-| `npm run test:coverage` | Run tests with coverage |
+See [`frontend/README.md`](frontend/README.md) and [`backend/README.md`](backend/README.md) for full setup and script references.

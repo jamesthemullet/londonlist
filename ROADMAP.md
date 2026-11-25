@@ -1,49 +1,50 @@
 # Product Roadmap — London List
 
-The core loop already works: search places, save to a list, track what you want to do. What's
-missing is anything that makes a saved place easy to revisit or discover more of — no related
-places, no browsing by area, no way to see a place's own page. Everything below is scored
-against four jobs:
+The core product is now live at https://londonlist.vercel.app. Users can search places,
+save them to named lists, browse by area or category, share lists publicly, copy templates,
+and upgrade to Pro via Stripe. The focus shifts to monetisation, deeper engagement, and
+SEO-driven acquisition.
+
+Every feature is scored against four jobs:
 
 - **Acquisition** — brings new visitors in
 - **Engagement** — deepens a single visit
 - **Retention** — earns a repeat visit
-- **Fun** — no metric, just delight
+- **Monetisation** — generates revenue
 
-Every feature is broken into a **PR sequence** — each step small enough for a human to review in
-about 15 minutes. Genuinely atomic changes are left as one PR. Tick a step off once its PR merges.
+## Shipped
 
-## Now (ship in weeks — reuses existing infra)
+### Individual place pages — *Acquisition, SEO*
+- [x] GraphQL query for a single place by slug/ID.
+- [x] Place detail page (`pages/place/[type]/[id].tsx`) with structured data and add-to-list.
 
-### 1. Individual place pages — *Acquisition, SEO*
-Each place currently only exists inside search results and the saved list — give each one its
-own crawlable, shareable URL.
+### Related/nearby places — *Engagement, Retention*
+- [x] GraphQL query: places sharing category/area with a given place.
+- [x] Related-places component on the place detail page.
 
-- [x] GraphQL query for a single place by slug/ID — pure function + tests, reusing the existing
-  Apollo Client setup against the Strapi API.
-- [x] A place detail page (`pages/place/[slug].tsx`) rendering it.
+### Browse by area — *Acquisition, Engagement*
+- [x] GraphQL query: places filtered by area.
+- [x] Area listing page + area filter UI (`pages/area/[area].tsx`).
 
-### 2. Related/nearby places — *Engagement, Retention*
-Once individual place pages exist (feature 1), surface a few nearby or same-category places at
-the bottom.
+### List sharing — *Acquisition, Fun*
+- [x] Shareable-slug field/endpoint for a user's list.
+- [x] Read-only shared-list page (`pages/list/[username]/[listId].tsx`).
+- [x] "Share my list" UI — copy link and social share buttons.
 
-- [x] GraphQL query: places sharing category/area with a given place — pure function + tests.
-- [x] Component rendering the related-places list on the place detail page.
+## Now (highest priority)
 
-### 3. Browse by area — *Acquisition, Engagement*
-A dedicated way to browse places by London area/borough, rather than only via search.
+### Affiliate revenue activation — *Monetisation*
+Booking links (OpenTable, Booking.com, Viator) are wired but inactive until affiliate
+accounts are registered. See GitHub issue #239 (`needs-human`).
 
-- [x] GraphQL query: places filtered by area — pure function + tests.
-- [x] An area listing page + area filter UI, reusing the search results component's rendering.
+### Upgrade conversion — *Monetisation*
+- [ ] Near-limit upgrade nudge when a free user approaches the place or list limit.
+- [ ] Annual plan option on the pricing page alongside the monthly plan.
 
-## Next (this quarter — moderate new build)
-
-### 4. List sharing — *Acquisition, Fun*
-Let a user share their personal to-do list (or a subset of it) via a public link.
-
-- [x] A shareable-slug field/endpoint for a user's list — pure function + tests.
-- [x] A read-only shared-list page rendering it.
-- [x] A "share my list" UI action generating and copying the link.
+### Discovery & SEO — *Acquisition*
+- [ ] Schema.org `BreadcrumbList` on place and area pages.
+- [ ] `hreflang` / language meta once internationalisation is considered.
+- [ ] Proper HTTP 404 for every unknown slug (currently some pages soft-404 with 200).
 
 ---
-*London List — product roadmap, 2 September 2026*
+*London List — product roadmap, updated November 2026*
