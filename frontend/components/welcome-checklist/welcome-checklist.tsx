@@ -76,7 +76,12 @@ export default function WelcomeChecklist({
   return (
     <aside className={styles.checklist} aria-label="Getting started checklist">
       <div className={styles.header}>
-        <h2 className={styles.heading}>Get started</h2>
+        <h2 className={styles.heading}>
+          Get started{' '}
+          <span className={styles.progress}>
+            — {completedCount} of {steps.length} done
+          </span>
+        </h2>
         <button
           type="button"
           className={styles.dismissButton}
@@ -86,9 +91,6 @@ export default function WelcomeChecklist({
           ✕
         </button>
       </div>
-      <p className={styles.progress}>
-        {completedCount} of {steps.length} done
-      </p>
       <ol className={styles.stepList}>
         {steps.map((step) => (
           <li key={step.id} className={step.completed ? styles.stepDone : styles.step}>
@@ -96,7 +98,7 @@ export default function WelcomeChecklist({
               className={step.completed ? styles.checkDone : styles.checkEmpty}
               aria-hidden="true"
             >
-              {step.completed ? '✓' : '○'}
+              {step.completed ? '✓' : ''}
             </span>
             <div className={styles.stepContent}>
               <span className={step.completed ? styles.labelDone : styles.label}>

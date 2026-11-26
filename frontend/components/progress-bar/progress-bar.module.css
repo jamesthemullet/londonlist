@@ -1,37 +1,62 @@
 .wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
   width: 100%;
-  max-width: 640px;
-  margin-bottom: 1.25rem;
 }
 
 .meta {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.4rem;
-}
-
-.message {
-  font-size: 0.875rem;
-  color: #555;
+  gap: 0.25rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .count {
-  font-size: 0.8rem;
-  color: #999;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
+.note {
+  color: var(--ink-faint);
+}
+
+.segments {
+  display: flex;
+  gap: 4px;
+}
+
+.segment,
+.segmentDone {
+  flex: 1;
+  height: 18px;
+  border: var(--rule);
+  background: transparent;
+}
+
+.segmentDone {
+  background: var(--accent);
+}
+
 .track {
-  height: 8px;
-  background: #eee;
-  border-radius: 4px;
-  overflow: hidden;
+  height: 18px;
+  border: var(--rule);
+  background: transparent;
 }
 
 .fill {
   height: 100%;
-  background: #333;
-  border-radius: 4px;
-  transition: width 0.4s ease;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
 }

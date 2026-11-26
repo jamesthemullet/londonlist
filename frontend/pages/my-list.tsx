@@ -370,6 +370,200 @@ export default function MyListPage() {
 
   if (!initialized || !user) return null;
 
+  const isPro = user.isPro ?? false;
+  const publicListUrl = activeList
+    ? `${SITE_URL}/list/${user.username}/${activeList.documentId}`
+    : '';
+  const usagePips = Array.from({ length: freeListLimit }, (_, i) => i < lists.length);
+
+  const listHeader = activeList && (
+    <div className={styles.listHeader}>
+      <div className={styles.listHeaderRow}>
+        <div className={styles.listTitleBlock}>
+          {isRenaming ? (
+            <form
+              className={styles.inlineForm}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveRename();
+              }}
+              aria-label={`Rename list "${activeList.name}"`}
+            >
+              <label htmlFor="rename-list" className={styles.srOnly}>
+                New name for &quot;{activeList.name}&quot;
+              </label>
+              <input
+                id="rename-list"
+                ref={renameInputRef}
+                type="text"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                className={styles.renameInput}
+                maxLength={80}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') handleCancelRename();
+                }}
+              />
+              <div className={styles.buttonGroup}>
+                <button
+                  type="submit"
+                  className={styles.buttonPrimary}
+                  disabled={!renameValue.trim()}
+                >
+                  Save
+                </button>
+                <button type="button" className={styles.button} onClick={handleCancelRename}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <h2 className={styles.listName}>{activeList.name}</h2>
+          )}
+
+          {isEditingDescription ? (
+            <form
+              className={styles.descriptionForm}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveDescription();
+              }}
+              aria-label="Edit list description"
+            >
+              <label htmlFor="list-description" className={styles.descriptionLabel}>
+                Description{' '}
+                <span className={styles.descriptionHint}>
+                  ({300 - descriptionValue.length} characters remaining)
+                </span>
+              </label>
+              <textarea
+                id="list-description"
+                value={descriptionValue}
+                onChange={(e) => setDescriptionValue(e.target.value)}
+                className={styles.descriptionTextarea}
+                placeholder="Tell visitors what this list is about…"
+                maxLength={300}
+                rows={3}
+              />
+              <div className={styles.buttonGroup}>
+                <button type="submit" className={styles.buttonPrimary}>
+                  Save description
+                </button>
+                <button type="button" className={styles.button} onClick={handleCancelDescription}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : activeList.description ? (
+            <p className={styles.description}>{activeList.description}</p>
+          ) : (
+            <p className={styles.descriptionEmpty}>No description yet.</p>
+          )}
+        </div>
+
+        {!isRenaming && !isEditingDescription && (
+          <div className={styles.buttonGroup}>
+            <button type="button" className={styles.button} onClick={handleOpenRename}>
+              Rename
+            </button>
+            <button type="button" className={styles.button} onClick={handleOpenDescription}>
+              {activeList.description ? 'Edit description' : 'Add description'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const listSettings = activeList && (
+    <>
+      <section className={styles.panel} aria-labelledby="visibility-heading">
+        <h3 id="visibility-heading" className={styles.panelHeading}>
+          Visibility
+        </h3>
+        <ListVisibilityToggle
+          isPublic={activeList.isPublic}
+          onToggle={handleToggleVisibility}
+          listName={activeList.name}
+        />
+        {activeList.isPublic ? (
+          <>
+            <div className={styles.shareRow}>
+              <input
+                className={styles.shareUrl}
+                readOnly
+                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
+                aria-label="Public list URL"
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <button
+                type="button"
+                className={styles.copyButton}
+                onClick={handleCopyLink}
+                aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}
+              >
+                {copied ? 'Copied!' : 'Copy link'}
+              </button>
+            </div>
+            <div className={styles.shareButtons}>
+              <ShareButtons
+                url={publicListUrl}
+                title={`${activeList.name} — ${user.username}'s London List`}
+                showCopyLink={false}
+              />
+            </div>
+            {isPro ? (
+              <p className={styles.panelText}>
+                <span className={styles.viewCountNumber}>{activeList.viewCount ?? 0}</span>{' '}
+                {activeList.viewCount === 1 ? 'view' : 'views'}
+              </p>
+            ) : (
+              <p className={styles.panelText}>
+                <Link href="/pricing" className={styles.inlineLink}>
+                  Upgrade to Pro
+                </Link>{' '}
+                to see how many times your list has been viewed.
+              </p>
+            )}
+          </>
+        ) : (
+          <p className={styles.panelText}>
+            Only you can see this list. Make this list public to share it with others.
+          </p>
+        )}
+      </section>
+
+      <div className={styles.dangerZone}>
+        {isConfirmingDelete ? (
+          <div
+            className={styles.deleteConfirm}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-confirm-heading"
+          >
+            <p id="delete-confirm-heading" className={styles.deleteConfirmText}>
+              Delete &quot;{activeList.name}&quot;? This cannot be undone.
+            </p>
+            <div className={styles.buttonGroup}>
+              <button type="button" className={styles.buttonPrimary} onClick={handleConfirmDelete}>
+                Yes, delete
+              </button>
+              <button type="button" className={styles.button} onClick={handleCancelDelete}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          lists.length > 1 && (
+            <button type="button" className={styles.deleteLink} onClick={handleOpenDeleteConfirm}>
+              Delete this list
+            </button>
+          )
+        )}
+      </div>
+    </>
+  );
+
   return (
     <>
       <Head>
@@ -378,49 +572,29 @@ export default function MyListPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex, nofollow" />
       </Head>
-      <div className={styles.main}>
-        <h1 className={styles.heading}>My Lists</h1>
-
-        <ProStatsCard lists={lists} isPro={user?.isPro ?? false} />
-
-        {!checklistDismissed && (
-          <WelcomeChecklist
-            hasAddedPlace={lists.some((l) => l.itemCount > 0)}
-            hasPublicList={lists.some((l) => l.isPublic)}
-            hasMultipleLists={lists.length > 1}
-            isPro={user?.isPro ?? false}
-            onDismiss={handleChecklistDismiss}
-          />
-        )}
-
-        {!user?.isPro && (
-          <aside
-            className={styles.upgradeBanner}
-            aria-label="List usage"
-          >
-            <p className={styles.upgradeBannerText}>
-              <span className={styles.listCount}>
+      <div className={styles.page}>
+        <div className={styles.pageHeader}>
+          <h1 className={styles.heading}>My Lists</h1>
+          {!isPro && (
+            <section className={styles.usage} aria-label="List usage">
+              <span className={styles.usageCount}>
                 {lists.length}/{freeListLimit} lists used
               </span>
-              {lists.length >= freeListLimit ? (
-                <>
-                  {' '}— Unlock unlimited lists with <strong>London List Pro</strong>.{' '}
-                  <Link href="/pricing" className={styles.upgradeBannerLink}>
-                    Upgrade now
-                  </Link>
-                </>
-              ) : (
-                <>
-                  {' '}({freeListLimit - lists.length} remaining on the free plan —{' '}
-                  <Link href="/pricing" className={styles.upgradeBannerLink}>
-                    upgrade for unlimited
-                  </Link>
-                  )
-                </>
-              )}
-            </p>
-          </aside>
-        )}
+              <span className={styles.usagePips} aria-hidden="true">
+                {usagePips.map((used, i) => (
+                  <span
+                    // biome-ignore lint/suspicious/noArrayIndexKey: pips are positional and never reorder
+                    key={i}
+                    className={used ? styles.pipUsed : styles.pip}
+                  />
+                ))}
+              </span>
+              <Link href="/pricing" className={styles.inlineLink}>
+                {lists.length >= freeListLimit ? 'Upgrade now' : 'Upgrade for unlimited'}
+              </Link>
+            </section>
+          )}
+        </div>
 
         <div className={styles.tabs} role="tablist" aria-label="Your lists">
           {lists.map((list) => (
@@ -436,8 +610,12 @@ export default function MyListPage() {
                 setIsRenaming(false);
                 setIsEditingDescription(false);
                 setIsConfirmingDelete(false);
-              }}>
+              }}
+            >
               {list.name}
+              <span className={styles.tabCount} aria-hidden="true">
+                {list.itemCount ?? 0}
+              </span>
             </button>
           ))}
           {isCreatingNew ? (
@@ -447,7 +625,8 @@ export default function MyListPage() {
                 e.preventDefault();
                 handleCreateNewList();
               }}
-              aria-label="Create new list">
+              aria-label="Create new list"
+            >
               <label htmlFor="new-list-name" className={styles.srOnly}>
                 New list name
               </label>
@@ -466,21 +645,19 @@ export default function MyListPage() {
               />
               <button
                 type="submit"
-                className={styles.newListCreate}
-                disabled={!newListName.trim()}>
+                className={styles.buttonPrimary}
+                disabled={!newListName.trim()}
+              >
                 Create
               </button>
-              <button
-                type="button"
-                className={styles.newListCancel}
-                onClick={handleCancelNewList}>
+              <button type="button" className={styles.button} onClick={handleCancelNewList}>
                 Cancel
               </button>
             </form>
           ) : isAtListLimit ? (
             <button
               type="button"
-              className={styles.tabUpgrade}
+              className={styles.tabNew}
               onClick={handleOpenNewList}
               aria-label="Upgrade to Pro to create more lists"
             >
@@ -500,213 +677,38 @@ export default function MyListPage() {
         )}
 
         {activeList && (
-          <div
-            role="tabpanel"
-            aria-labelledby={`tab-${activeListId}`}
-          >
-            {isRenaming ? (
-              <form
-                className={styles.renameForm}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSaveRename();
-                }}
-                aria-label={`Rename list "${activeList.name}"`}>
-                <label htmlFor="rename-list" className={styles.srOnly}>
-                  New name for &quot;{activeList.name}&quot;
-                </label>
-                <input
-                  id="rename-list"
-                  ref={renameInputRef}
-                  type="text"
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  className={styles.renameInput}
-                  maxLength={80}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') handleCancelRename();
-                  }}
+          <div role="tabpanel" aria-labelledby={`tab-${activeListId}`}>
+            <MyList
+              listId={activeList.documentId}
+              listName={activeList.name}
+              shareUrl={activeList.isPublic ? publicListUrl : undefined}
+              header={listHeader}
+              search={
+                <PlaceSearch
+                  label="Add a place"
+                  listId={activeList.documentId}
+                  itemCount={activeItemCount}
+                  isPro={isPro}
+                  freeItemLimit={freeItemLimit}
+                  onLimitReached={() => setShowUpgradeModal(true)}
                 />
-                <button
-                  type="submit"
-                  className={styles.renameSave}
-                  disabled={!renameValue.trim()}>
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className={styles.renameCancel}
-                  onClick={handleCancelRename}>
-                  Cancel
-                </button>
-              </form>
-            ) : null}
-
-            <section className={styles.section}>
-              <h2 className={styles.subheading}>Add a place</h2>
-              <PlaceSearch
-                listId={activeList.documentId}
-                itemCount={activeItemCount}
-                isPro={user?.isPro ?? false}
-                freeItemLimit={freeItemLimit}
-                onLimitReached={() => setShowUpgradeModal(true)}
-              />
-            </section>
-            <section className={styles.section}>
-              <MyList
-                listId={activeList.documentId}
-                listName={activeList.name}
-                shareUrl={
-                  activeList.isPublic && user?.username
-                    ? `${SITE_URL}/list/${user.username}/${activeList.documentId}`
-                    : undefined
-                }
-              />
-            </section>
-            <section className={styles.section}>
-              <h2 className={styles.subheading}>List settings</h2>
-              <ListVisibilityToggle
-                listDocumentId={activeList.documentId}
-                isPublic={activeList.isPublic}
-                onToggle={handleToggleVisibility}
-                listName={activeList.name}
-              />
-              {isEditingDescription ? (
-                <form
-                  className={styles.descriptionForm}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSaveDescription();
-                  }}
-                  aria-label="Edit list description"
-                >
-                  <label htmlFor="list-description" className={styles.descriptionLabel}>
-                    Description{' '}
-                    <span className={styles.descriptionHint}>
-                      ({300 - descriptionValue.length} characters remaining)
-                    </span>
-                  </label>
-                  <textarea
-                    id="list-description"
-                    value={descriptionValue}
-                    onChange={(e) => setDescriptionValue(e.target.value)}
-                    className={styles.descriptionTextarea}
-                    placeholder="Tell visitors what this list is about…"
-                    maxLength={300}
-                    rows={3}
-                  />
-                  <div className={styles.descriptionActions}>
-                    <button type="submit" className={styles.renameSave}>
-                      Save description
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.renameCancel}
-                      onClick={handleCancelDescription}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className={styles.descriptionRow}>
-                  {activeList.description ? (
-                    <p className={styles.descriptionPreview}>{activeList.description}</p>
-                  ) : (
-                    <p className={styles.descriptionEmpty}>No description yet.</p>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.actionButton}
-                    onClick={handleOpenDescription}
-                  >
-                    {activeList.description ? 'Edit description' : 'Add description'}
-                  </button>
-                </div>
-              )}
-            </section>
-
-            <section className={styles.section} aria-label="Share">
-              <h2 className={styles.subheading}>Share</h2>
-              {activeList.isPublic ? (
+              }
+              sidebarTop={
                 <>
-                  <div className={styles.shareRow}>
-                    <input
-                      className={styles.shareUrl}
-                      readOnly
-                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/list/${user.username}/${activeList.documentId}`}
-                      aria-label="Public list URL"
-                      onFocus={(e) => e.currentTarget.select()}
+                  {!checklistDismissed && (
+                    <WelcomeChecklist
+                      hasAddedPlace={lists.some((l) => l.itemCount > 0)}
+                      hasPublicList={lists.some((l) => l.isPublic)}
+                      hasMultipleLists={lists.length > 1}
+                      isPro={isPro}
+                      onDismiss={handleChecklistDismiss}
                     />
-                    <button
-                      type="button"
-                      className={styles.copyButton}
-                      onClick={handleCopyLink}
-                      aria-label={copied ? 'Link copied' : 'Copy link to clipboard'}>
-                      {copied ? 'Copied!' : 'Copy link'}
-                    </button>
-                  </div>
-                  <ShareButtons
-                    url={`${SITE_URL}/list/${user.username}/${activeList.documentId}`}
-                    title={`${activeList.name} — ${user.username}'s London List`}
-                    showCopyLink={false}
-                  />
-                  {user?.isPro ? (
-                    <p className={styles.viewCountStat}>
-                      <span className={styles.viewCountNumber}>{activeList.viewCount ?? 0}</span>{' '}
-                      {activeList.viewCount === 1 ? 'view' : 'views'}
-                    </p>
-                  ) : (
-                    <p className={styles.viewCountLocked}>
-                      <Link href="/pricing" className={styles.viewCountUpgradeLink}>
-                        Upgrade to Pro
-                      </Link>{' '}
-                      to see how many times your list has been viewed.
-                    </p>
                   )}
+                  <ProStatsCard lists={lists} isPro={isPro} />
                 </>
-              ) : (
-                <p className={styles.sharePrivate}>
-                  Make this list public to share it with others.
-                </p>
-              )}
-            </section>
-
-            {isConfirmingDelete ? (
-              <div className={styles.deleteConfirm} role="alertdialog" aria-modal="true" aria-labelledby="delete-confirm-heading">
-                <p id="delete-confirm-heading" className={styles.deleteConfirmText}>
-                  Delete &quot;{activeList.name}&quot;? This cannot be undone.
-                </p>
-                <div className={styles.deleteConfirmButtons}>
-                  <button
-                    type="button"
-                    className={`${styles.actionButton} ${styles.actionButtonDanger}`}
-                    onClick={handleConfirmDelete}>
-                    Yes, delete
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.actionButton}
-                    onClick={handleCancelDelete}>
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className={styles.listActions}>
-                <button type="button" className={styles.actionButton} onClick={handleOpenRename}>
-                  Rename list
-                </button>
-                {lists.length > 1 && (
-                  <button
-                    type="button"
-                    className={`${styles.actionButton} ${styles.actionButtonDanger}`}
-                    onClick={handleOpenDeleteConfirm}>
-                    Delete list
-                  </button>
-                )}
-              </div>
-            )}
+              }
+              sidebarBottom={listSettings}
+            />
           </div>
         )}
       </div>
