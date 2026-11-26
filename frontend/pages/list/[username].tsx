@@ -4,7 +4,7 @@ import type { GetServerSideProps } from 'next';
 import { useAppContext } from '../../context/AppContext';
 import { buildOgImageUrl } from '../../lib/og-image';
 import { safeJsonLd } from '../../lib/json-ld';
-import { API_URL, SITE_URL } from '../../lib/site';
+import { SITE_URL } from '../../lib/site';
 import styles from './[username].module.css';
 
 type ListItem = {
@@ -156,25 +156,12 @@ export default function PublicProfilePage({ pageState, listData, username }: Pro
   );
 }
 
-export const getServerSideProps: GetServerSideProps<Props> = async (context) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const { username } = context.params as { username: string };
-
-  try {
-    const res = await fetch(`${API_URL}/api/list-settings/public/${username}`, {
-      signal: AbortSignal.timeout(5000),
-    });
-    if (res.status === 403) {
-      return { props: { pageState: 'private', listData: null, username } };
-    }
-    if (res.status === 404) {
-      return { notFound: true };
-    }
-    if (res.ok) {
-      const data: PublicListData = await res.json();
-      return { props: { pageState: 'found', listData: data, username } };
-    }
-    return { notFound: true };
-  } catch {
-    return { notFound: true };
-  }
+  return {
+    redirect: {
+      destination: `/profile/${username}`,
+      permanent: true,
+    },
+  };
 };
