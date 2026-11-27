@@ -142,6 +142,24 @@ describe('AreaPage — empty state', () => {
   });
 });
 
+describe('AreaPage — fetch error state', () => {
+  it('shows a distinct error message instead of the "no places" empty state', () => {
+    render(<AreaPage {...BLOOMSBURY_PROPS} places={[]} fetchError />);
+    expect(screen.getByText(/something went wrong loading places in Bloomsbury/i)).toBeInTheDocument();
+    expect(screen.queryByText(/no places saved in Bloomsbury yet/i)).not.toBeInTheDocument();
+  });
+
+  it('does not show the registration CTA in the error state', () => {
+    render(<AreaPage {...BLOOMSBURY_PROPS} places={[]} fetchError />);
+    expect(screen.queryByRole('link', { name: /be the first to add places here/i })).not.toBeInTheDocument();
+  });
+
+  it('shows the normal empty state when fetchError is not set', () => {
+    render(<AreaPage {...BLOOMSBURY_PROPS} places={[]} />);
+    expect(screen.queryByText(/something went wrong loading places/i)).not.toBeInTheDocument();
+  });
+});
+
 describe('AreaPage — populated state', () => {
   const places = [MUSEUM_PLACE, PARK_PLACE];
 
@@ -257,7 +275,7 @@ describe('getServerSideProps', () => {
     expect(result).toEqual({ notFound: true });
   });
 
-  it('returns props with empty places when the API call throws', async () => {
+  it('returns props with empty places and fetchError when the API call throws', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
     const result = await getServerSideProps(makeContext('bloomsbury'));
     expect(result).toEqual({
@@ -266,11 +284,12 @@ describe('getServerSideProps', () => {
         areaSlug: 'bloomsbury',
         areaLabel: expect.any(String),
         areaDescription: expect.any(String),
+        fetchError: true,
       },
     });
   });
 
-  it('returns props with empty places when the API returns a non-ok response', async () => {
+  it('returns props with empty places and fetchError when the API returns a non-ok response', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: false });
     const result = await getServerSideProps(makeContext('camden'));
     expect(result).toEqual({
@@ -279,6 +298,7 @@ describe('getServerSideProps', () => {
         areaSlug: 'camden',
         areaLabel: expect.any(String),
         areaDescription: expect.any(String),
+        fetchError: true,
       },
     });
   });
