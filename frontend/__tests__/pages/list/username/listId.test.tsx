@@ -109,6 +109,14 @@ describe('PublicListPage — private state', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent("alice's List");
   });
+
+  it('sets a noindex robots meta tag when the list is private', () => {
+    render(
+      <PublicListPage pageState="private" listData={null} username="alice" listId="list-abc" />,
+    );
+
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+  });
 });
 
 describe('PublicListPage — found state with items', () => {
