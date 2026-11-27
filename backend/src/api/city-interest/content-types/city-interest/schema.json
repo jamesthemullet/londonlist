@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "city_interests",
+  "info": {
+    "singularName": "city-interest",
+    "pluralName": "city-interests",
+    "displayName": "City Interest"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "city": {
+      "type": "string",
+      "required": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

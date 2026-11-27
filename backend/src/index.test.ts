@@ -51,6 +51,7 @@ type ResolverMap = {
     updateMyList: { resolve: Resolve };
     deleteMyList: { resolve: Resolve };
     copyPublicList: { resolve: Resolve };
+    submitCityInterest: { resolve: Resolve };
   };
 };
 
@@ -1171,6 +1172,112 @@ describe('bootstrap', () => {
 
     expect(permissionQuery.update).not.toHaveBeenCalledWith(
       expect.objectContaining({ data: { enabled: false } }),
+    );
+  });
+});
+
+describe('register — shadowCRUD city-interest', () => {
+  it('disables shadowCRUD for api::city-interest.city-interest', () => {
+    const disableCityInterest = jest.fn();
+    const shadowCRUD = jest.fn((uid: string) => ({
+      disable: uid === 'api::city-interest.city-interest' ? disableCityInterest : jest.fn(),
+      disableQueries: jest.fn(),
+    }));
+    const mockStrapi = {
+      plugin: jest.fn(() => ({ service: jest.fn(() => ({ use: jest.fn(), shadowCRUD })) })),
+    };
+    (indexPlugin as { register: (args: { strapi: unknown }) => void }).register({ strapi: mockStrapi });
+    expect(shadowCRUD).toHaveBeenCalledWith('api::city-interest.city-interest');
+    expect(disableCityInterest).toHaveBeenCalled();
+  });
+});
+
+describe('Mutation.submitCityInterest', () => {
+  const context = { state: { user: { id: 1 } } };
+
+  it('throws Forbidden access when not authenticated', async () => {
+    const resolvers = getResolvers({});
+    await expect(
+      resolvers.Mutation.submitCityInterest.resolve(null, { city: 'Paris' }, { state: {} }),
+    ).rejects.toThrow('Forbidden access');
+  });
+
+  it('creates a city interest entry and returns true for a new submission', async () => {
+    const cityInterestDocuments = {
+      findMany: jest.fn().mockResolvedValue([]),
+      create: jest.fn().mockResolvedValue({ city: 'Paris' }),
+    };
+    const resolvers = getResolvers({
+      documents: jest.fn(() => cityInterestDocuments),
+    });
+
+    const result = await resolvers.Mutation.submitCityInterest.resolve(
+      null,
+      { city: 'Paris' },
+      context,
+    );
+
+    expect(result).toBe(true);
+    expect(cityInterestDocuments.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ city: 'Paris' }) }),
+    );
+  });
+
+  it('returns true without creating when user already submitted', async () => {
+    const cityInterestDocuments = {
+      findMany: jest.fn().mockResolvedValue([{ city: 'Tokyo' }]),
+      create: jest.fn(),
+    };
+    const resolvers = getResolvers({
+      documents: jest.fn(() => cityInterestDocuments),
+    });
+
+    const result = await resolvers.Mutation.submitCityInterest.resolve(
+      null,
+      { city: 'Paris' },
+      context,
+    );
+
+    expect(result).toBe(true);
+    expect(cityInterestDocuments.create).not.toHaveBeenCalled();
+  });
+
+  it('returns false when city is blank', async () => {
+    const cityInterestDocuments = {
+      findMany: jest.fn().mockResolvedValue([]),
+      create: jest.fn(),
+    };
+    const resolvers = getResolvers({
+      documents: jest.fn(() => cityInterestDocuments),
+    });
+
+    const result = await resolvers.Mutation.submitCityInterest.resolve(
+      null,
+      { city: '   ' },
+      context,
+    );
+
+    expect(result).toBe(false);
+    expect(cityInterestDocuments.create).not.toHaveBeenCalled();
+  });
+
+  it('trims whitespace from city before saving', async () => {
+    const cityInterestDocuments = {
+      findMany: jest.fn().mockResolvedValue([]),
+      create: jest.fn().mockResolvedValue({ city: 'Tokyo' }),
+    };
+    const resolvers = getResolvers({
+      documents: jest.fn(() => cityInterestDocuments),
+    });
+
+    await resolvers.Mutation.submitCityInterest.resolve(
+      null,
+      { city: '  Tokyo  ' },
+      context,
+    );
+
+    expect(cityInterestDocuments.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ city: 'Tokyo' }) }),
     );
   });
 });

@@ -9,6 +9,7 @@ import MyList from '../components/my-list/my-list';
 import PlaceSearch from '../components/search/place-search';
 import ShareButtons from '../components/share-buttons/share-buttons';
 import UpgradeModal from '../components/upgrade-modal/upgrade-modal';
+import CityInterestPrompt from '../components/city-interest-prompt/city-interest-prompt';
 import WelcomeChecklist from '../components/welcome-checklist/welcome-checklist';
 import { useAppContext } from '../context/AppContext';
 import { useAuthHeader } from '../hooks/use-auth-header';
@@ -704,6 +705,7 @@ export default function MyListPage() {
                       onDismiss={handleChecklistDismiss}
                     />
                   )}
+                  <CityInterestPrompt />
                   <ProStatsCard lists={lists} isPro={isPro} />
                 </>
               }
