@@ -36,6 +36,20 @@ A dedicated way to browse places by London area/borough, rather than only via se
 - [x] GraphQL query: places filtered by area — pure function + tests.
 - [x] An area listing page + area filter UI, reusing the search results component's rendering.
 
+### 5. Gauge demand for other cities — *Acquisition, Retention*
+Early users want to share lists for places they've been on holiday (Tokyo, Paris…), but the app,
+search and brand are London-only. Before committing to a multi-city build or a rebrand, measure
+whether the demand is real. No new data model or search changes — just a lightweight signal.
+
+- [ ] A dismissible "Want lists for other cities? Tell us which" prompt on My List, posting the
+  city name (free text) to a new `city-interest` Strapi collection, with each user counted once.
+  Hide it after they've answered.
+- [ ] Log the same signal when search returns no London results, as a hint that people are
+  looking beyond London. Counting only, no UI.
+- [ ] After ~4–6 weeks, review the responses and decide: stay London-only, add other-city lists
+  as an experiment (possibly a Pro perk), or plan an umbrella rebrand with London as the
+  flagship city.
+
 ## Next (this quarter — moderate new build)
 
 ### 4. List sharing — *Acquisition, Fun*

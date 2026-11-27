@@ -116,7 +116,7 @@ test.describe('My list item management', () => {
     await expect(page.getByRole('tab', { name: 'My List' })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('Your list is empty.')).toBeVisible();
 
-    await page.getByLabel('Search for a place in London').fill('Tate Modern');
+    await page.getByLabel('Add a place').fill('Tate Modern');
     await expect(page.getByRole('button', { name: 'Add Tate Modern to list' })).toBeVisible({
       timeout: 5000,
     });
@@ -124,7 +124,8 @@ test.describe('My list item management', () => {
     await page.getByRole('button', { name: 'Add Tate Modern to list' }).click();
     await expect(page.getByRole('button', { name: 'Added Tate Modern to list' })).toBeVisible();
 
-    await expect(page.getByRole('heading', { name: 'To do (1)' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'To do' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('1 place', { exact: true })).toBeVisible();
   });
 
   test('can remove an item from the list', async ({ page }) => {
@@ -182,7 +183,7 @@ test.describe('My list item management', () => {
 
     await expect(page.getByText('Make this list public to share it with others.')).toBeVisible();
 
-    await page.getByText(/Make .My List. public/).click();
+    await page.getByRole('radio', { name: 'Public' }).click();
 
     await expect(page.getByLabel('Public list URL')).toBeVisible({ timeout: 5000 });
   });

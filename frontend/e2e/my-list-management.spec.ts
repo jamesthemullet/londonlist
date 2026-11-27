@@ -225,7 +225,7 @@ test.describe('My list management', () => {
 
     const banner = page.getByLabel('List usage');
     await expect(banner).toContainText('2/3 lists used');
-    await expect(banner).toContainText('1 remaining on the free plan');
+    await expect(banner.getByRole('link', { name: 'Upgrade for unlimited' })).toHaveAttribute('href', '/pricing');
   });
 
   test('can rename the active list', async ({ page }) => {
@@ -245,7 +245,7 @@ test.describe('My list management', () => {
     await page.goto('/my-list');
     await expect(page.getByRole('tab', { name: 'My List' })).toBeVisible({ timeout: 5000 });
 
-    await page.getByRole('button', { name: 'Rename list' }).click();
+    await page.getByRole('button', { name: 'Rename' }).click();
 
     const renameInput = page.getByLabel(/New name for/);
     await expect(renameInput).toBeVisible();
@@ -270,7 +270,7 @@ test.describe('My list management', () => {
     await page.goto('/my-list');
     await expect(page.getByRole('tab', { name: 'My List' })).toBeVisible({ timeout: 5000 });
 
-    await page.getByRole('button', { name: 'Delete list' }).click();
+    await page.getByRole('button', { name: 'Delete this list' }).click();
 
     await expect(page.getByRole('alertdialog')).toBeVisible();
     await page.getByRole('button', { name: 'Yes, delete' }).click();
@@ -292,7 +292,7 @@ test.describe('My list management', () => {
     await page.goto('/my-list');
     await expect(page.getByRole('tab', { name: 'My List' })).toBeVisible({ timeout: 5000 });
 
-    await expect(page.getByRole('button', { name: 'Delete list' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'Delete this list' })).not.toBeVisible();
   });
 
   test('unauthenticated user is redirected away from /my-list', async ({ page }) => {
