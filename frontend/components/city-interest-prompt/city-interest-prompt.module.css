@@ -1,0 +1,90 @@
+.prompt {
+  position: relative;
+  background: #f9f0fc;
+  border: 2px solid #c724b1;
+  border-radius: 4px;
+  padding: 1rem 2.5rem 1rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.dismiss {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #555;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.dismiss:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
+}
+
+.question {
+  margin: 0 0 0.75rem;
+  color: #111;
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.label {
+  display: block;
+  font-size: 0.85rem;
+  color: #444;
+  margin-bottom: 0.25rem;
+  width: 100%;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.input:focus-visible {
+  outline: 2px solid #c724b1;
+  outline-offset: 2px;
+}
+
+.submit {
+  padding: 0.5rem 1rem;
+  background: #c724b1;
+  color: #fff;
+  border: none;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submit:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 2px;
+}
+
+.thanks {
+  margin: 0;
+  color: #111;
+}

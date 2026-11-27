@@ -18,6 +18,7 @@ export default {
     extensionService.shadowCRUD('api::list.list').disable();
     extensionService.shadowCRUD('api::list-item.list-item').disable();
     extensionService.shadowCRUD('api::list-setting.list-setting').disableQueries();
+    extensionService.shadowCRUD('api::city-interest.city-interest').disable();
 
     extensionService.use(() => ({
       // Disabling shadowCRUD also removes the generated types and fields, so everything
@@ -103,6 +104,7 @@ export default {
           updateMyList(documentId: ID!, name: String, isPublic: Boolean, description: String): ListEntity
           deleteMyList(documentId: ID!): Boolean
           copyPublicList(sourceDocumentId: ID!, sourceUsername: String!): ListEntity
+          submitCityInterest(city: String!): Boolean
         }
       `,
       resolvers: {
@@ -490,6 +492,27 @@ export default {
               });
 
               await strapi.documents('api::list.list').delete({ documentId: args.documentId });
+              return true;
+            },
+          },
+          submitCityInterest: {
+            async resolve(_parent, args, context) {
+              const user = requireUser(context);
+
+              const existing = await strapi.documents('api::city-interest.city-interest').findMany({
+                filters: { user: { id: { $eq: user.id } } },
+                limit: 1,
+              });
+
+              if (existing.length > 0) return true;
+
+              const city = (args.city ?? '').trim();
+              if (!city) return false;
+
+              await strapi.documents('api::city-interest.city-interest').create({
+                data: { city, user: user.id } as unknown as never,
+              });
+
               return true;
             },
           },
